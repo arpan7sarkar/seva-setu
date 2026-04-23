@@ -14,6 +14,7 @@ import Logo from './components/Logo';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const FieldForm = lazy(() => import('./pages/FieldForm'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const VolunteerPage = lazy(() => import('./pages/VolunteerPage'));
 
 const PageLoader = () => (
   <div className="min-h-screen bg-surface-primary flex items-center justify-center">
@@ -50,6 +51,7 @@ function App() {
                 </div>
               }
             />
+            <Route path="/login" element={<Navigate to="/sign-in" replace />} />
             <Route
               path="/sign-up/*"
               element={
@@ -86,6 +88,19 @@ function App() {
                 <>
                   <Show when="signed-in">
                     <DashboardPage />
+                  </Show>
+                  <Show when="signed-out">
+                    <RedirectToSignIn />
+                  </Show>
+                </>
+              }
+            />
+            <Route
+              path="/volunteer"
+              element={
+                <>
+                  <Show when="signed-in">
+                    <VolunteerPage />
                   </Show>
                   <Show when="signed-out">
                     <RedirectToSignIn />
