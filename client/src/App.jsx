@@ -12,6 +12,7 @@ import Logo from './components/Logo';
 
 // ✅ Lazy load pages for performance (Code Splitting)
 const LandingPage = lazy(() => import('./pages/LandingPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
 const FieldForm = lazy(() => import('./pages/FieldForm'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const VolunteerPage = lazy(() => import('./pages/VolunteerPage'));
@@ -51,7 +52,7 @@ function App() {
                 </div>
               }
             />
-            <Route path="/login" element={<Navigate to="/sign-in" replace />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route
               path="/sign-up/*"
               element={

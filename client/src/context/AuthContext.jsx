@@ -5,7 +5,13 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [currentUser, setCurrentUser] = useState(() => {
     const raw = localStorage.getItem('currentUser');
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      localStorage.removeItem('currentUser');
+      return null;
+    }
   });
 
   const login = ({ token: nextToken, user }) => {

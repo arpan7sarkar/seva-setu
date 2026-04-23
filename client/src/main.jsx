@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/react'
 import { dark } from '@clerk/themes'
 import App from './App.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 import './index.css'
 import './styles/landing.css'
 import './styles/dashboard.css'
@@ -33,7 +34,9 @@ createRoot(document.getElementById('root')).render(
         }
       }}
     >
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </ClerkProvider>
   </React.StrictMode>,
 )

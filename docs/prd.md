@@ -175,9 +175,9 @@ match_score =
 ## ðŸŽ¨ Phase 3 â€” Frontend Development
 
 ### 3.1 Project Bootstrap
-- [ ] Scaffold with Vite: `npm create vite@latest client -- --template react`
-- [ ] Install dependencies: `tailwindcss`, `react-router-dom`, `axios`, `leaflet`, `react-leaflet`, `lucide-react`
-- [ ] Configure Tailwind CSS: `tailwind.config.js` + `@tailwind` directives in `index.css`
+- [x] Scaffold with Vite: `npm create vite@latest client -- --template react`
+- [x] Install dependencies: `tailwindcss`, `react-router-dom`, `axios`, `leaflet`, `react-leaflet`, `lucide-react`
+- [x] Configure Tailwind CSS: `tailwind.config.js` + `@tailwind` directives in `index.css`
 - [x] Create folder structure:
   ```
   /src
@@ -188,10 +188,10 @@ match_score =
     /context      â†’ auth context
   ```
 - [x] Set up `react-router-dom` with routes for `/login`, `/dashboard`, `/volunteer`, `/field`
-- [ ] Create `AuthContext` with login/logout/currentUser state
+- [x] Create `AuthContext` with login/logout/currentUser state
 
 ### 3.2 Auth Pages
-- [ ] Build `LoginPage.jsx` â€” email + password form, role-based redirect on success
+- [x] Build `LoginPage.jsx` — email + password form, role-based redirect on success
 - [ ] Build `RegisterPage.jsx` â€” name, email, password, role selector, skills multi-select (for volunteers)
 - [ ] Implement `ProtectedRoute` component â€” redirects to login if no JWT in localStorage
 - [ ] Test login flow end-to-end with real backend
@@ -393,4 +393,7 @@ match_score =
 ---
 
 *Last updated: Sprint kickoff | Version 1.1 â€” Migrated from Knex to Prisma ORM*
+
+
+
 
