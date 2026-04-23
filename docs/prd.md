@@ -18,10 +18,10 @@
 ## 🗂️ Phase 0 — Project Setup & Repository
 
 ### 0.1 Initialize Repository
-- [ ] Create a GitHub repository named `sevasetu`
-- [ ] Add a root-level `README.md` with project description and setup steps
-- [ ] Add `.gitignore` for Node, Python, and environment files
-- [ ] Create a `LICENSE` file (MIT)
+- [x] Create a GitHub repository named `sevasetu`
+- [x] Add a root-level `README.md` with project description and setup steps
+- [x] Add `.gitignore` for Node, Python, and environment files
+- [x] Create a `LICENSE` file (MIT)
 
 ### 0.2 Define Monorepo Folder Structure
 - [ ] Create `/client` folder for the React frontend
