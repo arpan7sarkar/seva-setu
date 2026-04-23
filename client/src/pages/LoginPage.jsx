@@ -3,11 +3,19 @@ import MainLayout from '../layouts/MainLayout';
 
 const LoginPage = () => (
   <MainLayout>
-    <section className="container-lg py-12">
-      <div className="max-w-md mx-auto card p-6">
-        <p className="landing-eyebrow">Account Access</p>
-        <h1 className="text-2xl font-bold text-text-primary mb-4">Sign in to SevaSetu</h1>
-        <SignIn routing="path" path="/login" fallbackRedirectUrl="/dashboard" signUpUrl="/register" />
+    <section className="container-lg auth-shell">
+      <div className="auth-card-wrap">
+        <div className="auth-card">
+          <p className="landing-eyebrow">Account Access</p>
+          <h1 className="auth-title">Sign in to SevaSetu</h1>
+          <p className="auth-subtitle">Continue coordinating response operations in your command workspace.</p>
+          <SignIn
+            routing="path"
+            path="/login"
+            fallbackRedirectUrl="/dashboard"
+            signUpUrl="/register"
+          />
+        </div>
       </div>
     </section>
   </MainLayout>

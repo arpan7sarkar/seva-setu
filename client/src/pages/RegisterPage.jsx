@@ -3,11 +3,19 @@ import MainLayout from '../layouts/MainLayout';
 
 const RegisterPage = () => (
   <MainLayout>
-    <section className="container-lg py-12">
-      <div className="max-w-md mx-auto card p-6">
-        <p className="landing-eyebrow">Create Account</p>
-        <h1 className="text-2xl font-bold text-text-primary mb-4">Join SevaSetu</h1>
-        <SignUp routing="path" path="/register" fallbackRedirectUrl="/dashboard" signInUrl="/login" />
+    <section className="container-lg auth-shell">
+      <div className="auth-card-wrap">
+        <div className="auth-card">
+          <p className="landing-eyebrow">Create Account</p>
+          <h1 className="auth-title">Join SevaSetu</h1>
+          <p className="auth-subtitle">Register your role and start helping needs reach responders faster.</p>
+          <SignUp
+            routing="path"
+            path="/register"
+            fallbackRedirectUrl="/dashboard"
+            signInUrl="/login"
+          />
+        </div>
       </div>
     </section>
   </MainLayout>
