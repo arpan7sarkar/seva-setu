@@ -192,22 +192,22 @@ match_score =
 
 ### 3.2 Auth Pages
 - [x] Build `LoginPage.jsx` — email + password form, role-based redirect on success
-- [ ] Build `RegisterPage.jsx` â€” name, email, password, role selector, skills multi-select (for volunteers)
-- [ ] Implement `ProtectedRoute` component â€” redirects to login if no JWT in localStorage
+- [x] Build `RegisterPage.jsx` — name, email, password, role selector, skills multi-select (for volunteers)
+- [x] Implement `ProtectedRoute` component — redirects to login if no JWT in localStorage
 - [ ] Test login flow end-to-end with real backend
 
 ### 3.3 Field Worker Form (View 1)
 > Ultra-simple. Low-bandwidth. Mobile-first.
 
-- [ ] Build `FieldForm.jsx` page â€” full-screen, single-column form
-- [ ] Add fields: Title, Description, Need Type (dropdown), Ward, District, People Affected, GPS auto-fill button
-- [ ] Add GPS capture: `navigator.geolocation.getCurrentPosition()` â†’ populates hidden lat/lng fields
-- [ ] Implement **offline support with Service Worker**:
-  - [ ] Create `public/sw.js` â€” cache form page and assets
-  - [ ] Implement `IndexedDB` queue â€” if offline, store submission locally
-  - [ ] On network restore, flush the queue and sync to backend
-- [ ] Add a visual "Offline / Online" indicator badge
-- [ ] Show urgency score preview (calculate client-side before submission)
+- [x] Build `FieldForm.jsx` page — full-screen, single-column form
+- [x] Add fields: Title, Description, Need Type (dropdown), Ward, District, People Affected, GPS auto-fill button
+- [x] Add GPS capture: `navigator.geolocation.getCurrentPosition()` → populates hidden lat/lng fields
+- [x] Implement **offline support with Service Worker**:
+    - [x] Create `public/sw.js` — cache form page and assets
+    - [x] Implement `IndexedDB` queue — if offline, store submission locally
+    - [x] On network restore, flush the queue and sync to backend
+- [x] Add a visual "Offline / Online" indicator badge
+- [x] Show urgency score preview (calculate client-side before submission)
 - [ ] Test on a mobile browser (Chrome DevTools device mode)
 
 ### 3.4 NGO Coordinator Dashboard (View 2)
@@ -393,6 +393,7 @@ match_score =
 ---
 
 *Last updated: Sprint kickoff | Version 1.1 â€” Migrated from Knex to Prisma ORM*
+
 
 
 

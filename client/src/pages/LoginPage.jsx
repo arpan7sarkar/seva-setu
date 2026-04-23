@@ -96,7 +96,7 @@ const LoginPage = () => {
 
           <p className="mt-5 text-sm text-text-secondary">
             Need an account?{' '}
-            <Link to="/sign-up" className="text-text-primary font-semibold hover:underline">
+            <Link to="/register" className="text-text-primary font-semibold hover:underline">
               Register here
             </Link>
           </p>
