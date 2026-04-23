@@ -1,5 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from './authContextObject';
+
+const decodeJwtPayload = (rawToken) => {
+  if (!rawToken) return null;
+
+  try {
+    const parts = rawToken.split('.');
+    if (parts.length < 2) return null;
+    const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+};
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
@@ -21,12 +34,44 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     setCurrentUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
-  };
+  }, []);
+
+  useEffect(() => {
+    const onUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
+  }, [logout]);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    const payload = decodeJwtPayload(token);
+    const expiresAtMs = Number(payload?.exp) * 1000;
+    if (!expiresAtMs || Number.isNaN(expiresAtMs)) return undefined;
+
+    const msUntilExpiry = expiresAtMs - Date.now();
+
+    if (msUntilExpiry <= 0) {
+      queueMicrotask(() => {
+        logout();
+      });
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      logout();
+    }, msUntilExpiry);
+
+    return () => clearTimeout(timer);
+  }, [token, logout]);
 
   const value = useMemo(
     () => ({
@@ -36,7 +81,7 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
     }),
-    [token, currentUser]
+    [token, currentUser, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

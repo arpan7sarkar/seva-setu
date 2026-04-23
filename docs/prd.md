@@ -261,8 +261,8 @@ match_score =
 ## âš™ï¸ Phase 4 â€” Integration & End-to-End Testing
 
 ### 4.1 Connect Frontend to Backend
-- [ ] Set `VITE_API_BASE_URL` in `.env` pointing to local backend
-- [ ] Confirm all API calls use the axios `baseURL` â€” no hardcoded URLs
+- [x] Set `VITE_API_BASE_URL` in `.env` pointing to local backend
+- [x] Confirm all API calls use the axios `baseURL` — no hardcoded URLs
 - [ ] Test the full lifecycle: Field worker submits need â†’ Coordinator sees it on map â†’ Matches volunteers â†’ Assigns â†’ Volunteer checks in â†’ Volunteer completes â†’ Status updates everywhere
 
 ### 4.2 Auth Flow Testing
@@ -393,6 +393,7 @@ match_score =
 ---
 
 *Last updated: Sprint kickoff | Version 1.1 â€” Migrated from Knex to Prisma ORM*
+
 
 
 
