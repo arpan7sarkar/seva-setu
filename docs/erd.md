@@ -3,67 +3,20 @@
 ## Visual Schema
 
 ```mermaid
-erDiagram
-    ORGANIZATIONS ||--o{ USERS : "has members"
-    USERS ||--o| VOLUNTEERS : "extends"
-    USERS ||--o{ NEEDS : "reports"
-    USERS ||--o{ TASKS : "assigned to"
-    NEEDS ||--o{ TASKS : "fulfilled by"
+flowchart TD
+    %% Entities
+    Organizations["🏢 Organizations\n(NGOs & Relief Groups)"]
+    Users["👤 Users\n(Coordinators, Field Workers)"]
+    Volunteers["🦸 Volunteers\n(Skills, Location, Availability)"]
+    Needs["🚨 Needs\n(Type, Urgency, Location)"]
+    Tasks["📋 Tasks\n(Assigned Volunteer, Status)"]
 
-    ORGANIZATIONS {
-        uuid id PK
-        string name
-        string contact_email
-        string district
-        timestamp created_at
-    }
-
-    USERS {
-        uuid id PK
-        string name
-        string email UK
-        string password_hash
-        string role
-        uuid org_id FK
-        timestamp created_at
-    }
-
-    VOLUNTEERS {
-        uuid user_id PK_FK
-        text_array skills
-        point location
-        boolean is_available
-        int tasks_completed
-        float completion_rate
-    }
-
-    NEEDS {
-        uuid id PK
-        string title
-        text description
-        string need_type
-        point location
-        string ward
-        string district
-        int people_affected
-        float urgency_score
-        string status
-        boolean is_disaster_zone
-        uuid reported_by FK
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    TASKS {
-        uuid id PK
-        uuid need_id FK
-        uuid assigned_volunteer_id FK
-        string status
-        timestamp assigned_at
-        timestamp checked_in_at
-        timestamp completed_at
-        text notes
-    }
+    %% Relationships
+    Organizations -->|has members| Users
+    Users -->|registers as| Volunteers
+    Users -->|reports| Needs
+    Needs -->|breaks down into| Tasks
+    Volunteers -->|completes| Tasks
 ```
 
 ## Spatial Indexes

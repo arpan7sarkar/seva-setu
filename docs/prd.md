@@ -92,31 +92,31 @@
 ## 🔧 Phase 2 — Backend API Development
 
 ### 2.1 Project Bootstrap
-- [ ] Initialize project: `npm init` (Express) or `fastapi` scaffold (Python)
-- [ ] Install core dependencies:
+- [x] Initialize project: `npm init` (Express) or `fastapi` scaffold (Python)
+- [x] Install core dependencies:
   - Express: `express`, `pg`, `knex`, `bcrypt`, `jsonwebtoken`, `cors`, `dotenv`
   - FastAPI: `fastapi`, `uvicorn`, `sqlalchemy`, `psycopg2`, `python-jose`, `passlib`
-- [ ] Set up a basic `health check` endpoint: `GET /api/health → { status: "ok" }`
-- [ ] Verify the server starts and the health check works
+- [x] Set up a basic `health check` endpoint: `GET /api/health → { status: "ok" }`
+- [x] Verify the server starts and the health check works
 
 ### 2.2 Authentication Module
-- [ ] Implement `POST /api/auth/register` — hash password, store user, return JWT
-- [ ] Implement `POST /api/auth/login` — verify credentials, return JWT + role
-- [ ] Create `authMiddleware` — validates JWT on protected routes
-- [ ] Test both endpoints with Postman or Thunder Client
+- [x] Implement `POST /api/auth/register` — hash password, store user, return JWT
+- [x] Implement `POST /api/auth/login` — verify credentials, return JWT + role
+- [x] Create `authMiddleware` — validates JWT on protected routes
+- [x] Test both endpoints with Postman or Thunder Client
 
 ### 2.3 Needs API
-- [ ] `POST /api/needs` — create a need (field worker / coordinator), trigger urgency scoring
-- [ ] `GET /api/needs` — list all needs (filterable by status, district, need_type, urgency)
-- [ ] `GET /api/needs/:id` — get single need with full details
-- [ ] `PATCH /api/needs/:id/status` — update status (coordinator only)
-- [ ] `GET /api/needs/heatmap` — return all needs with lat/lng + urgency_score for map rendering
+- [x] `POST /api/needs` — create a need (field worker / coordinator), trigger urgency scoring
+- [x] `GET /api/needs` — list all needs (filterable by status, district, need_type, urgency)
+- [x] `GET /api/needs/:id` — get single need with full details
+- [x] `PATCH /api/needs/:id/status` — update status (coordinator only)
+- [x] `GET /api/needs/heatmap` — return all needs with lat/lng + urgency_score for map rendering
 
 ### 2.4 Urgency Scoring Algorithm
 > This is a core differentiator — implement it carefully.
 
-- [ ] Create a `scoringService.js` (or `scoring_service.py`) module
-- [ ] Implement base scoring formula:
+- [x] Create a `scoringService.js` (or `scoring_service.py`) module
+- [x] Implement base scoring formula:
 
 ```
 urgency_score =
@@ -127,16 +127,16 @@ urgency_score =
   → normalize to 1–10 scale
 ```
 
-- [ ] Add `disaster_mode` flag — if `true`, multiply urgency scores by 1.5 (capped at 10)
-- [ ] Call this service on every `POST /api/needs` and store the score
-- [ ] Write a cron job (or manual trigger) to **recalculate scores every hour** based on time elapsed
-- [ ] Write unit tests for the scoring function with edge cases
+- [x] Add `disaster_mode` flag — if `true`, multiply urgency scores by 1.5 (capped at 10)
+- [x] Call this service on every `POST /api/needs` and store the score
+- [x] Write a cron job (or manual trigger) to **recalculate scores every hour** based on time elapsed
+- [x] Write unit tests for the scoring function with edge cases
 
 ### 2.5 Volunteer Matching Algorithm
 > This is the "Smart Dispatch" engine — your hackathon showpiece.
 
-- [ ] Create `matchingService.js` (or `matching_service.py`)
-- [ ] For a given `need_id`, implement composite scoring per volunteer:
+- [x] Create `matchingService.js` (or `matching_service.py`)
+- [x] For a given `need_id`, implement composite scoring per volunteer:
 
 ```
 match_score =
@@ -146,30 +146,30 @@ match_score =
   + (completion_rate) * 10       // reliability weight: 10%
 ```
 
-- [ ] Use PostGIS `ST_Distance` for geo-distance queries:
+- [x] Use PostGIS `ST_Distance` for geo-distance queries:
   ```sql
   SELECT *, ST_Distance(location::geography, ST_MakePoint($lon, $lat)::geography) AS dist_m
   FROM volunteers WHERE is_available = true ORDER BY dist_m ASC LIMIT 10;
   ```
-- [ ] Return top 3 matched volunteers with their scores and distances
-- [ ] Implement `GET /api/needs/:id/matches` — returns ranked volunteer list
+- [x] Return top 3 matched volunteers with their scores and distances
+- [x] Implement `GET /api/needs/:id/matches` — returns ranked volunteer list
 
 ### 2.6 Tasks API
-- [ ] `POST /api/tasks` — assign a volunteer to a need (coordinator only), set status to `assigned`
-- [ ] `PATCH /api/tasks/:id/checkin` — volunteer GPS check-in, updates `checked_in_at` and status to `in_progress`
-- [ ] `PATCH /api/tasks/:id/complete` — volunteer marks task done, updates `completed_at`, increments `tasks_completed` on volunteer, recalculates `completion_rate`
-- [ ] `GET /api/tasks/my` — volunteer sees their own task list
+- [x] `POST /api/tasks` — assign a volunteer to a need (coordinator only), set status to `assigned`
+- [x] `PATCH /api/tasks/:id/checkin` — volunteer GPS check-in, updates `checked_in_at` and status to `in_progress`
+- [x] `PATCH /api/tasks/:id/complete` — volunteer marks task done, updates `completed_at`, increments `tasks_completed` on volunteer, recalculates `completion_rate`
+- [x] `GET /api/tasks/my` — volunteer sees their own task list
 
 ### 2.7 Volunteers API
-- [ ] `GET /api/volunteers` — list all volunteers (coordinator view)
-- [ ] `PATCH /api/volunteers/me/availability` — toggle volunteer availability on/off
-- [ ] `PATCH /api/volunteers/me/location` — update volunteer's current GPS location
-- [ ] `GET /api/volunteers/me/stats` — return `tasks_completed`, `completion_rate`, active tasks
+- [x] `GET /api/volunteers` — list all volunteers (coordinator view)
+- [x] `PATCH /api/volunteers/me/availability` — toggle volunteer availability on/off
+- [x] `PATCH /api/volunteers/me/location` — update volunteer's current GPS location
+- [x] `GET /api/volunteers/me/stats` — return `tasks_completed`, `completion_rate`, active tasks
 
 ### 2.8 API Testing & Documentation
-- [ ] Test every endpoint with mock data
-- [ ] Write a simple `API.md` documenting all routes, request bodies, and response shapes
-- [ ] Add basic rate limiting middleware (optional but good for demo)
+- [x] Test every endpoint with mock data
+- [x] Write a simple `API.md` documenting all routes, request bodies, and response shapes
+- [x] Add basic rate limiting middleware (optional but good for demo)
 
 ---
 
