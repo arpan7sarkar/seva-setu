@@ -246,15 +246,15 @@ match_score =
 ### 3.5 Volunteer App (View 3)
 > Mobile-friendly web app â€” volunteers use this on their phones.
 
-- [ ] Build `VolunteerPage.jsx` â€” mobile-first, card-based layout
-- [ ] Show current availability toggle (ON/OFF switch) â€” calls `PATCH /api/volunteers/me/availability`
-- [ ] Show assigned tasks list with status chips
-- [ ] For each `assigned` task: show need details + a "Check In" button
-  - [ ] "Check In" â†’ capture current GPS â†’ call `PATCH /api/tasks/:id/checkin`
-- [ ] For each `in_progress` task: show a "Mark Complete" button
-  - [ ] "Mark Complete" â†’ call `PATCH /api/tasks/:id/complete` â†’ show celebration state
-- [ ] Show **Impact Stats** card: Tasks Completed, Completion Rate, Distance Covered (optional)
-- [ ] Implement background location update: every 5 minutes, if task is active, push new GPS coords
+- [x] Build `VolunteerPage.jsx` — mobile-first, card-based layout
+- [x] Show current availability toggle (ON/OFF switch) — calls `PATCH /api/volunteers/me/availability`
+- [x] Show assigned tasks list with status chips
+- [x] For each `assigned` task: show need details + a "Check In" button
+    - [x] "Check In" → capture current GPS → call `PATCH /api/tasks/:id/checkin`
+- [x] For each `in_progress` task: show a "Mark Complete" button
+    - [x] "Mark Complete" → call `PATCH /api/tasks/:id/complete` → show celebration state
+- [x] Show **Impact Stats** card: Tasks Completed, Completion Rate, Distance Covered (optional)
+- [x] Implement background location update: every 5 minutes, if task is active, push new GPS coords
 
 ---
 
@@ -393,6 +393,7 @@ match_score =
 ---
 
 *Last updated: Sprint kickoff | Version 1.1 â€” Migrated from Knex to Prisma ORM*
+
 
 
 

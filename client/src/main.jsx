@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import './index.css'
 import './styles/landing.css'
 import './styles/dashboard.css'
+import './styles/volunteer.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
