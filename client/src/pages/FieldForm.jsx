@@ -72,7 +72,7 @@ const FieldForm = () => {
 
             {syncingQueue ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-accent-sky/30 text-accent-sky bg-accent-sky/10 px-3 py-1.5">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 icon-spin" />
                 Syncing
               </span>
             ) : null}
@@ -204,7 +204,7 @@ const FieldForm = () => {
                 }`}
               >
                 {locLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 icon-spin" />
                 ) : formData.lat ? (
                   <CheckCircle2 className="w-5 h-5" />
                 ) : (
@@ -228,7 +228,7 @@ const FieldForm = () => {
 
             <button type="submit" disabled={loading} className="btn-primary w-full py-4 text-sm font-semibold">
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-5 h-5 icon-spin" />
               ) : (
                 <>
                   <Send className="w-4 h-4" />

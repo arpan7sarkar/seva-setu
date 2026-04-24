@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Settings, Plus } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { useCoordinatorDashboard } from '../hooks/useCoordinatorDashboard';
 import DashboardSummaryCards from '../components/dashboard/DashboardSummaryCards';
@@ -7,8 +10,10 @@ import NeedsList from '../components/dashboard/NeedsList';
 import MatchModal from '../components/dashboard/MatchModal';
 import KanbanBoard from '../components/dashboard/KanbanBoard';
 import DashboardToast from '../components/dashboard/DashboardToast';
+import CoordinatorManagerModal from '../components/dashboard/CoordinatorManagerModal';
 
 const DashboardPage = () => {
+  const [showManager, setShowManager] = useState(false);
   const {
     loading,
     error,
@@ -36,7 +41,25 @@ const DashboardPage = () => {
   return (
     <MainLayout>
       <div className="dashboard-shell container-lg">
-        <section className="dashboard-hero">
+        <section className="dashboard-hero" style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.75rem' }}>
+            <Link 
+              to="/field"
+              className="dashboard-dispatch-btn" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--color-surface-secondary)' }}
+            >
+              <Plus size={14} />
+              Report New Need
+            </Link>
+            <button 
+              onClick={() => setShowManager(true)}
+              className="dashboard-dispatch-btn" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--color-surface-secondary)' }}
+            >
+              <Settings size={14} />
+              Manage Coordinators
+            </button>
+          </div>
           <p className="landing-eyebrow">Coordinator Command Center</p>
           <h1 className="dashboard-title">Real-time aid orchestration from report to resolution.</h1>
           <p className="dashboard-subtitle">
@@ -46,13 +69,13 @@ const DashboardPage = () => {
 
         {loading ? (
           <div className="dashboard-card">
-            <p className="text-sm text-text-secondary">Loading dashboard data...</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Loading dashboard data...</p>
           </div>
         ) : null}
 
         {error ? (
           <div className="dashboard-card">
-            <p className="text-sm text-accent-rose">{error}</p>
+            <p style={{ fontSize: '0.875rem', color: '#fb7185' }}>{error}</p>
           </div>
         ) : null}
 
@@ -103,6 +126,8 @@ const DashboardPage = () => {
         />
 
         <DashboardToast toast={toast} />
+
+        {showManager && <CoordinatorManagerModal onClose={() => setShowManager(false)} />}
       </div>
     </MainLayout>
   );

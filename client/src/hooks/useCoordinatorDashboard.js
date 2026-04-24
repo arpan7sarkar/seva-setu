@@ -110,7 +110,11 @@ export const useCoordinatorDashboard = () => {
   const summary = useMemo(() => {
     const openNeeds = needs.filter((n) => n.status === 'open').length;
     const activeVolunteers = volunteers.filter((v) => v.is_available).length;
-    const tasksInProgress = needs.filter((n) => n.status === 'in_progress').length;
+    
+    // Present workers = unique volunteers who have a task that is NOT completed
+    const activeTasks = tasks.filter((t) => t.status === 'assigned' || t.status === 'in_progress');
+    const presentWorkers = new Set(activeTasks.map(t => t.volunteer_id)).size;
+
     const today = new Date();
     const completedToday = needs.filter((n) => {
       if (n.status !== 'completed') return false;
@@ -122,8 +126,8 @@ export const useCoordinatorDashboard = () => {
       );
     }).length;
 
-    return { openNeeds, activeVolunteers, tasksInProgress, completedToday };
-  }, [needs, volunteers]);
+    return { openNeeds, activeVolunteers, presentWorkers, completedToday };
+  }, [needs, volunteers, tasks]);
 
   const setSort = (key) => {
     setSorting((prev) => {

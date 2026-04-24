@@ -1,4 +1,4 @@
-﻿# ðŸŒ‰ SevaSetu â€” Implementation PRD
+# ðŸŒ‰ SevaSetu â€” Implementation PRD
 > *Real-time Volunteer Coordination & Community Needs Intelligence Platform*
 
 ---
@@ -10,7 +10,7 @@
 | **Product Name** | SevaSetu |
 | **Type** | Web Platform (PWA) |
 | **Target Users** | NGO Coordinators, Volunteers, Field Workers |
-| **Core Stack** | React + Tailwind, Node.js (Express) + Prisma ORM, PostgreSQL + PostGIS |
+| **Core Stack** | React + Tailwind, Node.js (Express) + Prisma ORM, PostgreSQL + PostGIS, Clerk (Auth) |
 | **Timeline** | 3â€“7 Days (Hackathon Sprint) |
 
 ---
@@ -75,15 +75,16 @@
 - [x] Define enums: `UserRole`, `NeedType`, `NeedStatus`, `TaskStatus`
 - [x] Add PostGIS extension support via `extensions = [postgis]`
 - [x] Create raw SQL migration for PostGIS geometry columns & GIST indexes (`prisma/migrations/0_init/migration.sql`)
-- [ ] Run all migrations and verify tables exist: `\dt` in psql
+- [x] Run all migrations and verify tables exist: `\dt` in psql
+- [x] Add `CoordinatorEmail` table for whitelist-based RBAC automation
 
 ### 1.4 Seed Data
 - [x] Create a Prisma seed script (`prisma/seed.js`) with at least:
   - 1 coordinator account
   - 10 volunteer accounts with varied skills and geo-locations around a sample city (e.g., Kolkata)
-  - 15â€“20 sample `needs` records across different wards with varied urgency levels
+  - 15-20 sample `needs` records across different wards with varied urgency levels
   - 5 tasks in various statuses
-- [ ] Run seed and verify data in DB: `npm run seed`
+- [x] Run seed and verify data in DB: `npm run seed`
 
 
 ---
@@ -99,10 +100,10 @@
 - [x] Verify the server starts and the health check works
 
 ### 2.2 Authentication Module
-- [x] Implement `POST /api/auth/register` â€” hash password, store user, return JWT
-- [x] Implement `POST /api/auth/login` â€” verify credentials, return JWT + role
-- [x] Create `authMiddleware` â€” validates JWT on protected routes
-- [x] Test both endpoints with Postman or Thunder Client
+- [x] Integrate **Clerk** for authentication (Social Login / Google OAuth)
+- [x] Implement automated role assignment via backend middleware (whitelist-based)
+- [x] Create `authMiddleware` â€” validates Clerk sessions and assigns DB roles (Coordinator/Volunteer)
+- [x] Test login flow with automatic redirection to correct dashboard (no manual role choice)
 
 ### 2.3 Needs API
 - [x] `POST /api/needs` â€” create a need (field worker / coordinator), trigger urgency scoring
@@ -168,7 +169,7 @@ match_score =
 ### 2.8 API Testing & Documentation
 - [x] Test every endpoint with mock data
 - [x] Write a simple `API.md` documenting all routes, request bodies, and response shapes
-- [x] Add basic rate limiting middleware (optional but good for demo)
+- [x] Implement `/api/coordinators` endpoints for whitelist management (GET/POST/DELETE)
 
 ---
 
@@ -194,7 +195,8 @@ match_score =
 - [x] Build `LoginPage.jsx` — email + password form, role-based redirect on success
 - [x] Build `RegisterPage.jsx` — name, email, password, role selector, skills multi-select (for volunteers)
 - [x] Implement `ProtectedRoute` component — redirects to login if no JWT in localStorage
-- [ ] Test login flow end-to-end with real backend
+- [x] Build `PostLoginRedirect.jsx` â€” frictionless role check and redirection
+- [x] Test login flow end-to-end with Clerk + Backend role sync
 
 ### 3.3 Field Worker Form (View 1)
 > Ultra-simple. Low-bandwidth. Mobile-first.
@@ -208,7 +210,8 @@ match_score =
     - [x] On network restore, flush the queue and sync to backend
 - [x] Add a visual "Offline / Online" indicator badge
 - [x] Show urgency score preview (calculate client-side before submission)
-- [ ] Test on a mobile browser (Chrome DevTools device mode)
+- [x] Test on a mobile browser (Chrome DevTools device mode)
+- [x] Fix: Ensure map coordinates are populated in DB for accurate centering
 
 ### 3.4 NGO Coordinator Dashboard (View 2)
 > This is your hero view. Make it impressive.
@@ -216,7 +219,8 @@ match_score =
 #### 3.4.1 Layout & Shell
 - [x] Build `DashboardPage.jsx` with a two-panel layout: left sidebar (stats + filters) + right main area (map + list)
 - [x] Add top nav: SevaSetu logo, coordinator name, logout
-- [x] Add summary cards row: Total Open Needs | Active Volunteers | Tasks In Progress | Completed Today
+- [x] Add summary cards row: Total Open Needs | Active Volunteers | Present Workers | Completed Today
+- [x] Build `CoordinatorManagerModal.jsx` for managing the coordinator whitelist UI
 
 #### 3.4.2 Needs Heatmap
 - [x] Integrate `react-leaflet` with OpenStreetMap tiles (no API key needed)
@@ -263,24 +267,25 @@ match_score =
 ### 4.1 Connect Frontend to Backend
 - [x] Set `VITE_API_BASE_URL` in `.env` pointing to local backend
 - [x] Confirm all API calls use the axios `baseURL` — no hardcoded URLs
-- [ ] Test the full lifecycle: Field worker submits need â†’ Coordinator sees it on map â†’ Matches volunteers â†’ Assigns â†’ Volunteer checks in â†’ Volunteer completes â†’ Status updates everywhere
+- [x] Test the full lifecycle: Field worker submits need â†’ Coordinator sees it on map â†’ Matches volunteers â†’ Assigns â†’ Volunteer checks in â†’ Volunteer completes â†’ Status updates everywhere
+- [x] Fix: Resolve Leaflet map overlapping z-index issues and blank tile rendering
 
 ### 4.2 Auth Flow Testing
-- [ ] Register a coordinator, a volunteer, and a field worker
-- [ ] Verify role-based routing works (coordinator sees dashboard, volunteer sees volunteer app)
-- [ ] Verify JWT expiry handling â€” redirect to login on expired token
+- [x] Register a coordinator, a volunteer, and a field worker
+- [x] Verify role-based routing works (coordinator sees dashboard, volunteer sees volunteer app)
+- [x] Verify Clerk session management correctly persists user state
 
 ### 4.3 Algorithm Validation
-- [ ] Create 5 test needs with varied parameters
-- [ ] Verify urgency scores are ranked in the expected order
-- [ ] Create 10 test volunteers at varying distances and skills
-- [ ] Verify the matching engine returns the correct top 3 for each need type
+- [x] Create 5 test needs with varied parameters
+- [x] Verify urgency scores are ranked in the expected order
+- [x] Create 10 test volunteers at varying distances and skills
+- [x] Verify the matching engine returns the correct top 3 for each need type
 
 ### 4.4 Offline Form Testing
-- [ ] Open the field form in Chrome â†’ go to DevTools â†’ Network â†’ set to Offline
-- [ ] Submit a need â†’ verify it queues in IndexedDB (Application tab in DevTools)
-- [ ] Restore network â†’ verify the queued submission syncs to backend
-- [ ] Confirm the need appears on the coordinator dashboard
+- [x] Open the field form in Chrome â†’ go to DevTools â†’ Network â†’ set to Offline
+- [x] Submit a need â†’ verify it queues in IndexedDB (Application tab in DevTools)
+- [x] Restore network â†’ verify the queued submission syncs to backend
+- [x] Confirm the need appears on the coordinator dashboard
 
 ---
 
@@ -345,15 +350,16 @@ match_score =
 
 | Feature | Build or Pitch | Priority | Status |
 |---|---|---|---|
-| Need submission form (offline PWA) | Build | P0 | â¬œ |
-| Coordinator dashboard + heatmap | Build | P0 | â¬œ |
-| Urgency scoring algorithm | Build | P0 | â¬œ |
-| Volunteer matching engine (top 3) | Build | P0 | â¬œ |
-| Task pipeline (Openâ†’Assignedâ†’Done) | Build | P0 | â¬œ |
-| Auth (JWT, role-based) | Build | P0 | â¬œ |
-| Volunteer app (mobile web) | Build | P1 | â¬œ |
-| GPS check-in | Build | P1 | â¬œ |
-| Offline sync (IndexedDB + SW) | Build | P1 | â¬œ |
+| Need submission form (offline PWA) | Build | P0 | âœ… |
+| Coordinator dashboard + heatmap | Build | P0 | âœ… |
+| Urgency scoring algorithm | Build | P0 | âœ… |
+| Volunteer matching engine (top 3) | Build | P0 | âœ… |
+| Task pipeline (Openâ†’Assignedâ†’Done) | Build | P0 | âœ… |
+| Auth (Clerk, automated RBAC) | Build | P0 | âœ… |
+| Volunteer app (mobile web) | Build | P1 | âœ… |
+| GPS check-in | Build | P1 | âœ… |
+| Offline sync (IndexedDB + SW) | Build | P1 | âœ… |
+| Whitelist-based Coordinator Management | Build | P0 | âœ… |
 | WhatsApp ingestion pipeline | Pitch | P2 | â¬œ |
 | OCR paper form digitization | Pitch | P2 | â¬œ |
 | Multi-language support | Pitch | P3 | â¬œ |
@@ -371,7 +377,7 @@ match_score =
 | Backend | Node.js (Express) | Team's fastest language |
 | ORM / Migrations | Prisma | Type-safe queries, declarative schema, auto-generated client |
 | Database | PostgreSQL + PostGIS | Geospatial queries for matching |
-| Auth | JWT (manual) | Simple + no vendor lock |
+| Auth | Clerk | Social Auth + Automated RBAC |
 | Offline | Service Workers + IndexedDB | PWA standard, no extra library |
 | Frontend deploy | Vercel | Free, instant GitHub deploy |
 | Backend deploy | Railway or Render | Free tier, Postgres included |

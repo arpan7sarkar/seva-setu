@@ -6,44 +6,44 @@ const MainLayout = ({ children }) => {
   const { isAuthenticated, currentUser, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-surface-primary flex flex-col">
+    <div className="layout-root">
 
       {/* ── Navbar ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-surface-primary/80 backdrop-blur-xl">
-        <nav className="container-lg flex items-center justify-between h-16">
+      <header className="site-header">
+        <nav className="container-lg nav-bar">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link to="/" className="nav-logo-link">
             <Logo size={32} />
-            <span className="text-base font-bold text-text-primary tracking-tight">SevaSetu</span>
+            <span className="nav-logo-text">SevaSetu</span>
           </Link>
 
           {/* Nav actions */}
-          <div className="flex items-center gap-3">
+          <div className="nav-actions">
             {!isAuthenticated ? (
               <>
-                <Link to="/login" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors px-3 py-2">
+                <Link to="/login" className="nav-link">
                 Sign in
                 </Link>
-                <Link to="/register" className="btn-primary text-sm py-2 px-5">
+                <Link to="/register" className="btn-primary nav-cta">
                   Get Started
                 </Link>
               </>
             ) : (
               <>
-                <Link to="/field" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors px-3 py-2">
+                <Link to="/field" className="nav-link">
                 Report Need
                 </Link>
-                <Link to="/dashboard" className="btn-primary text-sm py-2 px-5">
+                <Link to="/dashboard" className="btn-primary nav-cta">
                   Dashboard
                 </Link>
-                <div className="pl-3 border-l border-border flex items-center gap-2">
-                  <span className="text-xs text-text-muted hidden sm:inline">
+                <div className="nav-user-section">
+                  <span className="nav-user-name">
                     {currentUser?.name || currentUser?.email || 'User'}
                   </span>
                   <button
                     type="button"
                     onClick={logout}
-                    className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors px-2 py-1"
+                    className="nav-link"
                   >
                     Logout
                   </button>
@@ -55,23 +55,23 @@ const MainLayout = ({ children }) => {
       </header>
 
       {/* ── Page Content ────────────────────────────────────────────── */}
-      <main className="flex-1">
+      <main className="layout-main">
         {children}
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="border-t border-border bg-surface-secondary">
-        <div className="container-lg py-12 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
+      <footer className="site-footer">
+        <div className="container-lg footer-inner">
+          <div className="footer-brand">
             <Logo size={24} opacity={0.5} />
-            <span className="text-sm font-semibold text-text-muted">SevaSetu</span>
+            <span className="footer-brand-text">SevaSetu</span>
           </div>
-          <p className="text-xs text-text-muted text-center">
+          <p className="footer-copy">
             © 2026 SevaSetu Open Initiative — Community resilience, powered by AI.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="footer-links">
             {['Privacy', 'Terms', 'GitHub'].map(link => (
-              <a key={link} href="#" className="text-xs text-text-muted hover:text-text-secondary transition-colors">
+              <a key={link} href="#" className="footer-link">
                 {link}
               </a>
             ))}

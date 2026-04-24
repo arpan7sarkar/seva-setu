@@ -9,17 +9,18 @@ import ProtectedRoute from './components/ProtectedRoute';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const PostLoginRedirect = lazy(() => import('./pages/PostLoginRedirect'));
 const FieldForm = lazy(() => import('./pages/FieldForm'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const VolunteerPage = lazy(() => import('./pages/VolunteerPage'));
 
 const PageLoader = () => (
-  <div className="min-h-screen bg-surface-primary flex items-center justify-center">
-    <div className="flex flex-col items-center space-y-4">
-      <Logo size={64} className="animate-pulse" />
-      <div className="flex items-center space-x-2 text-text-muted">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        <span className="text-xs font-bold uppercase tracking-[0.2em]">Synchronizing</span>
+  <div className="page-loader">
+    <div className="page-loader-inner">
+      <Logo size={64} className="pulse" />
+      <div className="page-loader-status">
+        <Loader2 className="icon-spin" style={{ width: 16, height: 16 }} />
+        <span className="page-loader-text">Synchronizing</span>
       </div>
     </div>
   </div>
@@ -32,33 +33,46 @@ function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login/*" element={<LoginPage />} />
+            <Route path="/register/*" element={<RegisterPage />} />
             <Route path="/sign-in/*" element={<Navigate to="/login" replace />} />
             <Route path="/sign-up/*" element={<Navigate to="/register" replace />} />
+
+            {/* Post-login redirect — fetches DB role & routes to correct workspace */}
+            <Route
+              path="/post-login"
+              element={
+                <ProtectedRoute>
+                  <PostLoginRedirect />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Coordinator-only dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requiredRole="coordinator">
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Volunteer workspace */}
+            <Route
+              path="/volunteer"
+              element={
+                <ProtectedRoute requiredRole="volunteer">
+                  <VolunteerPage />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/field"
               element={
                 <ProtectedRoute>
                   <FieldForm />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/volunteer"
-              element={
-                <ProtectedRoute>
-                  <VolunteerPage />
                 </ProtectedRoute>
               }
             />
@@ -72,4 +86,3 @@ function App() {
 }
 
 export default App;
-

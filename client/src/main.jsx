@@ -27,6 +27,8 @@ createRoot(document.getElementById('root')).render(
           colorBackground: '#0b1014',
           colorInputBackground: '#111a20',
           colorInputText: '#f2f7fb',
+          colorText: '#f2f7fb',
+          colorTextOnPrimaryBackground: '#ffffff',
           borderRadius: '0.75rem',
           fontFamily: 'Manrope, Segoe UI, sans-serif',
         },

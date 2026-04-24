@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 import { formatElapsed, urgencyColor } from '../../utils/dashboard';
+import 'leaflet/dist/leaflet.css';
 
 const RecenterMap = ({ center }) => {
   const map = useMap();

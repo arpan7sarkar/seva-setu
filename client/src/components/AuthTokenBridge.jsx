@@ -1,56 +1,62 @@
-import { useEffect } from 'react';
-import { useAuth, useUser } from '@clerk/react';
+import { useEffect, useRef } from 'react';
+import { useAuth } from '@clerk/react';
 
+/**
+ * AuthTokenBridge — syncs Clerk's JWT to localStorage so that
+ * the axios `api.js` interceptor can attach it to API requests.
+ *
+ * This component ONLY manages the token. Role detection and
+ * user creation are handled exclusively by PostLoginRedirect.
+ */
 const AuthTokenBridge = () => {
-  const { isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const syncingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     let intervalId;
 
     const sync = async () => {
-      if (!isSignedIn) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
-        return;
-      }
+      if (syncingRef.current) return;
+      syncingRef.current = true;
 
-      const token = await getToken();
-      if (cancelled) return;
+      try {
+        if (!isLoaded) return;
 
-      if (token) {
-        localStorage.setItem('token', token);
-      }
+        if (!isSignedIn) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('dbRole');
+          return;
+        }
 
-      if (user) {
-        const currentUser = {
-          id: user.id,
-          name: user.fullName || user.firstName || 'User',
-          email: user.primaryEmailAddress?.emailAddress || '',
-          role: user.publicMetadata?.role || 'volunteer',
-        };
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        const token = await getToken();
+        if (cancelled) return;
+
+        if (token) {
+          localStorage.setItem('token', token);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to sync Clerk token:', err);
+        }
+      } finally {
+        syncingRef.current = false;
       }
     };
 
-    sync().catch((err) => {
-      console.error('Failed to sync Clerk token:', err);
-    });
+    sync();
 
+    // Refresh token periodically (Clerk tokens expire)
     if (isSignedIn) {
-      intervalId = setInterval(() => {
-        sync().catch((err) => {
-          console.error('Token refresh sync failed:', err);
-        });
-      }, 55 * 1000);
+      intervalId = setInterval(sync, 55 * 1000);
     }
 
     return () => {
       cancelled = true;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isSignedIn, getToken, user]);
+  }, [isSignedIn, isLoaded, getToken]);
 
   return null;
 };
