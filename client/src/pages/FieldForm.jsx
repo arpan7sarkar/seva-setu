@@ -46,11 +46,11 @@ const FieldForm = () => {
 
   return (
     <MainLayout>
-      <div className="py-8 px-4">
-        <div className="max-w-xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-text-primary mb-2">Field Report</h1>
-            <p className="text-sm text-text-muted">Mobile-first intake form for fast low-bandwidth reporting.</p>
+      <div className="py-12">
+        <div className="container-narrow">
+          <div className="mb-10">
+            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight mb-3">Field Report</h1>
+            <p className="text-base text-text-muted leading-relaxed">Fast, low-bandwidth intake for verified ground reports.</p>
           </div>
 
           <div className="mb-4 flex items-center gap-2 text-xs font-semibold">
