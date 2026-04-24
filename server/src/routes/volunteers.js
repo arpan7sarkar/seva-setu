@@ -18,7 +18,7 @@ router.get('/', auth, async (req, res) => {
     const volunteers = await prisma.$queryRaw`
       SELECT
         u.id, u.name, u.email,
-        v.skills, v.is_available, v.tasks_completed, v.completion_rate,
+        v.skills, v.is_available, v.tasks_completed, v.completion_rate, v.updated_at,
         ST_X(v.location::geometry) as lng,
         ST_Y(v.location::geometry) as lat
       FROM volunteers v
@@ -41,7 +41,7 @@ router.patch('/me/availability', auth, async (req, res) => {
 
   try {
     await prisma.$executeRaw`
-      UPDATE volunteers SET is_available = ${is_available} WHERE user_id = ${req.user.id}::uuid
+      UPDATE volunteers SET is_available = ${is_available}, updated_at = now() WHERE user_id = ${req.user.id}::uuid
     `;
     res.json({ message: 'Availability updated' });
   } catch (err) {
@@ -59,7 +59,7 @@ router.patch('/me/location', auth, async (req, res) => {
 
   try {
     await prisma.$executeRaw`
-      UPDATE volunteers SET location = ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326) WHERE user_id = ${req.user.id}::uuid
+      UPDATE volunteers SET location = ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326), updated_at = now() WHERE user_id = ${req.user.id}::uuid
     `;
     res.json({ message: 'Location updated' });
   } catch (err) {
