@@ -314,8 +314,12 @@
 .cl-rootBox,
 .cl-cardBox,
 .cl-signIn-root,
-.cl-signUp-root {
+.cl-signUp-root,
+.cl-main,
+.cl-footer,
+.cl-internal-b3al4t {
   width: 100%;
+  background: transparent !important;
 }
 
 .cl-card {
@@ -326,11 +330,7 @@
   padding: 0 !important;
 }
 
-.cl-headerTitle {
-  display: none !important;
-}
-
-.cl-headerSubtitle {
+.cl-header {
   display: none !important;
 }
 
@@ -339,12 +339,16 @@
   color: #ffffff !important;
   border-radius: 0.75rem !important;
   font-weight: 600 !important;
+  padding: 0.8rem 1rem !important;
+  text-transform: none !important;
 }
 
 .cl-formFieldInput {
   background: var(--color-surface-secondary) !important;
   border-color: var(--color-border) !important;
   color: var(--color-text-primary) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
 }
 
 .cl-formFieldLabel,
@@ -374,6 +378,8 @@
 .cl-socialButtonsBlockButton {
   background: color-mix(in oklab, var(--color-surface-secondary) 90%, transparent) !important;
   border-color: var(--color-border) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
 }
 
 .cl-footerActionLink,
