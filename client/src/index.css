@@ -1,8 +1,6 @@
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap');
 @import 'leaflet/dist/leaflet.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @theme {
   --color-surface-primary: #0b1014;
@@ -169,7 +167,7 @@ button {
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1001;
   border-bottom: 1px solid var(--color-border);
   background: rgba(11, 16, 20, 0.8);
   backdrop-filter: blur(16px);
@@ -315,7 +313,14 @@ button {
 @layer components {
   .container-lg {
     width: 100%;
-    max-width: 72rem;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  .container-narrow {
+    width: 100%;
+    max-width: 600px;
     margin-inline: auto;
     padding-inline: 1rem;
   }
@@ -336,8 +341,9 @@ button {
   .card {
     background: var(--color-surface-card);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
+    border-radius: 1rem;
     box-shadow: var(--shadow-card);
+    overflow: hidden;
   }
 
   /* ── Primary Button ────────────────────────────────────── */
@@ -349,17 +355,18 @@ button {
     padding: 0.75rem 1.5rem;
     border-radius: 0.75rem;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 700;
     transition: all 200ms;
     background: linear-gradient(135deg, var(--color-accent-sky), var(--color-accent-indigo));
     color: #ffffff;
     border: none;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
   }
 
   .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(56, 189, 248, 0.3);
+    box-shadow: 0 8px 24px rgba(56, 189, 248, 0.35);
     filter: brightness(1.1);
   }
 
@@ -402,8 +409,8 @@ button {
   .input-field {
     width: 100%;
     border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.9375rem;
     outline: none;
     transition: all 200ms;
     background: var(--color-surface-secondary);
@@ -414,11 +421,38 @@ button {
 
   .input-field::placeholder {
     color: var(--color-text-muted);
+    opacity: 0.5;
+  }
+  .input-field:focus {
+    border-color: var(--color-accent-sky);
+    background: var(--color-surface-hover);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
   }
 
-  .input-field:focus {
+  .input-field:hover {
     border-color: var(--color-border-hover);
-    box-shadow: 0 0 0 3px rgba(120, 171, 202, 0.18);
+  }
+
+  /* ── Label ─────────────────────────────────────────────── */
+  .field-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.6rem;
+  }
+
+  /* ── Section Title ─────────────────────────────────────── */
+  .section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
   }
 }
 

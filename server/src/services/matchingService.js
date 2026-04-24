@@ -47,25 +47,25 @@ const findMatches = async (needId) => {
     let score = 0;
 
     // A. Proximity Weight (40%)
-    // (1 / distance_km) * 40. We cap distance_km at 0.1 to avoid division by zero
+    // Exponential decay: 40 * exp(-distance / 10)
+    // 0km = 40, 5km = ~24, 10km = ~14, 20km = ~5
     const distKm = Number(v.distance_km) || 0;
-    const proximityScore = (1 / Math.max(0.1, distKm)) * 40;
-    score += Math.min(40, proximityScore);
+    const proximityScore = 40 * Math.exp(-distKm / 10);
+    score += proximityScore;
 
     // B. Skill Overlap (30%)
-    // Check if any of volunteer's skills match the need type
     const skills = Array.isArray(v.skills) ? v.skills : [];
     const skillMatch = skills.includes(need_type) ? 30 : 0;
     score += skillMatch;
 
-    // C. Availability (20%)
-    // Already filtered by availability, so they get the full 20
-    score += 20;
-
-    // D. Reliability (10%)
-    // completion_rate is 0-1, so multiply by 10
+    // C. Experience & Reliability (30%)
+    // Combine completion rate (0-1) with total task volume (logarithmic)
     const completionRate = Number(v.completion_rate) || 0;
-    score += completionRate * 10;
+    const tasksCompleted = Number(v.tasks_completed) || 0;
+    
+    // 20 points for rate + 10 points for volume
+    const reliabilityScore = (completionRate * 20) + Math.min(10, Math.log10(tasksCompleted + 1) * 3.5);
+    score += reliabilityScore;
 
     return {
       ...v,
