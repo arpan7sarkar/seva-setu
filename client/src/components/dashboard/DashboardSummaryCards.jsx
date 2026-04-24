@@ -2,7 +2,7 @@ const DashboardSummaryCards = ({ summary }) => {
   const cards = [
     { label: 'Total Open Needs', value: summary.openNeeds },
     { label: 'Active Volunteers', value: summary.activeVolunteers },
-    { label: 'Tasks In Progress', value: summary.tasksInProgress },
+    { label: 'Present Workers', value: summary.presentWorkers },
     { label: 'Completed Today', value: summary.completedToday },
   ];
 

@@ -18,11 +18,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
+      // Only clear stale credentials — do NOT force-navigate.
+      // Navigation is handled by React components (ProtectedRoute)
+      // which read Clerk's live auth state.
+      // The old window.location.assign('/login') was creating an
+      // infinite reload loop because it raced with Clerk's token sync.
       localStorage.removeItem('token');
       localStorage.removeItem('currentUser');
-      if (window.location.pathname !== '/login') {
-        window.location.assign('/login');
-      }
     }
     return Promise.reject(error);
   }

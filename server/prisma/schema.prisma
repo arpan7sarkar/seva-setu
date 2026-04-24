@@ -123,3 +123,11 @@ model Task {
 
   @@map("tasks")
 }
+
+model CoordinatorEmail {
+  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email   String   @unique
+  addedAt DateTime @default(now()) @map("added_at")
+
+  @@map("coordinator_emails")
+}

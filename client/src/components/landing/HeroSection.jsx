@@ -19,12 +19,12 @@ const HeroSection = () => {
               {!isAuthenticated ? (
                 <Link to="/register" className="btn-primary">
                   Start Coordinating
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight style={{ width: 16, height: 16 }} />
                 </Link>
               ) : (
                 <Link to="/dashboard" className="btn-primary">
                   Open Dashboard
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight style={{ width: 16, height: 16 }} />
                 </Link>
               )}
               <Link to="/field" className="btn-ghost">
@@ -34,8 +34,8 @@ const HeroSection = () => {
           </div>
 
           <aside className="landing-hero-panel" aria-label="Operational summary">
-            <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Live Snapshot</p>
-            <ul className="space-y-4 mt-4">
+            <p className="hero-panel-label">Live Snapshot</p>
+            <ul className="hero-kpi-list">
               <li className="landing-kpi-row">
                 <span>Active Districts</span>
                 <strong>124</strong>

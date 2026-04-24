@@ -43,3 +43,18 @@ export const completeTask = async (taskId) => {
   const { data } = await api.patch(`/tasks/${taskId}/complete`);
   return data;
 };
+
+export const fetchCoordinators = async () => {
+  const { data } = await api.get('/coordinators');
+  return data;
+};
+
+export const addCoordinator = async (email) => {
+  const { data } = await api.post('/coordinators', { email });
+  return data;
+};
+
+export const removeCoordinator = async (id) => {
+  const { data } = await api.delete(`/coordinators/${id}`);
+  return data;
+};

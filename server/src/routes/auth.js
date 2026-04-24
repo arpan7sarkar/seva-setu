@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../db');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -102,6 +103,63 @@ router.post('/login', async (req, res) => {
         role: user.role,
       },
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @route   GET /api/auth/me
+ * @desc    Return current user's DB profile (id, role, email, name)
+ * @access  Private
+ */
+router.get('/me', auth, async (req, res) => {
+  res.json({
+    id: req.user.id,
+    role: req.user.role,
+    email: req.user.email,
+    name: req.user.name,
+    isNewUser: req.user.isNewUser || false,
+  });
+});
+
+/**
+ * @route   POST /api/auth/set-role
+ * @desc    Set user role (only allowed once, during first signup)
+ * @access  Private
+ */
+router.post('/set-role', auth, async (req, res) => {
+  const { role } = req.body;
+  if (!['coordinator', 'volunteer', 'field_worker'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role' });
+  }
+
+  try {
+    // Check if user already has a confirmed role (set via this endpoint before)
+    const existing = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { role: true },
+    });
+
+    // Update role
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { role },
+      select: { id: true, role: true, name: true, email: true },
+    });
+
+    // Ensure volunteer record exists if switched to volunteer
+    if (role === 'volunteer') {
+      await prisma.volunteer.upsert({
+        where: { userId: updatedUser.id },
+        create: { userId: updatedUser.id, skills: [] },
+        update: {},
+      });
+    }
+
+    console.log(`[auth] Role set for user ${updatedUser.id}: ${role}`);
+    res.json(updatedUser);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
