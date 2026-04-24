@@ -68,6 +68,7 @@ const NeedsHeatmap = ({ needs, selectedNeedId, setSelectedNeedId, onDispatch }) 
                 weight: isSelected ? 3 : 1,
                 className: `pulse-marker ${isWhatsApp ? 'whatsapp-marker' : ''}`,
               }}
+              style={{ '--marker-color': color }}
               eventHandlers={{ click: () => setSelectedNeedId(need.id) }}
             >
               <Popup>

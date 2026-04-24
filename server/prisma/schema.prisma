@@ -88,9 +88,10 @@ model Volunteer {
   userId         String  @id @map("user_id") @db.Uuid
   skills         String[] @default([])
   location       Unsupported("geometry")?
-  isAvailable    Boolean @default(true) @map("is_available")
-  tasksCompleted Int     @default(0) @map("tasks_completed")
-  completionRate Float   @default(0.0) @map("completion_rate")
+  isAvailable    Boolean  @default(true) @map("is_available")
+  tasksCompleted Int      @default(0) @map("tasks_completed")
+  completionRate Float    @default(0.0) @map("completion_rate")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

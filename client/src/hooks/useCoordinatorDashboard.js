@@ -45,7 +45,7 @@ export const useCoordinatorDashboard = () => {
 
   const loadDashboard = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true);
-    setError('');
+    if (isInitial) setError('');
 
     try {
       const [needsData, volunteersData, tasksData] = await Promise.all([
@@ -56,18 +56,27 @@ export const useCoordinatorDashboard = () => {
       setNeeds(Array.isArray(needsData) ? needsData : []);
       setVolunteers(Array.isArray(volunteersData) ? volunteersData : []);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
+      if (isInitial) setError('');
     } catch (err) {
       console.error(err);
-      setError(err?.response?.data?.message || 'Failed to load dashboard data.');
+      // Only show error on initial load, not on background polls
+      if (isInitial) {
+        setError(err?.response?.data?.message || 'Failed to load dashboard data.');
+      }
     } finally {
       if (isInitial) setLoading(false);
     }
   }, []);
 
+  // Polling: auto-refresh every 5 seconds for real-time numbers
   useEffect(() => {
-    queueMicrotask(() => {
-      loadDashboard(true);
-    });
+    loadDashboard(true);
+
+    const interval = setInterval(() => {
+      loadDashboard(false);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [loadDashboard]);
 
   const districts = useMemo(() => {
@@ -112,7 +121,12 @@ export const useCoordinatorDashboard = () => {
 
   const summary = useMemo(() => {
     const openNeeds = needs.filter((n) => n.status === 'open').length;
-    const activeVolunteers = volunteers.filter((v) => v.is_available).length;
+    
+    // Active Volunteers = Available AND seen in the last 2 hours
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const activeVolunteers = volunteers.filter((v) => {
+      return v.is_available && new Date(v.updated_at) > twoHoursAgo;
+    }).length;
     
     // Present workers = unique volunteers who have a task that is NOT completed
     const activeTasks = tasks.filter((t) => t.status === 'assigned' || t.status === 'in_progress');
