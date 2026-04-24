@@ -24,7 +24,7 @@ createRoot(document.getElementById('root')).render(
         baseTheme: dark,
         variables: {
           colorPrimary: '#38bdf8',
-          colorBackground: '#0b1014',
+          colorBackground: 'transparent',
           colorInputBackground: '#111a20',
           colorInputText: '#f2f7fb',
           colorText: '#f2f7fb',
@@ -32,6 +32,13 @@ createRoot(document.getElementById('root')).render(
           borderRadius: '0.75rem',
           fontFamily: 'Manrope, Segoe UI, sans-serif',
         },
+        elements: {
+          cardBox: { boxShadow: 'none' },
+          card: { background: 'transparent', boxShadow: 'none', padding: 0 },
+          footer: { background: 'transparent' },
+          footerAction: { background: 'transparent' },
+          internal: { background: 'transparent' } // In case there are some internal banner classes
+        }
       }}
     >
       <AuthTokenBridge />
