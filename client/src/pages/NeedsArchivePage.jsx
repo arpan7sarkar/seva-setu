@@ -5,6 +5,8 @@ import MainLayout from '../layouts/MainLayout';
 import { useCoordinatorDashboard } from '../hooks/useCoordinatorDashboard';
 import NeedsList from '../components/dashboard/NeedsList';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
+import MatchModal from '../components/dashboard/MatchModal';
+import DashboardToast from '../components/dashboard/DashboardToast';
 
 const NeedsArchivePage = () => {
   const {
@@ -25,6 +27,7 @@ const NeedsArchivePage = () => {
     assigningVolunteerId,
     closeDispatchModal,
     assignVolunteer,
+    toast,
   } = useCoordinatorDashboard();
 
   return (
@@ -73,6 +76,17 @@ const NeedsArchivePage = () => {
             )}
           </main>
         </section>
+
+        <MatchModal
+          need={matchModalNeed}
+          matches={matches}
+          loading={matchesLoading}
+          assigningVolunteerId={assigningVolunteerId}
+          onClose={closeDispatchModal}
+          onAssign={assignVolunteer}
+        />
+
+        <DashboardToast toast={toast} />
       </div>
     </MainLayout>
   );
