@@ -46,10 +46,9 @@ async def verify_image(
             "a normal photo with no disaster",
             "a selfie or portrait",
             "a random irrelevant photo",
-            "a completely black image",
             "a blank white image",
-            "a dark screen",
-            "a photo of a computer screen"
+            "a photo of a computer screen",
+            "a low light photo"
         ]
 
         # Add specific labels based on the reported need_type
@@ -96,13 +95,11 @@ async def verify_image(
             "a normal photo with no disaster", 
             "a selfie or portrait", 
             "a random irrelevant photo",
-            "a completely black image",
             "a blank white image",
-            "a dark screen",
             "a photo of a computer screen"
         ]
         
-        is_valid_disaster = top_result["label"] not in invalid_labels and top_result["confidence"] > 0.45
+        is_valid_disaster = top_result["label"] not in invalid_labels and top_result["confidence"] > 0.35
 
         # Boost confidence if it strictly matches the requested need_type
         matches_need = False
@@ -113,7 +110,7 @@ async def verify_image(
             elif need_type == "food" and any("food" in l or "starving" in l for l in top_three_labels): matches_need = True
             elif need_type == "shelter" and any("homeless" in l or "camp" in l or "ruined" in l for l in top_three_labels): matches_need = True
             elif need_type == "rescue" and any("rescue" in l or "trapped" in l for l in top_three_labels): matches_need = True
-            elif need_type == "other": matches_need = True
+            elif need_type == "other" or any("low light" in l for l in top_three_labels): matches_need = True
             
             if not matches_need and need_type != "other":
                 is_valid_disaster = False

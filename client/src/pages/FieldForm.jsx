@@ -144,6 +144,36 @@ const FieldForm = () => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">District *</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        required
+                        className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
+                        placeholder="e.g. South 24 Parganas"
+                        value={formData.district}
+                        onChange={(e) => updateField('district', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Area Name (Ward) *</label>
+                    <div className="relative">
+                      <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        required
+                        className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
+                        placeholder="e.g. Ward 102"
+                        value={formData.ward}
+                        onChange={(e) => updateField('ward', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Report Headline *</label>
                   <input
@@ -213,23 +243,33 @@ const FieldForm = () => {
                           className="w-full h-full object-cover"
                         />
                         {/* GPS Badge */}
-                        <div className="absolute top-2 left-2 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <div className="absolute top-2 left-2 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 z-10">
                           <Navigation className="w-3 h-3 fill-current" />
                           Geo-tagged
                         </div>
                         {/* Remove Button */}
                         <button
                           type="button"
-                          className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-colors"
+                          className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-colors z-10"
                           onClick={() => updateField('imageFile', null)}
                           title="Remove image"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                        <ShieldCheck className="w-4 h-4" />
-                        <span className="truncate">{formData.imageFile.name}</span>
+                      <div className="flex items-center justify-between gap-4 mt-4 pt-3 border-t border-white/5">
+                        <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold uppercase tracking-widest min-w-0">
+                          <ShieldCheck className="w-4 h-4 shrink-0" />
+                          <span className="truncate">{formData.imageFile.name}</span>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => updateField('imageFile', null)}
+                          className="shrink-0 text-[10px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest transition-colors flex items-center gap-1.5 bg-rose-500/5 px-2.5 py-1 rounded-lg border border-rose-500/20"
+                        >
+                          <X className="w-3 h-3" />
+                          Clear
+                        </button>
                       </div>
                     </div>
                   ) : (
