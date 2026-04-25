@@ -53,6 +53,8 @@ export const useVolunteerApp = () => {
 
   const initialLoadDone = useRef(false);
 
+  const syncingAvailabilityRef = useRef(false);
+
   const loadData = useCallback(async () => {
     if (!initialLoadDone.current) setLoading(true);
     setError('');
@@ -60,7 +62,12 @@ export const useVolunteerApp = () => {
       const [tasksData, statsData] = await Promise.all([fetchMyTasks(), fetchMyVolunteerStats()]);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
       setStats(statsData || null);
-      setAvailability(Boolean(statsData?.isAvailable ?? true));
+      
+      // Prevent background polling from overwriting local state while the user is toggling
+      if (!syncingAvailabilityRef.current) {
+        setAvailability(Boolean(statsData?.isAvailable ?? true));
+      }
+      
       initialLoadDone.current = true;
     } catch (err) {
       console.error(err);
@@ -85,6 +92,7 @@ export const useVolunteerApp = () => {
   const toggleAvailability = useCallback(async () => {
     const next = !availability;
     setAvailability(next);
+    syncingAvailabilityRef.current = true;
     try {
       await updateAvailability(next);
       showToast(next ? 'Availability set to ON' : 'Availability set to OFF');
@@ -92,6 +100,11 @@ export const useVolunteerApp = () => {
       console.error(err);
       setAvailability(!next);
       showToast('Failed to update availability.', 'error');
+    } finally {
+      // Allow a 2s grace period for the server to reflect the change before we trust polling again
+      setTimeout(() => {
+        syncingAvailabilityRef.current = false;
+      }, 2000);
     }
   }, [availability, showToast]);
 
@@ -177,7 +190,8 @@ export const useVolunteerApp = () => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
+    // Reduced frequency from 10s to 30s to lower server load on Render
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, [loadData]);
 
