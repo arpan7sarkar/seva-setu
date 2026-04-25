@@ -18,7 +18,19 @@ export const formatElapsed = (isoString) => {
 
 export const urgencyColor = (score) => {
   const value = Number(score) || 0;
-  if (value >= 8) return '#fb7185';
-  if (value >= 5) return '#f59e0b';
-  return '#34d399';
+  if (value >= 70) return '#fb7185'; // Rose (Critical/Verified)
+  if (value >= 40) return '#f59e0b'; // Amber (High)
+  if (value >= 25) return '#fbbf24'; // Yellow (Elevated)
+  return '#34d399'; // Emerald (Normal)
+};
+
+export const disasterColor = (type) => {
+  const colors = {
+    medical: '#f43f5e',   // Rose/Red
+    food: '#0ea5e9',      // Sky/Blue
+    shelter: '#f59e0b',   // Amber/Orange
+    education: '#8b5cf6', // Violet/Purple
+    other: '#64748b'      // Slate/Gray
+  };
+  return colors[type?.toLowerCase()] || colors.other;
 };

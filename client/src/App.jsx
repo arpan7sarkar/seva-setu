@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import Logo from './components/Logo';
 import ProtectedRoute from './components/ProtectedRoute';
+import VolunteerPage from './pages/VolunteerPage';
 
 // Lazy load pages for performance
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -12,7 +13,7 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const PostLoginRedirect = lazy(() => import('./pages/PostLoginRedirect'));
 const FieldForm = lazy(() => import('./pages/FieldForm'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const VolunteerPage = lazy(() => import('./pages/VolunteerPage'));
+const NeedsArchivePage = lazy(() => import('./pages/NeedsArchivePage'));
 
 const PageLoader = () => (
   <div className="page-loader">
@@ -25,8 +26,6 @@ const PageLoader = () => (
     </div>
   </div>
 );
-
-const NeedsArchivePage = lazy(() => import('./pages/NeedsArchivePage'));
 
 function App() {
   return (

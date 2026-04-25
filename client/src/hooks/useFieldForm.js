@@ -18,6 +18,7 @@ export const useFieldForm = () => {
     is_disaster_zone: false,
     lat: null,
     lng: null,
+    imageFile: null,
   });
   const [loading, setLoading] = useState(false);
   const [locLoading, setLocLoading] = useState(false);
@@ -89,6 +90,7 @@ export const useFieldForm = () => {
       is_disaster_zone: false,
       lat: null,
       lng: null,
+      imageFile: null,
     });
     setSuccess(false);
     setError('');
@@ -132,23 +134,31 @@ export const useFieldForm = () => {
       setError('');
       setSuccessMessage('');
 
-      const payload = {
-        ...formData,
-        people_affected: parseInt(formData.people_affected, 10) || 0,
-      };
+      const form = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (key === 'imageFile') {
+          if (formData[key]) form.append('image', formData[key]);
+        } else {
+          form.append(key, formData[key]);
+        }
+      });
 
       try {
         if (!navigator.onLine) {
-          await queueNeedSubmission(payload);
+          // Offline mode: queue without image for now (size constraints)
+          const { imageFile, ...payload } = formData;
+          await queueNeedSubmission({ ...payload, people_affected: parseInt(payload.people_affected, 10) || 0 });
           await refreshQueuedCount();
           setSuccess(true);
-          setSuccessMessage('Saved offline. Your report will auto-sync when internet returns.');
+          setSuccessMessage('Saved offline. Your report (text only) will auto-sync when internet returns.');
           return;
         }
 
-        await api.post('/needs', payload);
+        await api.post('/needs', form, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         setSuccess(true);
-        setSuccessMessage('Report submitted successfully and sent to the coordination system.');
+        setSuccessMessage('Report submitted successfully with AI verification pending.');
       } catch (err) {
         console.error('Submission error:', err);
         setError(err.response?.data?.message || 'Submission failed. Please check your connection.');
@@ -162,8 +172,6 @@ export const useFieldForm = () => {
   const urgencyPreview = calculateUrgencyPreview({
     need_type: formData.need_type,
     people_affected: formData.people_affected,
-    is_disaster_zone: formData.is_disaster_zone,
-    created_at: new Date(),
   });
 
   return {

@@ -22,12 +22,20 @@ export const updateMyLocation = async ({ lat, lng }) => {
   return data;
 };
 
-export const checkInTaskById = async (taskId) => {
-  const { data } = await api.patch(`/tasks/${taskId}/checkin`);
+export const checkInTaskById = async (taskId, coords) => {
+  const { data } = await api.patch(`/tasks/${taskId}/checkin`, coords);
   return data;
 };
 
-export const completeTaskById = async (taskId) => {
+export const completeTaskById = async (taskId, imageFile) => {
+  if (imageFile) {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    const { data } = await api.patch(`/tasks/${taskId}/complete`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  }
   const { data } = await api.patch(`/tasks/${taskId}/complete`);
   return data;
 };

@@ -1,3 +1,5 @@
+import { useState, useRef } from 'react';
+import exifr from 'exifr';
 import {
   AlertCircle,
   CheckCircle2,
@@ -7,6 +9,8 @@ import {
   Sparkles,
   ToggleLeft,
   ToggleRight,
+  X,
+  Navigation,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { useVolunteerApp } from '../hooks/useVolunteerApp';
@@ -27,6 +31,79 @@ const VolunteerPage = () => {
     completeTask,
     toast,
   } = useVolunteerApp();
+
+  const [selectedFiles, setSelectedFiles] = useState({}); // { taskId: { file, preview } }
+  const [verificationErrors, setVerificationErrors] = useState({}); // { taskId: message }
+
+  const fileInputRefs = useRef({});
+
+  const handleFileChange = async (taskId, file) => {
+    console.log(`[handleFileChange] Task: ${taskId}, File:`, file);
+    if (!file) return;
+    
+    // Check for GPS on the frontend immediately
+    let hasGps = false;
+    try {
+      const gps = await exifr.gps(file);
+      hasGps = !!(gps && gps.latitude && gps.longitude);
+      console.log(`[handleFileChange] GPS Check for ${file.name}:`, hasGps ? 'FOUND' : 'MISSING');
+    } catch (e) {
+      console.warn('EXIF read error on frontend:', e);
+    }
+
+    setSelectedFiles(prev => {
+      // Cleanup old preview to prevent memory leaks
+      if (prev[taskId]?.preview) {
+        URL.revokeObjectURL(prev[taskId].preview);
+      }
+      const preview = URL.createObjectURL(file);
+      return {
+        ...prev,
+        [taskId]: { file, preview, hasGps }
+      };
+    });
+    
+    setVerificationErrors(prev => {
+      const next = { ...prev };
+      delete next[taskId];
+      return next;
+    });
+  };
+
+  const onCompleteMission = async (task, file) => {
+    console.log(`[VolunteerPage] Initiating completion for task ${task.task_id}...`);
+    try {
+      await completeTask(task, file);
+      console.log(`[VolunteerPage] Task ${task.task_id} completed successfully.`);
+      // If success, clear the file and error
+      setSelectedFiles(prev => {
+        if (prev[task.task_id]?.preview) {
+          URL.revokeObjectURL(prev[task.task_id].preview);
+        }
+        const next = { ...prev };
+        delete next[task.task_id];
+        return next;
+      });
+      setVerificationErrors(prev => {
+        const next = { ...prev };
+        delete next[task.task_id];
+        return next;
+      });
+    } catch (err) {
+      console.error(`[VolunteerPage] Task ${task.task_id} completion failed:`, err);
+      // Store the array of errors and status summary
+      const errorsArray = err.response?.data?.errors;
+      const statusSummary = err.response?.data?.statusSummary;
+      const fallbackMsg = err.response?.data?.details || err.response?.data?.message || 'Verification failed. Please try a different photo.';
+      setVerificationErrors(prev => ({
+        ...prev,
+        [task.task_id]: {
+          errors: errorsArray && errorsArray.length > 0 ? errorsArray : [fallbackMsg],
+          summary: statusSummary || null
+        }
+      }));
+    }
+  };
 
   return (
     <MainLayout>
@@ -87,9 +164,17 @@ const VolunteerPage = () => {
               <article key={task.task_id} className="card volunteer-task-card">
                 <div className="volunteer-task-header">
                   <p className="font-semibold text-text-primary">{task.title}</p>
-                  <span className={`volunteer-pill ${volunteerStatusClass(task.task_status)}`}>
-                    {volunteerStatusLabel(task.task_status)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {task.is_completion_verified && (
+                      <span className="badge-verified flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" />
+                        AI VERIFIED
+                      </span>
+                    )}
+                    <span className={`volunteer-pill ${volunteerStatusClass(task.task_status)}`}>
+                      {volunteerStatusLabel(task.task_status)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="volunteer-task-meta">
@@ -112,15 +197,159 @@ const VolunteerPage = () => {
                   ) : null}
 
                   {task.task_status === 'in_progress' ? (
-                    <button
-                      type="button"
-                      className="btn-primary"
-                      onClick={() => completeTask(task)}
-                      disabled={busyTaskId === task.task_id}
-                    >
-                      {busyTaskId === task.task_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                      Mark Complete
-                    </button>
+                    <div className="flex flex-col gap-3 w-full">
+                      {selectedFiles[task.task_id] && (
+                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-surface-secondary border border-border-subtle group">
+                          <img 
+                            src={selectedFiles[task.task_id].preview} 
+                            className="w-full h-full object-cover" 
+                            alt="Completion proof" 
+                          />
+                          
+                          {/* GPS Integrity Badge */}
+                          <div className={`absolute top-3 left-3 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md ${
+                            selectedFiles[task.task_id].hasGps 
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                          }`}>
+                            {selectedFiles[task.task_id].hasGps ? (
+                              <Navigation className="w-3 h-3 fill-current" />
+                            ) : (
+                              <AlertCircle className="w-3 h-3" />
+                            )}
+                            {selectedFiles[task.task_id].hasGps ? 'Geo-tagged' : 'No Location Data'}
+                          </div>
+
+                          <button 
+                            className="absolute top-3 right-3 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-colors"
+                            onClick={() => {
+                              setSelectedFiles(prev => {
+                                const next = { ...prev };
+                                delete next[task.task_id];
+                                return next;
+                              });
+                              setVerificationErrors(prev => {
+                                const next = { ...prev };
+                                delete next[task.task_id];
+                                return next;
+                              });
+                            }}
+                            title="Remove image"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {verificationErrors[task.task_id] && (
+                        <div className="p-4 rounded-xl bg-[#1e1416] border border-accent-rose/30 shadow-lg shadow-black/20">
+                          {/* Header */}
+                          <div className="flex gap-3 mb-3">
+                            <div className="bg-accent-rose/20 p-2 rounded-lg h-fit">
+                              <AlertCircle className="w-5 h-5 text-accent-rose shrink-0" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-accent-rose uppercase tracking-widest opacity-80">Verification Rejected</p>
+                              <p className="text-[11px] text-text-muted mt-0.5">
+                                {(verificationErrors[task.task_id].errors || (Array.isArray(verificationErrors[task.task_id]) ? verificationErrors[task.task_id] : [verificationErrors[task.task_id]])).length} issue(s) detected
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Status Summary Grid */}
+                          {verificationErrors[task.task_id].summary && (
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                              <div className={`flex items-center gap-2 p-2 rounded-lg border text-xs font-bold ${
+                                verificationErrors[task.task_id].summary.geoTag === 'PASSED' 
+                                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                                  : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                              }`}>
+                                <Navigation className="w-3.5 h-3.5" />
+                                <span>GPS: {verificationErrors[task.task_id].summary.geoTag}</span>
+                              </div>
+                              <div className={`flex items-center gap-2 p-2 rounded-lg border text-xs font-bold ${
+                                verificationErrors[task.task_id].summary.aiContent === 'PASSED' 
+                                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                                  : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                              }`}>
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>AI: {verificationErrors[task.task_id].summary.aiContent}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Error Details */}
+                          <div className="space-y-2 mb-3">
+                            {(verificationErrors[task.task_id].errors || (Array.isArray(verificationErrors[task.task_id]) ? verificationErrors[task.task_id] : [verificationErrors[task.task_id]])).map((errMsg, idx) => (
+                              <div key={idx} className="flex gap-2 items-start p-2.5 rounded-lg bg-black/30 border border-white/5">
+                                <span className="text-accent-rose font-black text-xs mt-0.5 shrink-0">{idx + 1}.</span>
+                                <p className="text-sm font-medium text-text-primary leading-snug">{errMsg}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button 
+                            className="text-[10px] font-bold text-accent-rose/60 hover:text-accent-rose transition-colors uppercase tracking-wider"
+                            onClick={() => setVerificationErrors(prev => {
+                              const next = { ...prev };
+                              delete next[task.task_id];
+                              return next;
+                            })}
+                          >
+                            Dismiss Feedback
+                          </button>
+                        </div>
+                      )}
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        ref={(el) => (fileInputRefs.current[task.task_id] = el)}
+                        onClick={(e) => { e.target.value = null; }} // Force onChange to fire even for same file
+                        onChange={(e) => handleFileChange(task.task_id, e.target.files?.[0])}
+                      />
+                      
+                      {!selectedFiles[task.task_id] ? (
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            fileInputRefs.current[task.task_id]?.click();
+                          }}
+                          disabled={busyTaskId === task.task_id}
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                          Capture Geo-tagged Proof
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn-success w-full"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onCompleteMission(task, selectedFiles[task.task_id].file);
+                          }}
+                          disabled={busyTaskId === task.task_id}
+                        >
+                          {busyTaskId === task.task_id ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-5 h-5 fill-white/20" />
+                          )}
+                          <span>Verify & Complete Mission</span>
+                        </button>
+                      )}
+                      
+                      {!verificationErrors[task.task_id] && (
+                        <p className="text-[10px] text-text-muted flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          Ensure GPS/Location is ON in camera settings.
+                        </p>
+                      )}
+                    </div>
                   ) : null}
 
                   {task.task_status === 'completed' ? (

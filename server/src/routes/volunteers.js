@@ -75,7 +75,10 @@ router.patch('/me/location', auth, async (req, res) => {
 router.get('/me/stats', auth, async (req, res) => {
   try {
     const stats = await prisma.$queryRaw`
-      SELECT skills, is_available, tasks_completed, completion_rate
+      SELECT skills, 
+             is_available as "isAvailable", 
+             tasks_completed as "tasksCompleted", 
+             completion_rate as "completionRate"
       FROM volunteers
       WHERE user_id = ${req.user.id}::uuid
       LIMIT 1

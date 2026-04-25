@@ -18,6 +18,7 @@ const needsRoutes = require('./routes/needs');
 // ── Middleware ────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(require('path').join(__dirname, '../uploads')));
 
 // ── Use Routes ───────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
