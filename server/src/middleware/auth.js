@@ -33,85 +33,76 @@ module.exports = async (req, res, next) => {
     return res.status(401).json({ message: 'Invalid Clerk token payload' });
   }
 
-  // ── Step 2: Fetch Clerk user profile ────────────────────────────────
-  let clerkUser;
+  // ── Step 2: Optimized DB Lookup ─────────────────────────────────────
+  // Fast path: If user exists in DB, skip Clerk API calls and redundant writes.
   try {
-    clerkUser = await getClerkUser(clerkUserId);
-  } catch (err) {
-    console.error('[auth] Failed to fetch Clerk user:', err.message || err.toString() || 'Unknown Clerk Error');
-    return res.status(502).json({ message: 'Unable to verify user identity with Clerk', details: err.message || 'Check Clerk Secret Key' });
-  }
+    let dbUser = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      select: { id: true, role: true, email: true, name: true },
+    });
 
-  const primaryEmailObj = clerkUser.emailAddresses.find(
-    (email) => email.id === clerkUser.primaryEmailAddressId
-  );
-  const email = primaryEmailObj?.emailAddress;
+    if (dbUser) {
+      req.user = {
+        id: dbUser.id,
+        role: dbUser.role,
+        email: dbUser.email,
+        name: dbUser.name,
+        clerkId: clerkUserId,
+      };
+      return next();
+    }
 
-  if (!email) {
-    return res.status(400).json({ message: 'Clerk user has no primary email' });
-  }
+    // ── Step 3: Fetch Clerk profile (ONLY for new users) ──────────────
+    console.log(`[auth] New user detected (${clerkUserId}), syncing with Clerk...`);
+    const clerkUser = await getClerkUser(clerkUserId);
+    const primaryEmailObj = clerkUser.emailAddresses.find(
+      (email) => email.id === clerkUser.primaryEmailAddressId
+    );
+    const email = primaryEmailObj?.emailAddress;
 
-  const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'User';
+    if (!email) {
+      return res.status(400).json({ message: 'Clerk user has no primary email' });
+    }
 
-  // ── Step 3: Upsert user in local DB ─────────────────────────────────
-  let dbUser;
-  let isNewUser = false;
-  try {
-    const existingUser = await prisma.user.findUnique({ where: { clerkId: clerkUserId } });
-    isNewUser = !existingUser;
+    const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'User';
 
-    // Check whitelist table to see if this user should be a coordinator
+    // Check whitelist table
     const isWhitelisted = await prisma.coordinatorEmail.findUnique({
       where: { email },
     });
     
-    // Automatically determine role
     const assignedRole = isWhitelisted ? 'coordinator' : 'volunteer';
 
-    dbUser = await prisma.user.upsert({
-      where: { clerkId: clerkUserId },
-      create: {
+    dbUser = await prisma.user.create({
+      data: {
         clerkId: clerkUserId,
         name,
         email,
         passwordHash: '',
         role: assignedRole,
       },
-      update: {
-        name,
-        email,
-        role: assignedRole, // Enforce role based on whitelist every time
-      },
       select: { id: true, role: true, email: true, name: true },
     });
-  } catch (err) {
-    console.error('[auth] Database error during user upsert:', err.message);
-    return res.status(503).json({
-      message: 'Database connection error',
-      details: err.message,
-    });
-  }
 
-  // ── Step 4: Ensure volunteer record exists if role is volunteer ─────
-  if (dbUser.role === 'volunteer') {
-    try {
+    if (dbUser.role === 'volunteer') {
       await prisma.volunteer.upsert({
         where: { userId: dbUser.id },
         create: { userId: dbUser.id, skills: [] },
         update: {},
       });
-    } catch (err) {
-      console.error('[auth] Failed to upsert volunteer record:', err.message);
     }
-  }
 
-  req.user = {
-    id: dbUser.id,
-    role: dbUser.role,
-    email: dbUser.email,
-    name: dbUser.name,
-    clerkId: clerkUserId,
-    isNewUser,
-  };
-  next();
+    req.user = {
+      id: dbUser.id,
+      role: dbUser.role,
+      email: dbUser.email,
+      name: dbUser.name,
+      clerkId: clerkUserId,
+      isNewUser: true,
+    };
+    next();
+  } catch (err) {
+    console.error('[auth] Middleware error:', err.message);
+    return res.status(500).json({ message: 'Internal server error during authentication' });
+  }
 };

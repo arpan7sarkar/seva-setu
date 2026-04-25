@@ -140,6 +140,7 @@ model Task {
   need              Need @relation(fields: [needId], references: [id], onDelete: Cascade)
   assignedVolunteer User @relation("AssignedTasks", fields: [assignedVolunteerId], references: [id], onDelete: Cascade)
 
+  @@index([assignedVolunteerId])
   @@map("tasks")
 }
 
