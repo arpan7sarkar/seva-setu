@@ -38,8 +38,8 @@ module.exports = async (req, res, next) => {
   try {
     clerkUser = await getClerkUser(clerkUserId);
   } catch (err) {
-    console.error('[auth] Failed to fetch Clerk user:', err.message);
-    return res.status(502).json({ message: 'Unable to verify user identity with Clerk', details: err.message });
+    console.error('[auth] Failed to fetch Clerk user:', err.message || err.toString() || 'Unknown Clerk Error');
+    return res.status(502).json({ message: 'Unable to verify user identity with Clerk', details: err.message || 'Check Clerk Secret Key' });
   }
 
   const primaryEmailObj = clerkUser.emailAddresses.find(

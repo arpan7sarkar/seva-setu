@@ -42,6 +42,27 @@ const PostLoginRedirect = () => {
         );
 
         if (!cancelled) {
+          // If volunteer, try to capture initial location immediately
+          if (data.role === 'volunteer') {
+            navigator.geolocation.getCurrentPosition(
+              async (pos) => {
+                await fetch(`${apiUrl}/volunteers/me/location`, {
+                  method: 'PATCH',
+                  headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                  }),
+                }).catch(console.error);
+              },
+              console.error,
+              { enableHighAccuracy: true }
+            );
+          }
+
           setDbRole(data.role);
           setPhase('redirect');
         }

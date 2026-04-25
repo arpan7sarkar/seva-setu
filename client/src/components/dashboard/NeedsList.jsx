@@ -31,6 +31,7 @@ const NeedsList = ({
         <table className="dashboard-needs-table">
           <thead>
             <tr>
+              <th>Evidence</th>
               {sortable.map((col) => (
                 <th key={col.key}>
                   <button
@@ -53,9 +54,38 @@ const NeedsList = ({
                 className={selectedNeedId === need.id ? 'is-selected' : ''}
                 onClick={() => setSelectedNeedId(need.id)}
               >
+                <td>
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                    {need.image_url ? (
+                      <img 
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${need.image_url}`} 
+                        alt="Evidence"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">No Pix</div>
+                    )}
+                  </div>
+                </td>
                 <td>{need.ward || '-'}</td>
-                <td className="capitalize">{need.need_type}</td>
-                <td>{Number(need.urgency_score || 0).toFixed(2)}</td>
+                <td className="capitalize">
+                  <div className="flex items-center gap-1.5">
+                    {need.need_type}
+                    {need.is_verified && (
+                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-accent-green/20 text-accent-green" title="AI Verified Ground Report">
+                        ?
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <div className="flex flex-col">
+                    <span className="font-bold">{Number(need.urgency_score || 0).toFixed(1)}</span>
+                    {need.is_verified && (
+                      <span className="text-[10px] text-accent-green font-medium">Verified x2</span>
+                    )}
+                  </div>
+                </td>
                 <td>{need.people_affected || 0}</td>
                 <td>
                   <StatusPill status={need.status} />

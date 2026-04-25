@@ -28,11 +28,11 @@ const FieldForm = () => {
       <MainLayout>
         <div className="min-h-[70vh] flex items-center justify-center px-4">
           <div className="card p-10 max-w-md w-full text-center">
-            <div className="w-16 h-16 rounded-2xl bg-accent-green/10 border border-accent-green/20 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-accent-green" />
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
             </div>
-            <h2 className="text-2xl font-bold text-text-primary mb-3">Report Captured</h2>
-            <p className="text-sm text-text-secondary leading-relaxed mb-8">
+            <h2 className="text-2xl font-bold text-white mb-3">Report Captured</h2>
+            <p className="text-sm text-slate-400 leading-relaxed mb-8">
               {successMessage || 'Your field report has been transmitted and is being scored for urgency.'}
             </p>
             <button onClick={resetForm} className="btn-primary w-full py-3 text-sm">
@@ -46,199 +46,232 @@ const FieldForm = () => {
 
   return (
     <MainLayout>
-      <div className="py-12">
-        <div className="container-narrow">
-          <div className="mb-10">
-            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight mb-3">Field Report</h1>
-            <p className="text-base text-text-muted leading-relaxed">Fast, low-bandwidth intake for verified ground reports.</p>
+      <div className="py-12 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="container-narrow px-4">
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl font-black text-white tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400">
+              Field Report Terminal
+            </h1>
+            <p className="text-lg text-slate-400 max-w-lg mx-auto">
+              Strategic intake for verified ground reports. AI-powered "Trust Layer" active.
+            </p>
           </div>
 
-          <div className="mb-4 flex items-center gap-2 text-xs font-semibold">
+          <div className="mb-8 flex justify-center items-center gap-4 text-xs font-bold tracking-widest uppercase">
             <span
-              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border transition-all duration-500 ${
                 isOnline
-                  ? 'border-accent-green/30 text-accent-green bg-accent-green/10'
-                  : 'border-accent-amber/30 text-accent-amber bg-accent-amber/10'
+                  ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                  : 'border-amber-500/30 text-amber-400 bg-amber-500/10'
               }`}
             >
-              {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
-              {isOnline ? 'Online' : 'Offline'}
+              <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              {isOnline ? 'System Online' : 'Offline Mode'}
             </span>
 
-            <span className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-text-secondary">
+            <span className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border border-slate-700 text-slate-300 bg-slate-800/50">
               <Clock3 className="w-3.5 h-3.5" />
               Queue: {queuedCount}
             </span>
-
-            {syncingQueue ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-accent-sky/30 text-accent-sky bg-accent-sky/10 px-3 py-1.5">
-                <Loader2 className="w-3.5 h-3.5 icon-spin" />
-                Syncing
-              </span>
-            ) : null}
           </div>
 
-          <form onSubmit={submitForm} className="space-y-6">
+          <form onSubmit={submitForm} className="space-y-8">
             {error ? (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-accent-rose/10 border border-accent-rose/20 text-accent-rose text-sm">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+              <div className="flex items-center gap-3 p-5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
                 {error}
               </div>
             ) : null}
 
-            <div className="card p-5 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-1.5">
-                  Need Type
-                </label>
-                <select
-                  className="input-field"
-                  value={formData.need_type}
-                  onChange={(e) => updateField('need_type', e.target.value)}
-                >
-                  <option value="medical">Medical</option>
-                  <option value="food">Food</option>
-                  <option value="shelter">Shelter</option>
-                  <option value="education">Education</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-1.5">Title *</label>
-                <input
-                  required
-                  className="input-field"
-                  placeholder="Summarize the immediate need"
-                  value={formData.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-1.5">Description</label>
-                <textarea
-                  className="input-field resize-none h-28"
-                  placeholder="Add context for responders"
-                  value={formData.description}
-                  onChange={(e) => updateField('description', e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-1.5">Ward</label>
-                  <input
-                    className="input-field"
-                    placeholder="e.g. Ward 64"
-                    value={formData.ward}
-                    onChange={(e) => updateField('ward', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-1.5">District</label>
-                  <input
-                    className="input-field"
-                    placeholder="e.g. Kolkata"
-                    value={formData.district}
-                    onChange={(e) => updateField('district', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-1.5">
-                    People Affected
-                  </label>
-                  <div className="relative">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                    <input
-                      type="number"
-                      className="input-field pl-9"
-                      placeholder="Approx count"
-                      value={formData.people_affected}
-                      onChange={(e) => updateField('people_affected', e.target.value)}
-                    />
+            {/* Core Details */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-indigo-500 rounded-[2rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+              <div className="relative glass p-8 rounded-[2rem] border border-white/10 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">
+                      Need Classification
+                    </label>
+                    <select
+                      className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all appearance-none"
+                      value={formData.need_type}
+                      onChange={(e) => updateField('need_type', e.target.value)}
+                    >
+                      <option value="medical">🚑 Medical Emergency</option>
+                      <option value="food">🍱 Food & Water</option>
+                      <option value="shelter">⛺ Shelter / Housing</option>
+                      <option value="education">📚 Educational Aid</option>
+                      <option value="other">📦 General Relief</option>
+                    </select>
                   </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Headcount</label>
+                    <div className="relative">
+                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        type="number"
+                        className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
+                        placeholder="Approx. affected"
+                        value={formData.people_affected}
+                        onChange={(e) => updateField('people_affected', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Report Headline *</label>
+                  <input
+                    required
+                    className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
+                    placeholder="Briefly describe the crisis"
+                    value={formData.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Intel Details</label>
+                  <textarea
+                    className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 h-32 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all resize-none"
+                    placeholder="Provide specific context for rapid response..."
+                    value={formData.description}
+                    onChange={(e) => updateField('description', e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-sky-500/5 border border-sky-500/10 rounded-2xl p-4">
+                    <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Priority Index</p>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-3xl font-black text-white">{urgencyPreview}</span>
+                      <span className="text-xs text-slate-500 font-bold">/ 100+</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => updateField('is_disaster_zone', !formData.is_disaster_zone)}
+                    className={`flex flex-col justify-center items-center gap-1 rounded-2xl border transition-all duration-300 ${
+                      formData.is_disaster_zone
+                        ? 'bg-rose-500/10 border-rose-500/40 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.1)]'
+                        : 'bg-slate-900/50 border-slate-700/50 text-slate-500 grayscale'
+                    }`}
+                  >
+                    <AlertTriangle className={`w-5 h-5 ${formData.is_disaster_zone ? 'animate-pulse' : ''}`} />
+                    <span className="text-[10px] font-black uppercase tracking-tighter">Disaster Mode</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Layer */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Image Evidence */}
+              <div className="glass p-6 rounded-[2rem] border border-white/10 flex flex-col justify-between min-h-[220px]">
+                <div>
+                  <h2 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                    <div className="w-1.5 h-4 bg-sky-500 rounded-full" />
+                    Visual Evidence
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mb-6 font-bold uppercase tracking-widest">Factor 1: AI Verification</p>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => updateField('imageFile', e.target.files[0])}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-500 ${
+                      formData.imageFile 
+                        ? 'border-sky-500/50 bg-sky-500/10 text-sky-400' 
+                        : 'border-slate-700 hover:border-sky-500/30 hover:bg-slate-800/50 text-slate-500'
+                    }`}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-slate-900/50 flex items-center justify-center border border-white/5">
+                      <Send className={`w-5 h-5 ${formData.imageFile ? 'rotate-[-45deg] text-sky-400' : ''} transition-transform duration-500`} />
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-sm tracking-tight">
+                        {formData.imageFile ? formData.imageFile.name : 'Upload Crisis Photo'}
+                      </div>
+                      <div className="text-[10px] opacity-60 mt-1 uppercase font-black tracking-widest">
+                        Required for verification
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* GPS Capture */}
+              <div className="glass p-6 rounded-[2rem] border border-white/10 flex flex-col justify-between min-h-[220px]">
+                <div>
+                  <h2 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                    <div className="w-1.5 h-4 bg-indigo-500 rounded-full" />
+                    Spatial Identity
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mb-6 font-bold uppercase tracking-widest">Factor 2: GPS Metadata</p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => updateField('is_disaster_zone', !formData.is_disaster_zone)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 ${
-                    formData.is_disaster_zone
-                      ? 'border-accent-rose/40 bg-accent-rose/10 text-accent-rose'
-                      : 'border-border bg-surface-secondary text-text-muted hover:border-border-hover'
+                  onClick={getLocation}
+                  disabled={locLoading}
+                  className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border-2 border-dashed transition-all duration-500 ${
+                    formData.lat
+                      ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-400'
+                      : 'border-slate-700 hover:border-indigo-500/30 hover:bg-slate-800/50 text-slate-500'
                   }`}
                 >
-                  <AlertTriangle className={`w-4 h-4 shrink-0 ${formData.is_disaster_zone ? 'animate-pulse' : ''}`} />
-                  <span className="text-xs font-semibold flex-1 text-left">Disaster Zone</span>
-                  <div className={`w-8 h-5 rounded-full relative transition-colors ${formData.is_disaster_zone ? 'bg-accent-rose' : 'bg-surface-hover'}`}>
-                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${formData.is_disaster_zone ? 'translate-x-3' : 'translate-x-0.5'}`} />
+                  <div className="w-12 h-12 rounded-full bg-slate-900/50 flex items-center justify-center border border-white/5">
+                    {locLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                    ) : formData.lat ? (
+                      <CheckCircle2 className="w-5 h-5 text-indigo-400" />
+                    ) : (
+                      <Crosshair className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-sm tracking-tight">
+                      {formData.lat ? 'Spatial Link Locked' : 'Capture Location'}
+                    </div>
+                    <div className="text-[10px] opacity-60 mt-1 uppercase font-black tracking-widest">
+                      {formData.lat
+                        ? `${formData.lat.toFixed(4)}, ${formData.lng.toFixed(4)}`
+                        : 'Precision Lock Required'}
+                    </div>
                   </div>
                 </button>
               </div>
-
-              <div className="rounded-xl border border-accent-sky/25 bg-accent-sky/10 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-accent-sky">Urgency Preview</p>
-                <p className="text-lg font-bold text-text-primary mt-1">{urgencyPreview} / 10</p>
-                <p className="text-xs text-text-secondary mt-1">Estimated score before submit based on type, people, time, and disaster mode.</p>
-              </div>
             </div>
 
-            <div className="card p-5 space-y-4">
-              <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-text-muted" />
-                GPS Capture
-              </h2>
-
-              <button
-                type="button"
-                onClick={getLocation}
-                disabled={locLoading}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashed transition-all duration-300 ${
-                  formData.lat
-                    ? 'border-accent-green/40 bg-accent-green/5 text-accent-green'
-                    : 'border-border text-text-muted hover:border-border-hover hover:text-text-secondary'
-                }`}
-              >
-                {locLoading ? (
-                  <Loader2 className="w-5 h-5 icon-spin" />
-                ) : formData.lat ? (
-                  <CheckCircle2 className="w-5 h-5" />
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="group relative w-full py-5 rounded-2xl overflow-hidden transition-all active:scale-[0.98]"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-sky-600 to-indigo-600 group-hover:scale-105 transition-transform duration-500"></div>
+              <div className="relative flex items-center justify-center gap-3 text-white font-black uppercase tracking-[0.3em] text-sm">
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Crosshair className="w-5 h-5" />
+                  <>
+                    <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    {isOnline ? 'Initiate Transmission' : 'Queue Intel'}
+                  </>
                 )}
-                <div className="text-left">
-                  <div className="text-sm font-semibold">
-                    {formData.lat ? 'Coordinates Captured' : 'Capture GPS Location'}
-                  </div>
-                  <div className="text-xs mt-0.5 opacity-60">
-                    {formData.lat
-                      ? `${formData.lat.toFixed(5)}, ${formData.lng.toFixed(5)}`
-                      : 'Required for spatial matching'}
-                  </div>
-                </div>
-              </button>
-
-              <input type="hidden" value={formData.lat || ''} readOnly />
-              <input type="hidden" value={formData.lng || ''} readOnly />
-            </div>
-
-            <button type="submit" disabled={loading} className="btn-primary w-full py-4 text-sm font-semibold">
-              {loading ? (
-                <Loader2 className="w-5 h-5 icon-spin" />
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  {isOnline ? 'Transmit Report' : 'Save for Offline Sync'}
-                </>
-              )}
+              </div>
             </button>
 
-            <p className="text-center text-xs text-text-muted">
-              Encrypted end-to-end � Offline queue enabled � Precision Dispatch v2.5
+            <p className="text-center text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] pb-8">
+              Secured Connection • Intel Radiance v4.0 • SevaSetu Network
             </p>
           </form>
         </div>

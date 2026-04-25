@@ -1,4 +1,4 @@
-import { Archive, PlusCircle, PlayCircle, CheckCircle2, RotateCcw, Ghost } from 'lucide-react';
+import { Archive, PlusCircle, PlayCircle, CheckCircle2, RotateCcw, Ghost, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatElapsed } from '../../utils/dashboard';
 
@@ -97,6 +97,9 @@ const KanbanBoard = ({ needs, tasks, onDispatch, onUpdateTask }) => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                     {need.title?.toLowerCase().includes('whatsapp') && (
                       <span style={{ background: '#25D366', color: 'white', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: '900' }}>WA</span>
+                    )}
+                    {task?.is_verified && (
+                      <CheckCircle2 size={14} style={{ color: '#10b981' }} title="AI Verified Impact" />
                     )}
                     <p style={{ 
                       fontSize: '0.8125rem', 

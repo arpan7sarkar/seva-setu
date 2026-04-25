@@ -1,13 +1,33 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
-import { formatElapsed, urgencyColor } from '../../utils/dashboard';
+import { formatElapsed, urgencyColor, disasterColor } from '../../utils/dashboard';
 import 'leaflet/dist/leaflet.css';
 
-const RecenterMap = ({ center }) => {
+const RecenterMap = ({ center, selectedNeed, needs }) => {
   const map = useMap();
+  
   useEffect(() => {
-    map.setView(center, 11, { animate: true });
+    // 1. Initial Load: Center on the data cluster
+    if (!map._hasSetInitialView && center) {
+      map.setView(center, 11);
+      map._hasSetInitialView = true;
+    }
   }, [center, map]);
+
+  const lastSelectedIdRef = useRef(null);
+
+  useEffect(() => {
+    // 2. Selection Change: Smoothly fly to the selected need ONLY if the ID actually changed
+    if (selectedNeed && selectedNeed.id !== lastSelectedIdRef.current) {
+      map.flyTo([Number(selectedNeed.lat), Number(selectedNeed.lng)], 14, {
+        duration: 1.5
+      });
+      lastSelectedIdRef.current = selectedNeed.id;
+    } else if (!selectedNeed) {
+      lastSelectedIdRef.current = null;
+    }
+  }, [selectedNeed, map]);
+
   return null;
 };
 
@@ -32,53 +52,57 @@ const deriveCenter = (needs) => {
 
 const NeedsHeatmap = ({ needs, selectedNeedId, setSelectedNeedId, onDispatch }) => {
   const center = useMemo(() => deriveCenter(needs), [needs]);
+  const selectedNeed = useMemo(() => needs.find(n => n.id === selectedNeedId), [needs, selectedNeedId]);
 
   return (
     <section className="dashboard-card">
       <div className="dashboard-card-header">
         <h2 className="dashboard-card-title">Needs Heatmap</h2>
-        <div className="dashboard-map-legend" aria-label="Urgency legend">
-          <span><i style={{ background: '#fb7185' }} /> 8-10</span>
-          <span><i style={{ background: '#f59e0b' }} /> 5-7</span>
-          <span><i style={{ background: '#34d399' }} /> 1-4</span>
+        <div className="dashboard-map-legend" aria-label="Disaster types">
+          <span><i style={{ background: '#f43f5e' }} /> Medical</span>
+          <span><i style={{ background: '#0ea5e9' }} /> Food</span>
+          <span><i style={{ background: '#f59e0b' }} /> Shelter</span>
+          <span><i style={{ background: '#8b5cf6' }} /> Education</span>
+          <span><i style={{ background: '#64748b' }} /> Other</span>
         </div>
       </div>
 
       <MapContainer className="dashboard-map" center={center} zoom={11} scrollWheelZoom>
-        <RecenterMap center={center} />
+        <RecenterMap center={center} selectedNeed={selectedNeed} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {needs.map((need) => {
+        {needs
+          .filter((n) => n.status !== 'completed' && n.status !== 'archived')
+          .map((need) => {
           const isSelected = selectedNeedId === need.id;
-          const isWhatsApp = need.title?.toLowerCase().includes('whatsapp');
-          const color = isWhatsApp ? '#25D366' : urgencyColor(need.urgency_score);
+          const typeColor = disasterColor(need.need_type);
 
           return (
             <CircleMarker
               key={need.id}
               center={[Number(need.lat), Number(need.lng)]}
-              radius={isSelected ? 12 : 9}
+              radius={isSelected ? 14 : 10}
               pathOptions={{
-                color: isWhatsApp ? '#128C7E' : color,
-                fillColor: color,
-                fillOpacity: isSelected ? 0.9 : 0.65,
-                weight: isSelected ? 3 : 1,
-                className: `pulse-marker ${isWhatsApp ? 'whatsapp-marker' : ''}`,
+                color: need.is_verified ? '#fff' : typeColor, // White border for verified
+                fillColor: typeColor,
+                fillOpacity: isSelected ? 0.9 : 0.7,
+                weight: need.is_verified ? 3 : 1,
+                className: `pulse-marker ${need.is_verified ? 'verified-pulse' : ''}`,
               }}
-              style={{ '--marker-color': color }}
+              style={{ '--marker-color': typeColor }}
               eventHandlers={{ click: () => setSelectedNeedId(need.id) }}
             >
               <Popup>
                 <div className="space-y-2 min-w-48">
                   <div className="flex items-center gap-2">
-                    {isWhatsApp && (
+                    {need.is_verified && (
                       <span 
-                        style={{ background: '#25D366', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}
+                        style={{ background: '#34d399', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}
                       >
-                        WHATSAPP
+                        VERIFIED
                       </span>
                     )}
                     <p className="font-semibold text-sm">{need.title}</p>

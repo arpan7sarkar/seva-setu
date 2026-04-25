@@ -13,12 +13,11 @@ const prisma = require('../db');
 const findMatches = async (needId) => {
   // 1. Get need details including location
   const needRows = await prisma.$queryRaw`
-    SELECT *,
+    SELECT id, title, need_type,
            ST_X(location::geometry) as lng,
            ST_Y(location::geometry) as lat
     FROM needs
     WHERE id = ${needId}::uuid
-    LIMIT 1
   `;
 
   if (!needRows || needRows.length === 0) throw new Error('Need not found');
@@ -26,8 +25,7 @@ const findMatches = async (needId) => {
 
   const { lat, lng, need_type } = need;
 
-  // 2. Fetch all available volunteers with their distance from the need
-  // Using PostGIS ST_Distance Sphere for accurate km distance
+  // 2. Fetch available volunteers WITHIN 6km, ordered by proximity
   const volunteers = await prisma.$queryRaw`
     SELECT
       u.id,
@@ -40,30 +38,30 @@ const findMatches = async (needId) => {
     FROM volunteers v
     JOIN users u ON v.user_id = u.id
     WHERE v.is_available = true
+    AND v.location IS NOT NULL
+    AND ST_DWithin(v.location::geography, ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography, 6000)
+    ORDER BY v.location <-> ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)
+    LIMIT 10
   `;
 
-  // 3. Score each volunteer based on the PRD formula
+  // 3. Score each volunteer
   const rankedVolunteers = volunteers.map((v) => {
     let score = 0;
 
-    // A. Proximity Weight (60%) - Priority #1
-    // Exponential decay: 60 * exp(-distance / 8)
-    // 0km = 60, 4km = ~36, 8km = ~22
+    // A. Proximity (Weight 50%)
     const distKm = Number(v.distance_km) || 0;
-    const proximityScore = 60 * Math.exp(-distKm / 8);
+    const proximityScore = Math.max(0, 50 * (1 - distKm / 5));
     score += proximityScore;
 
-    // B. Skill Overlap (20%)
+    // B. Skill Match (Weight 30%)
     const skills = Array.isArray(v.skills) ? v.skills : [];
-    const skillMatch = skills.includes(need_type) ? 20 : 0;
-    score += skillMatch;
+    if (skills.includes(need_type)) {
+      score += 30;
+    }
 
-    // C. Experience & Reliability (20%)
+    // C. Reliability (Weight 20%)
     const completionRate = Number(v.completion_rate) || 0;
-    const tasksCompleted = Number(v.tasks_completed) || 0;
-    
-    const reliabilityScore = (completionRate * 15) + Math.min(5, Math.log10(tasksCompleted + 1) * 2);
-    score += reliabilityScore;
+    score += completionRate * 20;
 
     return {
       ...v,
@@ -72,10 +70,10 @@ const findMatches = async (needId) => {
     };
   });
 
-  // 4. Sort by score descending and take top 3
+  // 4. Sort by score descending and take top 5
   return rankedVolunteers
     .sort((a, b) => b.match_score - a.match_score)
-    .slice(0, 3);
+    .slice(0, 5);
 };
 
 module.exports = {

@@ -2,25 +2,102 @@ const express = require('express');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const { calculateScore } = require('../services/scoringService');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+const exifr = require('exifr');
+const axios = require('axios');
+const FormData = require('form-data');
 
 const router = express.Router();
 
+// Ensure uploads directory exists
+const UPLOADS_DIR = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+// Configure Multer for image uploads (in-memory)
+const storage = multer.memoryStorage();
+const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
+
 /**
  * @route   POST /api/needs
- * @desc    Create a new community need
+ * @desc    Create a new community need with AI Verification
  * @access  Private (Field Worker / Coordinator)
  */
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, upload.single('image'), async (req, res) => {
   const { title, description, need_type, lat, lng, ward, district, people_affected, is_disaster_zone } = req.body;
+  
+  let isVerified = false;
+  let verificationConfidence = 0;
+  let imageUrl = null;
 
   try {
+    // --- 1. Trust Layer: Verification Pipeline ---
+    if (req.file) {
+      console.log('--- STARTING VERIFICATION PIPELINE ---');
+      
+      // Factor A: GPS Match (EXIF)
+      try {
+        const exif = await exifr.gps(req.file.buffer);
+        if (exif && exif.latitude && exif.longitude) {
+          const dist = Math.sqrt(
+            Math.pow(exif.latitude - parseFloat(lat), 2) + 
+            Math.pow(exif.longitude - parseFloat(lng), 2)
+          );
+          // Roughly within 500m (approx 0.005 degrees)
+          if (dist < 0.005) {
+            console.log('GPS Match: PASSED');
+            isVerified = true; // Temporary, needs Factor B too
+          } else {
+            console.log('GPS Match: FAILED (Photo taken too far from reported location)');
+          }
+        }
+      } catch (exifErr) {
+        console.warn('EXIF Extraction failed:', exifErr.message);
+      }
+
+      // Factor B: Visual Match (AI CLIP)
+      try {
+        const form = new FormData();
+        form.append('file', req.file.buffer, { filename: 'upload.jpg' });
+
+        const aiResponse = await axios.post(
+          `${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/verify-image`,
+          form,
+          { headers: form.getHeaders() }
+        );
+
+        if (aiResponse.data.is_verified && aiResponse.data.confidence > 0.70) {
+          console.log(`AI Match: PASSED (${aiResponse.data.top_match})`);
+          verificationConfidence = aiResponse.data.confidence;
+          // Both must pass for full verification
+          isVerified = isVerified && true; 
+        } else {
+          console.log('AI Match: FAILED or Low Confidence');
+          isVerified = false;
+        }
+      } catch (aiErr) {
+        console.error('AI Service unreachable:', aiErr.message);
+      }
+      
+      // Save file to disk
+      const fileName = `${Date.now()}-${req.file.originalname.replace(/\s+/g, '_')}`;
+      const filePath = path.join(UPLOADS_DIR, fileName);
+      fs.writeFileSync(filePath, req.file.buffer);
+      imageUrl = `/uploads/${fileName}`;
+      console.log(`File saved to: ${filePath}`);
+    }
+
+    // --- 2. Urgency Scoring ---
     const urgency_score = calculateScore({
       need_type,
-      people_affected,
-      is_disaster_zone,
-      created_at: new Date(),
+      people_affected: parseInt(people_affected),
+      is_verified: isVerified,
     });
 
+    // --- 3. Database Persistence ---
     const needId = await prisma.$transaction(async (tx) => {
       const need = await tx.need.create({
         data: {
@@ -29,9 +106,12 @@ router.post('/', auth, async (req, res) => {
           needType: need_type,
           ward,
           district,
-          peopleAffected: people_affected,
+          peopleAffected: parseInt(people_affected),
           urgencyScore: urgency_score,
-          isDisasterZone: is_disaster_zone,
+          isVerified: isVerified,
+          verificationConfidence: verificationConfidence,
+          imageUrl: imageUrl,
+          isDisasterZone: is_disaster_zone === 'true',
           reportedBy: req.user.id,
           status: 'open',
         },
@@ -46,7 +126,7 @@ router.post('/', auth, async (req, res) => {
     });
 
     const fullNeeds = await prisma.$queryRaw`
-      SELECT id, title, description, need_type, people_affected, urgency_score, status, ward, district, is_disaster_zone, created_at, updated_at,
+      SELECT id, title, description, need_type, people_affected, urgency_score, status, ward, district, is_disaster_zone, is_verified, verification_confidence, image_url, created_at, updated_at,
              ST_X(location::geometry) as lng, ST_Y(location::geometry) as lat
       FROM needs
       WHERE id = ${needId}::uuid
@@ -135,7 +215,7 @@ router.get('/heatmap', async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const need = await prisma.$queryRaw`
-      SELECT *,
+      SELECT id, title, description, need_type, people_affected, urgency_score, status, ward, district, is_disaster_zone, is_verified, verification_confidence, image_url, created_at, updated_at,
              ST_X(location::geometry) as lng,
              ST_Y(location::geometry) as lat
       FROM needs
