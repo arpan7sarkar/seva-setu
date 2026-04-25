@@ -38,10 +38,32 @@ module.exports = async (req, res, next) => {
   try {
     let dbUser = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
-      select: { id: true, role: true, email: true, name: true },
+      select: { 
+        id: true, 
+        role: true, 
+        email: true, 
+        name: true,
+        volunteer: { select: { updatedAt: true } }
+      },
     });
 
     if (dbUser) {
+      // ── Step 2.5: Throttled Heartbeat ───────────────────────────────
+      // If volunteer, update their 'last seen' timestamp at most every 15 mins.
+      // This ensures they show up as "Active" on the dashboard even if just polling.
+      if (dbUser.role === 'volunteer' && dbUser.volunteer) {
+        const lastSeen = new Date(dbUser.volunteer.updatedAt);
+        const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+        
+        if (lastSeen < fifteenMinsAgo) {
+          // Fire-and-forget update to keep the request response time low
+          prisma.volunteer.update({
+            where: { userId: dbUser.id },
+            data: { updatedAt: new Date() }
+          }).catch(err => console.error('[auth] Heartbeat failed:', err.message));
+        }
+      }
+
       req.user = {
         id: dbUser.id,
         role: dbUser.role,

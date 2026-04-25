@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const twilio = require('twilio');
 const prisma = require('../db');
+const { calculateScore } = require('../services/scoringService');
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -11,10 +12,9 @@ router.use(express.urlencoded({ extended: true }));
 router.post('/webhook', async (req, res) => {
   const twiml = new MessagingResponse();
   const incomingMsg = req.body.Body?.trim() || '';
-  const fromNumber = req.body.From; // Format usually "whatsapp:+1234567890"
+  const fromNumber = req.body.From;
 
   try {
-    // Check if we have a session
     let session = await prisma.botSession.findUnique({
       where: { phoneNumber: fromNumber }
     });
@@ -25,19 +25,19 @@ router.post('/webhook', async (req, res) => {
       });
     }
 
-    // Very basic State Machine for Rapid Need Reporting
     if (incomingMsg.toLowerCase() === 'help' || incomingMsg.toLowerCase() === 'report') {
       await prisma.botSession.update({
         where: { phoneNumber: fromNumber },
         data: { step: 'awaiting_need_type' }
       });
-      twiml.message('Welcome to SevaSetu. What type of assistance is required?\n1. Medical\n2. Food\n3. Shelter\n4. Rescue\n\nReply with the number.');
+      twiml.message('Emergency Report System\nWhat is the nature of the emergency?\n1. Medical/Medicine\n2. Accidental\n3. Food\n4. Shelter\n5. Rescue/Other\n\nReply with the number.');
     } else if (session.step === 'awaiting_need_type') {
       let needType = 'other';
       if (incomingMsg === '1') needType = 'medical';
-      if (incomingMsg === '2') needType = 'food';
-      if (incomingMsg === '3') needType = 'shelter';
-      if (incomingMsg === '4') needType = 'other';
+      if (incomingMsg === '2') needType = 'accidental';
+      if (incomingMsg === '3') needType = 'food';
+      if (incomingMsg === '4') needType = 'shelter';
+      if (incomingMsg === '5') needType = 'rescue';
 
       await prisma.botSession.update({
         where: { phoneNumber: fromNumber },
@@ -46,18 +46,30 @@ router.post('/webhook', async (req, res) => {
           stateData: { needType } 
         }
       });
-      twiml.message('Got it. Please describe the exact situation or emergency briefly:');
+      twiml.message('Describe the emergency briefly (e.g. "House flooded, families on roof"):');
     } else if (session.step === 'awaiting_description') {
       const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
       
       await prisma.botSession.update({
         where: { phoneNumber: fromNumber },
         data: { 
-          step: 'awaiting_area_name', 
+          step: 'awaiting_people_count', 
           stateData: { ...state, description: incomingMsg } 
         }
       });
-      twiml.message('Noted. What is the name of your Area, Ward, or Village?');
+      twiml.message('MANDATORY: How many people are affected or injured? (Reply with a number, e.g. "5")');
+    } else if (session.step === 'awaiting_people_count') {
+      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+      const count = parseInt(incomingMsg) || 1;
+      
+      await prisma.botSession.update({
+        where: { phoneNumber: fromNumber },
+        data: { 
+          step: 'awaiting_area_name', 
+          stateData: { ...state, peopleAffected: count } 
+        }
+      });
+      twiml.message('What is the name of your Area, Ward, or Village?');
     } else if (session.step === 'awaiting_area_name') {
       const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
       
@@ -68,23 +80,29 @@ router.post('/webhook', async (req, res) => {
           stateData: { ...state, areaName: incomingMsg } 
         }
       });
-      twiml.message('Almost done. Please send your exact location using WhatsApp\'s "Share Location" feature (the 📎 pin icon).');
+      twiml.message('Almost done. Please share your exact GPS location using the 📎 pin icon in WhatsApp.');
     } else if (session.step === 'awaiting_location') {
-      // Twilio sends Latitude and Longitude if a location is shared
       if (req.body.Latitude && req.body.Longitude) {
         const lat = parseFloat(req.body.Latitude);
         const lng = parseFloat(req.body.Longitude);
         const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
         
-        // Create Need (Using raw SQL because of PostGIS)
+        // Calculate dynamic urgency score (0-10)
+        const priorityScore = calculateScore({
+          need_type: state.needType,
+          people_affected: state.peopleAffected,
+          is_verified: true // WhatsApp location sharing is highly trusted
+        });
+
         await prisma.$executeRaw`
-          INSERT INTO needs (title, description, ward, need_type, urgency_score, location, is_disaster_zone)
+          INSERT INTO needs (title, description, ward, need_type, people_affected, urgency_score, location, is_disaster_zone)
           VALUES (
-            ${'WA: ' + (state.description?.substring(0, 40) || 'Urgent Request') + (state.description?.length > 40 ? '...' : '')}, 
+            ${'WA: ' + (state.description?.substring(0, 40) || 'Urgent Request')}, 
             ${state.description || ''},
             ${state.areaName || ''},
             ${state.needType || 'other'}::"NeedType", 
-            5.0, 
+            ${state.peopleAffected || 1},
+            ${priorityScore}, 
             ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 
             true
           )
@@ -94,16 +112,16 @@ router.post('/webhook', async (req, res) => {
           where: { phoneNumber: fromNumber },
           data: { step: 'idle', stateData: {} }
         });
-        twiml.message('Request Logged. We have captured your description, area, and location. Volunteers will be dispatched shortly.');
+        twiml.message(`Mission Logged! (Priority: ${priorityScore}/10)\nLocation captured for ${state.peopleAffected} people. Volunteers are being dispatched.`);
       } else {
-        twiml.message('We need your exact location. Please click the attachment pin icon 📎 and select "Location" to share it.');
+        twiml.message('GPS Location is mandatory. Please use the 📎 icon -> Location -> Send Your Current Location.');
       }
     } else {
-      twiml.message('Welcome to SevaSetu! Send "Help" to report an emergency.');
+      twiml.message('SevaSetu Response Bot\nSend "Report" or "Help" to log a community need.');
     }
   } catch (error) {
     console.error('WhatsApp Bot Error:', error);
-    twiml.message('Sorry, we encountered an error processing your request. Please try again.');
+    twiml.message('Sorry, we encountered an error. Please try again.');
   }
 
   res.type('text/xml').send(twiml.toString());

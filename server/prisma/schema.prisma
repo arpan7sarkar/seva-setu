@@ -24,7 +24,8 @@ enum NeedType {
   medical
   food
   shelter
-  education
+  accidental
+  rescue
   other
 }
 
