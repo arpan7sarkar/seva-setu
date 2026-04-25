@@ -19,30 +19,31 @@ const WEIGHTS = {
 const calculateScore = (need) => {
   const { need_type, people_affected, is_verified } = need;
 
-  // 1. Base Category Weights
+  // 1. Base Category Weights (Max 5 points)
   const weights = { 
-    medical: 50, 
-    food: 30, 
-    shelter: 20, 
-    education: 10, 
-    other: 10 
+    medical: 5.0, 
+    accidental: 4.5,
+    rescue: 4.0,
+    food: 3.5, 
+    shelter: 3.0, 
+    other: 1.0 
   };
   
-  let baseScore = weights[need_type] || 10;
+  let baseScore = weights[need_type] || 1.0;
 
-  // 2. Scale by People Affected (+0.5 per person)
+  // 2. Scale by People Affected (Max 3 points, 0.1 per person, caps at 30 people)
   const peopleCount = Math.max(0, Number(people_affected) || 0);
-  const peopleBonus = peopleCount * 0.5;
+  const peopleBonus = Math.min(3.0, peopleCount * 0.1);
   
   let totalScore = baseScore + peopleBonus;
 
-  // 3. Verification Multiplier (x2 if verified)
+  // 3. Verification Bonus (+2 points if verified by GPS or AI)
   if (is_verified) {
-    totalScore *= 2;
+    totalScore += 2.0;
   }
 
-  // We return the raw score (can exceed 100 as per blueprint)
-  return parseFloat(totalScore.toFixed(2));
+  // Final score normalized to 1-10 range
+  return Math.min(10.0, parseFloat(totalScore.toFixed(1)));
 };
 
 module.exports = {

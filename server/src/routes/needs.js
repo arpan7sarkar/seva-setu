@@ -35,33 +35,71 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 
   try {
     // --- 1. Trust Layer: Verification Pipeline ---
-    if (req.file) {
-      console.log('--- STARTING VERIFICATION PIPELINE ---');
-      
-      // Factor A: GPS Match (EXIF)
-      try {
-        const exif = await exifr.gps(req.file.buffer);
-        if (exif && exif.latitude && exif.longitude) {
-          const dist = Math.sqrt(
-            Math.pow(exif.latitude - parseFloat(lat), 2) + 
-            Math.pow(exif.longitude - parseFloat(lng), 2)
-          );
-          // Roughly within 500m (approx 0.005 degrees)
-          if (dist < 0.005) {
-            console.log('GPS Match: PASSED');
-            isVerified = true; // Temporary, needs Factor B too
-          } else {
-            console.log('GPS Match: FAILED (Photo taken too far from reported location)');
-          }
+    // Make visual evidence and GPS mandatory
+    if (!req.file) {
+      return res.status(400).json({ message: 'Verification Failed: A live photo with GPS data is mandatory to verify your location.' });
+    }
+
+    console.log('--- STARTING VERIFICATION PIPELINE ---');
+    
+    // Factor A: GPS Match (EXIF or OCR)
+    let gpsMatched = false;
+    try {
+      // First try inbuilt EXIF metadata
+      const exif = await exifr.gps(req.file.buffer);
+      if (exif && exif.latitude && exif.longitude) {
+        const dist = Math.sqrt(
+          Math.pow(exif.latitude - parseFloat(lat), 2) + 
+          Math.pow(exif.longitude - parseFloat(lng), 2)
+        );
+        if (dist < 0.005) {
+          console.log('GPS Match (EXIF): PASSED');
+          gpsMatched = true;
+        } else {
+          console.log('GPS Match (EXIF): FAILED (Distance too far)');
         }
-      } catch (exifErr) {
-        console.warn('EXIF Extraction failed:', exifErr.message);
       }
+    } catch (exifErr) {
+      console.warn('EXIF Extraction failed:', exifErr.message);
+    }
+
+    // If EXIF failed, fallback to OCR (reading text off the image)
+    if (!gpsMatched) {
+      console.log('Attempting OCR fallback for stamped GPS coordinates...');
+      try {
+        const Tesseract = require('tesseract.js');
+        const { data: { text } } = await Tesseract.recognize(req.file.buffer, 'eng');
+        
+        // Fuzzy match: check if the reported lat/lng (rounded to 2 decimal places) is in the text
+        const latFuzzy = parseFloat(lat).toFixed(2);
+        const lngFuzzy = parseFloat(lng).toFixed(2);
+        const latFuzzy1 = parseFloat(lat).toFixed(1); // Even looser match for bad OCR
+        const lngFuzzy1 = parseFloat(lng).toFixed(1);
+        
+        if ((text.includes(latFuzzy) || text.includes(latFuzzy1)) && 
+            (text.includes(lngFuzzy) || text.includes(lngFuzzy1))) {
+          console.log('GPS Match (OCR): PASSED');
+          gpsMatched = true;
+        } else {
+          console.log('GPS Match (OCR): FAILED (Coordinates not found in image text)');
+        }
+      } catch (ocrErr) {
+        console.warn('OCR processing failed:', ocrErr.message);
+      }
+    }
+
+    // Enforce mandatory GPS match
+    if (!gpsMatched) {
+      return res.status(400).json({ message: "Verification Failed: The photo's GPS data does not match the reported location. You must be on-site." });
+    }
+    
+    isVerified = true; // Passed GPS, now needs Factor B
 
       // Factor B: Visual Match (AI CLIP)
       try {
         const form = new FormData();
         form.append('file', req.file.buffer, { filename: 'upload.jpg' });
+        form.append('need_type', need_type); // Pass the category to AI for specific context checking
 
         const aiResponse = await axios.post(
           `${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/verify-image`,
@@ -69,13 +107,13 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
           { headers: form.getHeaders() }
         );
 
-        if (aiResponse.data.is_verified && aiResponse.data.confidence > 0.70) {
-          console.log(`AI Match: PASSED (${aiResponse.data.top_match})`);
+        if (aiResponse.data.is_verified) {
+          console.log(`AI Match: PASSED (${aiResponse.data.top_match}) - Context Match: ${aiResponse.data.matches_specific_need}`);
           verificationConfidence = aiResponse.data.confidence;
-          // Both must pass for full verification
+          // Both must pass for full verification. If GPS failed, it's still unverified.
           isVerified = isVerified && true; 
         } else {
-          console.log('AI Match: FAILED or Low Confidence');
+          console.log(`AI Match: FAILED (Expected: ${need_type}, Found: ${aiResponse.data.top_match})`);
           isVerified = false;
         }
       } catch (aiErr) {
@@ -88,7 +126,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       fs.writeFileSync(filePath, req.file.buffer);
       imageUrl = `/uploads/${fileName}`;
       console.log(`File saved to: ${filePath}`);
-    }
+
 
     // --- 2. Urgency Scoring ---
     const urgency_score = calculateScore({

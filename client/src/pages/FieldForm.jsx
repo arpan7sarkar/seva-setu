@@ -97,11 +97,12 @@ const FieldForm = () => {
                       value={formData.need_type}
                       onChange={(e) => updateField('need_type', e.target.value)}
                     >
-                      <option value="medical">🚑 Medical Emergency</option>
+                      <option value="medical">🚑 Medical / Medicine</option>
+                      <option value="accidental">⚠️ Accidental</option>
                       <option value="food">🍱 Food & Water</option>
                       <option value="shelter">⛺ Shelter / Housing</option>
-                      <option value="education">📚 Educational Aid</option>
-                      <option value="other">📦 General Relief</option>
+                      <option value="rescue">🚁 Rescue Operations</option>
+                      <option value="other">📦 General / Other</option>
                     </select>
                   </div>
 
@@ -146,7 +147,7 @@ const FieldForm = () => {
                     <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Priority Index</p>
                     <div className="flex items-baseline gap-1 mt-1">
                       <span className="text-3xl font-black text-white">{urgencyPreview}</span>
-                      <span className="text-xs text-slate-500 font-bold">/ 100+</span>
+                      <span className="text-xs text-slate-500 font-bold">/ 10</span>
                     </div>
                   </div>
 

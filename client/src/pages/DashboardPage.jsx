@@ -85,7 +85,13 @@ const DashboardPage = () => {
 
             <section className="dashboard-layout">
               <aside className="dashboard-sidebar">
-                <DashboardFilters filters={filters} setFilters={setFilters} districts={districts} />
+                <DashboardFilters 
+                  filters={filters} 
+                  setFilters={setFilters} 
+                  districts={districts} 
+                  sorting={sorting}
+                  setSort={setSort}
+                />
               </aside>
 
               <div className="dashboard-main-stack">

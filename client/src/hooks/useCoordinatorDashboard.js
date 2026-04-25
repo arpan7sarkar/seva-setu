@@ -122,10 +122,10 @@ export const useCoordinatorDashboard = () => {
   const summary = useMemo(() => {
     const openNeeds = needs.filter((n) => n.status === 'open').length;
     
-    // Active Volunteers = Available AND seen in the last 2 hours
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    // Active Volunteers = Available AND seen in the last 4 hours
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
     const activeVolunteers = volunteers.filter((v) => {
-      return v.is_available && new Date(v.updated_at) > twoHoursAgo;
+      return v.is_available && new Date(v.updated_at) > fourHoursAgo;
     }).length;
     
     // Present workers = unique volunteers who have a task that is NOT completed
