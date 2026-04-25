@@ -13,6 +13,7 @@ const NeedsList = ({
   onDispatch,
 }) => {
   const sortable = [
+    { key: 'district', label: 'District' },
     { key: 'ward', label: 'Ward' },
     { key: 'need_type', label: 'Need Type' },
     { key: 'urgency_score', label: 'Urgency' },
@@ -67,6 +68,7 @@ const NeedsList = ({
                     )}
                   </div>
                 </td>
+                <td>{need.district || '-'}</td>
                 <td>{need.ward || '-'}</td>
                 <td className="capitalize">
                   <div className="flex items-center gap-1.5">

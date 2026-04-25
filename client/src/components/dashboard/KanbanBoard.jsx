@@ -119,6 +119,17 @@ const KanbanBoard = ({ needs, tasks, onDispatch, onUpdateTask }) => {
                     {task?.volunteer_name || 'Unassigned'}
                   </p>
                   
+                  <p style={{ 
+                    fontSize: '0.6rem', 
+                    color: 'var(--color-accent-sky)', 
+                    marginTop: '0.15rem',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    opacity: 0.8
+                  }}>
+                    {need.ward || 'Unknown'} • {need.district || 'Unspecified'}
+                  </p>
+                  
                   <div style={{ marginTop: '0.85rem', display: 'flex', gap: '0.5rem' }}>
                     {laneKey === 'open' && (
                       <button type="button" className="dashboard-pill dashboard-pill-open" style={{ fontSize: '0.625rem', padding: '4px 10px', cursor: 'pointer' }} onClick={() => onDispatch(need)}>

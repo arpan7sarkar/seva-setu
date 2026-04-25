@@ -18,7 +18,12 @@ const MatchModal = ({
           </button>
         </div>
 
-        <p className="text-sm text-text-secondary mb-4">Need: {need.title}</p>
+        <div className="mb-4">
+          <p className="text-sm font-bold text-text-primary">Need: {need.title}</p>
+          <p className="text-[10px] text-accent-sky font-black uppercase tracking-widest mt-1">
+            Location: {need.ward || 'Unknown'} • {need.district || 'Unspecified'}
+          </p>
+        </div>
 
         {loading ? (
           <p className="text-sm text-text-secondary">Loading ranked volunteers...</p>

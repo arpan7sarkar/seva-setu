@@ -128,6 +128,8 @@ export const useFieldForm = () => {
 
       if (!formData.need_type) return setError('Please select a need type.');
       if (!formData.title) return setError('Please provide a report headline.');
+      if (!formData.district) return setError('Please provide the district name.');
+      if (!formData.ward) return setError('Please provide the area/ward name.');
       if (!formData.lat || !formData.lng) return setError('GPS coordinates are required for spatial matching.');
 
       setLoading(true);

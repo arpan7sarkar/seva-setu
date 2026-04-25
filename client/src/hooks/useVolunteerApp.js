@@ -194,8 +194,8 @@ export const useVolunteerApp = () => {
 
   useEffect(() => {
     loadData();
-    // Reduced frequency from 10s to 30s to lower server load on Render
-    const interval = setInterval(loadData, 30000);
+    // High frequency polling (5s) for real-time mission updates
+    const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, [loadData]);
 
