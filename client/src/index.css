@@ -205,6 +205,25 @@ button {
   height: 4rem;
 }
 
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-links-desktop {
+  display: none;
+  align-items: center;
+  gap: 0.1rem;
+  margin-left: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .nav-links-desktop {
+    display: flex;
+  }
+}
+
 .nav-logo-link {
   display: flex;
   align-items: center;

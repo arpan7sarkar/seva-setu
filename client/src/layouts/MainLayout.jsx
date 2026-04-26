@@ -1,34 +1,89 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Logo from '../components/Logo';
 import { useAuth } from '../hooks/useAuth';
-import { ChevronDown, Send } from 'lucide-react';
+import {
+  ChevronDown, Send, LayoutDashboard, FileText,
+  Users, MapPin, ClipboardCheck, LogOut, UserCircle
+} from 'lucide-react';
+
+/* ── Role-based nav definitions ─────────────────────────────── */
+const NAV_BY_ROLE = {
+  coordinator: [
+    { to: '/dashboard',            label: 'Dashboard' },
+    { to: '/needs-archive',        label: 'All Issues' },
+    { to: '/volunteer-approvals',  label: 'Volunteers' },
+  ],
+  volunteer: [
+    { to: '/volunteer',   label: 'My Tasks' },
+    { to: '/my-reports',  label: 'Reports' },
+  ],
+  field_worker: [
+    { to: '/field',       label: 'Report Need' },
+    { to: '/my-reports',  label: 'My Reports' },
+  ],
+  user: [
+    { to: '/user-dashboard', label: 'Dashboard' },
+    { to: '/field',          label: 'Report Need' },
+    { to: '/my-reports',     label: 'My Reports' },
+  ],
+};
+
+const DASHBOARD_BY_ROLE = {
+  coordinator: '/dashboard',
+  volunteer:   '/volunteer',
+  field_worker: '/field',
+  user:        '/user-dashboard',
+};
+
+const DASHBOARD_LABEL_BY_ROLE = {
+  coordinator: 'Coordinator Hub',
+  volunteer:   'Volunteer Console',
+  field_worker: 'Field Terminal',
+  user:        'My Dashboard',
+};
+
+/* ── Landing nav links (public only) ────────────────────────── */
+const LANDING_NAV = [
+  { href: '#features',  label: 'Features' },
+  { href: '#workflow',  label: 'How It Works' },
+  { href: '#roles',     label: 'Roles' },
+  { href: '#about',     label: 'About' },
+];
 
 const MainLayout = ({ children }) => {
   const { isAuthenticated, currentUser, logout } = useAuth();
+  const role = currentUser?.role;
+  const authNavLinks = NAV_BY_ROLE[role] || [];
 
   return (
     <div className="layout-root">
 
-      {/* ── Navbar ─────────────────────────────────────────────────── */}
+      {/* ── Navbar ─────────────────────────────────────────────── */}
       <header className="site-header">
         <nav className="container-lg nav-bar">
+
+          {/* Logo */}
           <div className="nav-left">
-            <Link to="/" className="nav-logo-link">
+            <Link to={isAuthenticated ? (DASHBOARD_BY_ROLE[role] || '/') : '/'} className="nav-logo-link">
               <Logo size={32} />
               <span className="nav-logo-text">SevaSetu</span>
             </Link>
-            
+
+            {/* Context-aware nav links */}
             <div className="nav-links-desktop">
-              <a href="#features" className="nav-link">Features</a>
-              <a href="#workflow" className="nav-link">How It Works</a>
-              <a href="#roles" className="nav-link">Roles</a>
-              <a href="#about" className="nav-link">About</a>
-              <div className="nav-dropdown-trigger">
-                <span className="nav-link">Resources <ChevronDown size={14} /></span>
-              </div>
+              {!isAuthenticated ? (
+                LANDING_NAV.map(({ href, label }) => (
+                  <a key={href} href={href} className="nav-link">{label}</a>
+                ))
+              ) : (
+                authNavLinks.map(({ to, label }) => (
+                  <Link key={to} to={to} className="nav-link">{label}</Link>
+                ))
+              )}
             </div>
           </div>
 
+          {/* Right-side actions */}
           <div className="nav-actions">
             {!isAuthenticated ? (
               <>
@@ -37,36 +92,35 @@ const MainLayout = ({ children }) => {
               </>
             ) : (
               <>
-                {currentUser?.role !== 'coordinator' && (
-                  <Link to="/field" className="nav-link">
-                  Report Need
+                {/* Role badge */}
+                {role && (
+                  <span style={{
+                    fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase',
+                    letterSpacing: '0.06em', padding: '0.25rem 0.65rem',
+                    borderRadius: 9999, background: 'rgba(45, 97, 72, 0.08)',
+                    border: '1px solid rgba(45, 97, 72, 0.18)', color: '#2d6148',
+                  }}>
+                    {role.replace('_', ' ')}
+                  </span>
+                )}
+
+                {/* Primary dashboard shortcut */}
+                {DASHBOARD_BY_ROLE[role] && (
+                  <Link to={DASHBOARD_BY_ROLE[role]} className="btn-primary nav-cta">
+                    {DASHBOARD_LABEL_BY_ROLE[role]}
                   </Link>
                 )}
-                <Link to="/my-reports" className="nav-link">
-                My Reports
-                </Link>
-                {currentUser?.role === 'coordinator' && (
-                  <Link to="/dashboard" className="btn-primary nav-cta">
-                      Dashboard
-                  </Link>
-                )}
-                {currentUser?.role === 'volunteer' && (
-                  <Link to="/volunteer" className="btn-primary nav-cta">
-                    Volunteer Dash
-                  </Link>
-                )}
-                {currentUser?.role === 'user' && (
-                  <Link to="/user-dashboard" className="btn-primary nav-cta">
-                    My Dashboard
-                  </Link>
-                )}
-                {currentUser?.role === 'field_worker' && (
-                  <Link to="/field" className="btn-primary nav-cta">
-                    Field Terminal
-                  </Link>
-                )}
+
+                {/* Logout */}
                 <div className="nav-user-section">
-                  <button onClick={logout} className="nav-link">Logout</button>
+                  <button
+                    onClick={logout}
+                    className="nav-link"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <LogOut size={14} />
+                    Logout
+                  </button>
                 </div>
               </>
             )}
@@ -74,76 +128,96 @@ const MainLayout = ({ children }) => {
         </nav>
       </header>
 
-      {/* ── Page Content ────────────────────────────────────────────── */}
+      {/* ── Page Content ──────────────────────────────────────── */}
       <main className="layout-main">
         {children}
       </main>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="site-footer">
-        <div className="container-lg">
-          <div className="footer-grid">
-            <div className="footer-col-brand">
-              <div className="footer-brand">
-                <Logo size={28} />
-                <span className="footer-brand-text">SevaSetu</span>
+      {/* ── Footer ────────────────────────────────────────────── */}
+      {!isAuthenticated ? (
+        /* Full landing footer — public only */
+        <footer className="site-footer">
+          <div className="container-lg">
+            <div className="footer-grid">
+              <div className="footer-col-brand">
+                <div className="footer-brand">
+                  <Logo size={28} />
+                  <span className="footer-brand-text">SevaSetu</span>
+                </div>
+                <p className="footer-desc">
+                  An open initiative for community resilience and coordinated humanitarian response.
+                </p>
               </div>
-              <p className="footer-desc">
-                An open initiative for community resilience and coordinated humanitarian response.
+
+              <div className="footer-col">
+                <h4>Platform</h4>
+                <nav>
+                  <a href="#features">Features</a>
+                  <a href="#workflow">How It Works</a>
+                  <a href="#roles">Roles</a>
+                  <a href="#">Open Source</a>
+                </nav>
+              </div>
+
+              <div className="footer-col">
+                <h4>Resources</h4>
+                <nav>
+                  <a href="#">Help Center</a>
+                  <a href="#">Docs</a>
+                  <a href="#">Blog</a>
+                  <a href="#">Case Studies</a>
+                </nav>
+              </div>
+
+              <div className="footer-col">
+                <h4>Company</h4>
+                <nav>
+                  <a href="#">About Us</a>
+                  <a href="#">Contact</a>
+                  <a href="#">Careers</a>
+                </nav>
+              </div>
+
+              <div className="footer-col-newsletter">
+                <h4>Stay Updated</h4>
+                <p>Get updates on new features and impact stories.</p>
+                <div className="footer-newsletter-form">
+                  <input type="email" placeholder="Enter your email" />
+                  <button type="button"><Send size={16} /></button>
+                </div>
+              </div>
+            </div>
+
+            <div className="footer-bottom">
+              <p className="footer-copy">
+                © 2026 SevaSetu Open Initiative — Community resilience, powered by AI.
               </p>
-            </div>
-            
-            <div className="footer-col">
-              <h4>Platform</h4>
-              <nav>
-                <a href="#">Features</a>
-                <a href="#">How It Works</a>
-                <a href="#">Roles</a>
-                <a href="#">Open Source</a>
-              </nav>
-            </div>
-
-            <div className="footer-col">
-              <h4>Resources</h4>
-              <nav>
-                <a href="#">Help Center</a>
-                <a href="#">Docs</a>
-                <a href="#">Blog</a>
-                <a href="#">Case Studies</a>
-              </nav>
-            </div>
-
-            <div className="footer-col">
-              <h4>Company</h4>
-              <nav>
-                <a href="#">About Us</a>
-                <a href="#">Contact</a>
-                <a href="#">Careers</a>
-              </nav>
-            </div>
-
-            <div className="footer-col-newsletter">
-              <h4>Stay Updated</h4>
-              <p>Get updates on new features and impact stories.</p>
-              <div className="footer-newsletter-form">
-                <input type="email" placeholder="Enter your email" />
-                <button type="button"><Send size={16} /></button>
+              <div className="footer-legal">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">GitHub</a>
               </div>
             </div>
           </div>
-
-          <div className="footer-bottom">
-            <p className="footer-copy">
-              © 2026 SevaSetu Open Initiative — Community resilience, powered by AI.
-            </p>
-            <div className="footer-legal">
-              <a href="#">Privacy</a>
-              <a href="#">Terms</a>
-              <a href="#">GitHub</a>
+        </footer>
+      ) : (
+        /* Minimal footer for authenticated app pages */
+        <footer style={{
+          borderTop: '1px solid rgba(15, 23, 29, 0.06)',
+          background: '#ffffff',
+          padding: '1rem 0',
+        }}>
+          <div className="container-lg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Logo size={20} />
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>SevaSetu</span>
             </div>
+            <p style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+              © 2026 SevaSetu Open Initiative
+            </p>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
     </div>
   );

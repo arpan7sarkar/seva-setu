@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   MapPin, Send, Users, AlertTriangle,
   CheckCircle2, Crosshair, Loader2, Clock3, Camera, X,
-  Navigation, Sparkles, ShieldCheck
+  Navigation, ShieldCheck, Heart, Utensils, Home, Anchor, Package
 } from 'lucide-react';
 import { useFieldForm } from '../hooks/useFieldForm';
 import MainLayout from '../layouts/MainLayout';
@@ -151,20 +151,40 @@ const FieldForm = () => {
               </h2>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
+              <div>
                   <label style={labelStyle}>Need Classification</label>
-                  <select
-                    style={{ ...fieldStyle, appearance: 'none', cursor: 'pointer' }}
-                    value={formData.need_type}
-                    onChange={(e) => updateField('need_type', e.target.value)}
-                  >
-                    <option value="medical">🚑 Medical / Medicine</option>
-                    <option value="accidental">⚠️ Accidental</option>
-                    <option value="food">🍱 Food &amp; Water</option>
-                    <option value="shelter">⛺ Shelter / Housing</option>
-                    <option value="rescue">🚁 Rescue Operations</option>
-                    <option value="other">📦 General / Other</option>
-                  </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                    {[
+                      { value: 'medical',    label: 'Medical',   Icon: Heart },
+                      { value: 'accidental', label: 'Accident',  Icon: AlertTriangle },
+                      { value: 'food',       label: 'Food & Water', Icon: Utensils },
+                      { value: 'shelter',    label: 'Shelter',   Icon: Home },
+                      { value: 'rescue',     label: 'Rescue',    Icon: Anchor },
+                      { value: 'other',      label: 'General',   Icon: Package },
+                    ].map(({ value, label, Icon }) => {
+                      const isSelected = formData.need_type === value;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => updateField('need_type', value)}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            justifyContent: 'center', gap: '0.35rem', padding: '0.7rem 0.4rem',
+                            borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s',
+                            border: `1.5px solid ${isSelected ? 'rgba(45, 97, 72, 0.35)' : 'rgba(15, 23, 29, 0.1)'}`,
+                            background: isSelected ? 'rgba(45, 97, 72, 0.08)' : '#f8fafc',
+                            color: isSelected ? '#2d6148' : '#64748b',
+                          }}
+                        >
+                          <Icon style={{ width: 18, height: 18 }} />
+                          <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>

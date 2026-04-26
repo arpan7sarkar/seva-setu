@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, SwitchCamera, X, Check, Loader2, ChevronLeft } from 'lucide-react';
+import { Camera, SwitchCamera, X, Check, Loader2, ChevronLeft, MapPin, AlertTriangle } from 'lucide-react';
 
 const CameraWatermark = ({ onCapture, onCancel }) => {
   const videoRef = useRef(null);
@@ -259,8 +259,12 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
               textTransform: 'uppercase',
               color: capturedImage.hasGps ? '#34d399' : '#f87171',
             }}>
-              <span style={{ fontSize: '14px' }}>{capturedImage.hasGps ? '📍' : '⚠️'}</span>
-              {capturedImage.hasGps ? 'GPS VERIFIED' : 'NO GPS'}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                {capturedImage.hasGps
+                  ? <MapPin style={{ width: 13, height: 13 }} />
+                  : <AlertTriangle style={{ width: 13, height: 13 }} />}
+                {capturedImage.hasGps ? 'GPS VERIFIED' : 'NO GPS'}
+              </span>
             </div>
 
             {/* Close / Discard button — Top Right */}
@@ -319,7 +323,9 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
               </div>
             ) : (
               <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#fbbf24' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠ NO GPS SIGNAL</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', marginBottom: '4px' }}>
+                  <AlertTriangle style={{ width: 13, height: 13 }} /> NO GPS SIGNAL
+                </div>
                 <div style={{ color: '#fff' }}>Capture photo anyway — app will attempt to geotag from file metadata.</div>
               </div>
             )}

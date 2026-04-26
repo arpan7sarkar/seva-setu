@@ -264,7 +264,11 @@ const VolunteerPage = () => {
                             textTransform: 'uppercase',
                             color: selectedFiles[task.task_id].hasGps ? '#34d399' : '#f87171',
                           }}>
-                            {selectedFiles[task.task_id].hasGps ? '📍 GPS VERIFIED' : '⚠️ NO GPS'}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              {selectedFiles[task.task_id].hasGps
+                                ? <><MapPin style={{ width: 11, height: 11 }} /> GPS VERIFIED</>
+                                : <><AlertCircle style={{ width: 11, height: 11 }} /> NO GPS</>}
+                            </span>
                           </div>
 
                           {/* X Close — Top Right */}
