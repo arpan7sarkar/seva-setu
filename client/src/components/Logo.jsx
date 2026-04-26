@@ -16,8 +16,8 @@ const Logo = ({ size = 32, className = '', opacity = 1 }) => {
     >
       <defs>
         <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--color-accent-sky)" />
-          <stop offset="100%" stopColor="var(--color-accent-indigo)" />
+          <stop offset="0%" stopColor="var(--color-accent-moss)" />
+          <stop offset="100%" stopColor="var(--color-accent-moss-dark)" />
         </linearGradient>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="1.5" result="blur" />

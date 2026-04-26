@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   MapPin, Send, Users, AlertTriangle,
-  CheckCircle2, Crosshair, Loader2, Wifi, WifiOff, Clock3, Camera, X,
-  Navigation, Sparkles, ShieldCheck
+  CheckCircle2, Crosshair, Loader2, Clock3, Camera, X,
+  Navigation, ShieldCheck, Heart, Utensils, Home, Anchor, Package
 } from 'lucide-react';
 import { useFieldForm } from '../hooks/useFieldForm';
 import MainLayout from '../layouts/MainLayout';
@@ -11,36 +11,31 @@ import CameraWatermark from '../components/CameraWatermark';
 const FieldForm = () => {
   const [showCamera, setShowCamera] = useState(false);
   const {
-    formData,
-    loading,
-    locLoading,
-    success,
-    successMessage,
-    error,
-    isOnline,
-    queuedCount,
-    syncingQueue,
-    urgencyPreview,
-    updateField,
-    resetForm,
-    getLocation,
-    setManualLocation,
-    submitForm,
+    formData, loading, locLoading, success, successMessage,
+    error, isOnline, queuedCount, syncingQueue, urgencyPreview,
+    updateField, resetForm, getLocation, setManualLocation, submitForm,
   } = useFieldForm();
 
+  /* ── Success screen ─────────────────────────────────────── */
   if (success) {
     return (
       <MainLayout>
-        <div className="min-h-[70vh] flex items-center justify-center px-4">
-          <div className="card p-10 max-w-md w-full text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+        <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: '#f8fafc' }}>
+          <div className="card" style={{ padding: '2.5rem', maxWidth: '28rem', width: '100%', textAlign: 'center' }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: 16, background: 'rgba(5, 150, 105, 0.08)',
+              border: '1px solid rgba(5, 150, 105, 0.2)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', margin: '0 auto 1.5rem',
+            }}>
+              <CheckCircle2 style={{ width: 32, height: 32, color: '#059669' }} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Report Captured</h2>
-            <p className="text-sm text-slate-400 leading-relaxed mb-8">
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f171d', marginBottom: '0.75rem' }}>
+              Report Submitted
+            </h2>
+            <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.7, marginBottom: '2rem' }}>
               {successMessage || 'Your field report has been transmitted and is being scored for urgency.'}
             </p>
-            <button onClick={resetForm} className="btn-primary w-full py-3 text-sm">
+            <button onClick={resetForm} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.85rem' }}>
               Submit Another Report
             </button>
           </div>
@@ -49,351 +44,375 @@ const FieldForm = () => {
     );
   }
 
-  // Parse multi-line errors into an array for proper rendering
   const errorLines = error ? error.split('\n').filter(Boolean) : [];
+
+  /* ── helpers ────────────────────────────────────────────── */
+  const fieldStyle = {
+    width: '100%',
+    background: '#f8fafc',
+    border: '1px solid rgba(15, 23, 29, 0.1)',
+    color: '#0f171d',
+    borderRadius: 12,
+    padding: '0.85rem 1.1rem',
+    fontSize: '0.9375rem',
+    outline: 'none',
+    fontFamily: 'inherit',
+  };
+
+  const fieldIconStyle = {
+    ...fieldStyle,
+    paddingLeft: '3rem',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '0.65rem',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: '0.14em',
+    color: '#64748b',
+    marginBottom: '0.5rem',
+  };
 
   return (
     <MainLayout>
-      <div className="py-12 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="container-narrow px-4">
-          <div className="mb-12 text-center">
-            <h1 className="text-4xl font-black text-white tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400">
-              Field Report Terminal
+      <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBlock: 'clamp(2rem, 3vw, 3.5rem)' }}>
+        <div className="container-narrow">
+
+          {/* ── Page header ─────────────────────────────── */}
+          <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+            <h1 style={{
+              fontSize: 'clamp(1.8rem, 3vw, 2.5rem)', fontWeight: 900,
+              color: '#0f171d', letterSpacing: '-0.02em', marginBottom: '0.75rem',
+            }}>
+              Field Report
             </h1>
-            <p className="text-lg text-slate-400 max-w-lg mx-auto">
-              Strategic intake for verified ground reports. AI-powered "Trust Layer" active.
+            <p style={{ fontSize: '1rem', color: '#475569', maxWidth: '36rem', margin: '0 auto' }}>
+              Submit a structured community need with location and evidence for rapid coordinator review.
             </p>
           </div>
 
-          <div className="mb-8 flex justify-center items-center gap-4 text-xs font-bold tracking-widest uppercase">
-            <span
-              className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border transition-all duration-500 ${
-                isOnline
-                  ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-                  : 'border-amber-500/30 text-amber-400 bg-amber-500/10'
-              }`}
-            >
-              <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-              {isOnline ? 'System Online' : 'Offline Mode'}
+          {/* ── Status bar ──────────────────────────────── */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.4rem 1rem', borderRadius: 9999, fontSize: '0.72rem',
+              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+              background: isOnline ? 'rgba(5, 150, 105, 0.06)' : 'rgba(217, 119, 6, 0.06)',
+              color: isOnline ? '#059669' : '#d97706',
+              border: `1px solid ${isOnline ? 'rgba(5, 150, 105, 0.2)' : 'rgba(217, 119, 6, 0.2)'}`,
+            }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: isOnline ? '#059669' : '#d97706', display: 'inline-block' }} />
+              {isOnline ? 'Online' : 'Offline Mode'}
             </span>
 
-            <span className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border border-slate-700 text-slate-300 bg-slate-800/50">
-              <Clock3 className="w-3.5 h-3.5" />
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.4rem 1rem', borderRadius: 9999, fontSize: '0.72rem',
+              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+              background: '#f1f5f9', color: '#475569',
+              border: '1px solid rgba(15, 23, 29, 0.08)',
+            }}>
+              <Clock3 style={{ width: 14, height: 14 }} />
               Queue: {queuedCount}
             </span>
           </div>
 
-          <form onSubmit={submitForm} className="space-y-8">
-            {/* ── Verification Error Panel ── */}
+          <form onSubmit={submitForm} style={{ display: 'grid', gap: '1.25rem' }}>
+
+            {/* ── Error panel ─────────────────────────── */}
             {errorLines.length > 0 && (
-              <div className="p-5 rounded-2xl bg-[#1e1416] border border-rose-500/20 shadow-lg">
-                <div className="flex gap-3 mb-3">
-                  <div className="bg-rose-500/20 p-2 rounded-lg h-fit">
-                    <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+              <div className="card" style={{ padding: '1.25rem', borderColor: 'rgba(195, 93, 81, 0.2)', background: 'rgba(195, 93, 81, 0.03)' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                  <div style={{ background: 'rgba(195, 93, 81, 0.1)', padding: '0.4rem', borderRadius: '0.5rem', height: 'fit-content' }}>
+                    <AlertTriangle style={{ width: 18, height: 18, color: '#c35d51', flexShrink: 0 }} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest opacity-80">Verification Rejected</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{errorLines.length} issue(s) detected</p>
+                    <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c35d51', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Verification Rejected</p>
+                    <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>{errorLines.length} issue(s) detected</p>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {errorLines.map((line, idx) => (
-                    <div key={idx} className="flex gap-2 items-start p-2.5 rounded-lg bg-black/30 border border-white/5">
-                      <span className="text-rose-400 font-black text-xs mt-0.5 shrink-0">{idx + 1}.</span>
-                      <p className="text-sm font-medium text-slate-200 leading-snug">{line}</p>
+                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', padding: '0.6rem 0.75rem', borderRadius: '0.5rem', background: '#f8fafc', border: '1px solid rgba(15, 23, 29, 0.06)' }}>
+                      <span style={{ color: '#c35d51', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>{idx + 1}.</span>
+                      <p style={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.5 }}>{line}</p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* ── Core Details Card ── */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-indigo-500 rounded-[2rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-              <div className="relative glass p-8 rounded-[2rem] border border-white/10 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">
-                      Need Classification
-                    </label>
-                    <select
-                      className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all appearance-none"
-                      value={formData.need_type}
-                      onChange={(e) => updateField('need_type', e.target.value)}
-                    >
-                      <option value="medical">🚑 Medical / Medicine</option>
-                      <option value="accidental">⚠️ Accidental</option>
-                      <option value="food">🍱 Food & Water</option>
-                      <option value="shelter">⛺ Shelter / Housing</option>
-                      <option value="rescue">🚁 Rescue Operations</option>
-                      <option value="other">📦 General / Other</option>
-                    </select>
-                  </div>
+            {/* ── Core details card ───────────────────── */}
+            <div className="card" style={{ padding: '1.5rem' }}>
+              <h2 style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: 4, height: 16, background: '#2d6148', borderRadius: 9999, display: 'inline-block' }} />
+                Incident Details
+              </h2>
 
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Headcount</label>
-                    <div className="relative">
-                      <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input
-                        type="number"
-                        className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
-                        placeholder="Approx. affected"
-                        value={formData.people_affected}
-                        onChange={(e) => updateField('people_affected', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">District *</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input
-                        required
-                        className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
-                        placeholder="e.g. South 24 Parganas"
-                        value={formData.district}
-                        onChange={(e) => updateField('district', e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Area Name (Ward) *</label>
-                    <div className="relative">
-                      <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input
-                        required
-                        className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
-                        placeholder="e.g. Ward 102"
-                        value={formData.ward}
-                        onChange={(e) => updateField('ward', e.target.value)}
-                      />
-                    </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                  <label style={labelStyle}>Need Classification</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                    {[
+                      { value: 'medical',    label: 'Medical',   Icon: Heart },
+                      { value: 'accidental', label: 'Accident',  Icon: AlertTriangle },
+                      { value: 'food',       label: 'Food & Water', Icon: Utensils },
+                      { value: 'shelter',    label: 'Shelter',   Icon: Home },
+                      { value: 'rescue',     label: 'Rescue',    Icon: Anchor },
+                      { value: 'other',      label: 'General',   Icon: Package },
+                    ].map(({ value, label, Icon }) => {
+                      const isSelected = formData.need_type === value;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => updateField('need_type', value)}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            justifyContent: 'center', gap: '0.35rem', padding: '0.7rem 0.4rem',
+                            borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s',
+                            border: `1.5px solid ${isSelected ? 'rgba(45, 97, 72, 0.35)' : 'rgba(15, 23, 29, 0.1)'}`,
+                            background: isSelected ? 'rgba(45, 97, 72, 0.08)' : '#f8fafc',
+                            color: isSelected ? '#2d6148' : '#64748b',
+                          }}
+                        >
+                          <Icon style={{ width: 18, height: 18 }} />
+                          <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Contact Number (WhatsApp/Call)</label>
-                  <input
-                    type="tel"
-                    className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
-                    placeholder="e.g. +91 9876543210"
-                    value={formData.contact_number || ''}
-                    onChange={(e) => updateField('contact_number', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Report Headline *</label>
-                  <input
-                    required
-                    className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
-                    placeholder="Briefly describe the crisis"
-                    value={formData.title}
-                    onChange={(e) => updateField('title', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Intel Details</label>
-                  <textarea
-                    className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 h-32 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all resize-none"
-                    placeholder="Provide specific context for rapid response..."
-                    value={formData.description}
-                    onChange={(e) => updateField('description', e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-sky-500/5 border border-sky-500/10 rounded-2xl p-4">
-                    <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Priority Index</p>
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-3xl font-black text-white">{urgencyPreview}</span>
-                      <span className="text-xs text-slate-500 font-bold">/ 10</span>
-                    </div>
+                  <label style={labelStyle}>People Affected (approx.)</label>
+                  <div style={{ position: 'relative' }}>
+                    <Users style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#94a3b8' }} />
+                    <input
+                      type="number"
+                      style={fieldIconStyle}
+                      placeholder="Estimated headcount"
+                      value={formData.people_affected}
+                      onChange={(e) => updateField('people_affected', e.target.value)}
+                    />
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => updateField('is_disaster_zone', !formData.is_disaster_zone)}
-                    className={`flex flex-col justify-center items-center gap-1 rounded-2xl border transition-all duration-300 ${
-                      formData.is_disaster_zone
-                        ? 'bg-rose-500/10 border-rose-500/40 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.1)]'
-                        : 'bg-slate-900/50 border-slate-700/50 text-slate-500 grayscale'
-                    }`}
-                  >
-                    <AlertTriangle className={`w-5 h-5 ${formData.is_disaster_zone ? 'animate-pulse' : ''}`} />
-                    <span className="text-[10px] font-black uppercase tracking-tighter">Disaster Mode</span>
-                  </button>
                 </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={labelStyle}>District *</label>
+                  <div style={{ position: 'relative' }}>
+                    <MapPin style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#94a3b8' }} />
+                    <input
+                      required
+                      style={fieldIconStyle}
+                      placeholder="e.g. South 24 Parganas"
+                      value={formData.district}
+                      onChange={(e) => updateField('district', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Area / Ward *</label>
+                  <div style={{ position: 'relative' }}>
+                    <Navigation style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#94a3b8' }} />
+                    <input
+                      required
+                      style={fieldIconStyle}
+                      placeholder="e.g. Ward 102"
+                      value={formData.ward}
+                      onChange={(e) => updateField('ward', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={labelStyle}>Contact Number (WhatsApp / Call)</label>
+                <input
+                  type="tel"
+                  style={fieldStyle}
+                  placeholder="+91 9876543210"
+                  value={formData.contact_number || ''}
+                  onChange={(e) => updateField('contact_number', e.target.value)}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={labelStyle}>Headline *</label>
+                <input
+                  required
+                  style={fieldStyle}
+                  placeholder="Briefly describe the crisis"
+                  value={formData.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={labelStyle}>Details</label>
+                <textarea
+                  style={{ ...fieldStyle, height: 120, resize: 'vertical' }}
+                  placeholder="Provide specific context for rapid response..."
+                  value={formData.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                />
+              </div>
+
+              {/* Priority + Disaster mode */}
+              <div className="field-priority-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div style={{ background: 'rgba(45, 97, 72, 0.04)', border: '1px solid rgba(45, 97, 72, 0.12)', borderRadius: 12, padding: '1rem' }}>
+                  <p style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#2d6148' }}>Priority Index</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', marginTop: '0.25rem' }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 900, color: '#0f171d' }}>{urgencyPreview}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>/ 10</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => updateField('is_disaster_zone', !formData.is_disaster_zone)}
+                  style={{
+                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                    gap: '0.35rem', borderRadius: 12, cursor: 'pointer', transition: 'all 0.25s',
+                    background: formData.is_disaster_zone ? 'rgba(195, 93, 81, 0.08)' : '#f8fafc',
+                    border: `1px solid ${formData.is_disaster_zone ? 'rgba(195, 93, 81, 0.3)' : 'rgba(15, 23, 29, 0.1)'}`,
+                    color: formData.is_disaster_zone ? '#c35d51' : '#94a3b8',
+                  }}
+                >
+                  <AlertTriangle style={{ width: 20, height: 20 }} />
+                  <span style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Disaster Mode</span>
+                </button>
               </div>
             </div>
 
-            {/* ── Verification Layer ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Image Evidence */}
-              <div className="glass p-6 rounded-[2rem] border border-white/10 flex flex-col justify-between min-h-[220px]">
+            {/* ── Verification layer ───────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+
+              {/* Visual evidence */}
+              <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: 220 }}>
                 <div>
-                  <h2 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                    <div className="w-1.5 h-4 bg-sky-500 rounded-full" />
+                  <h2 style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ width: 4, height: 14, background: '#2d6148', borderRadius: 9999, display: 'inline-block' }} />
                     Visual Evidence
                   </h2>
-                  <p className="text-[10px] text-slate-500 mb-4 font-bold uppercase tracking-widest">Factor 1: Live Capture Only</p>
+                  <p style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.2rem' }}>Live Capture Only</p>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                  {formData.imageFile ? (
-                    <div className="flex flex-col gap-3">
-                      {/* Image Preview Thumbnail */}
-                      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-sky-500/30">
-                        <img
-                          src={URL.createObjectURL(formData.imageFile)}
-                          alt="Captured evidence"
-                          className="w-full h-full object-cover"
-                        />
-                        {/* GPS Badge */}
-                        <div className="absolute top-2 left-2 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 z-10">
-                          <Navigation className="w-3 h-3 fill-current" />
-                          Geo-tagged
-                        </div>
-                        {/* Remove Button */}
-                        <button
-                          type="button"
-                          className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full backdrop-blur-sm transition-colors z-10"
-                          onClick={() => updateField('imageFile', null)}
-                          title="Remove image"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                {formData.imageFile ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: 10, overflow: 'hidden', background: '#f1f5f9', border: '1px solid rgba(45, 97, 72, 0.2)' }}>
+                      <img src={URL.createObjectURL(formData.imageFile)} alt="Captured evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', top: 8, left: 8, padding: '3px 10px', borderRadius: 6, fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'rgba(5, 150, 105, 0.15)', color: '#059669', border: '1px solid rgba(5, 150, 105, 0.25)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Navigation style={{ width: 11, height: 11 }} /> Geo-tagged
                       </div>
-                      <div className="flex items-center justify-between gap-4 mt-4 pt-3 border-t border-white/5">
-                        <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-bold uppercase tracking-widest min-w-0">
-                          <ShieldCheck className="w-4 h-4 shrink-0" />
-                          <span className="truncate">{formData.imageFile.name}</span>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={() => updateField('imageFile', null)}
-                          className="shrink-0 text-[10px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest transition-colors flex items-center gap-1.5 bg-rose-500/5 px-2.5 py-1 rounded-lg border border-rose-500/20"
-                        >
-                          <X className="w-3 h-3" />
-                          Clear
-                        </button>
-                      </div>
+                      <button type="button" onClick={() => updateField('imageFile', null)} style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(15, 23, 29, 0.5)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        <X style={{ width: 14, height: 14 }} />
+                      </button>
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowCamera(true)}
-                      className="w-full flex items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-all cursor-pointer"
-                    >
-                      <Camera className="w-6 h-6" />
-                      <div className="text-left">
-                        <div className="font-bold text-sm">Live GPS Camera</div>
-                        <div className="text-[10px] uppercase tracking-widest opacity-80">Mandatory • Anti-Fraud Protocol</div>
-                      </div>
-                    </button>
-                  )}
-                </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <ShieldCheck style={{ width: 14, height: 14, color: '#059669', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#059669', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formData.imageFile.name}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowCamera(true)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+                      padding: '1.5rem', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
+                      border: '2px dashed rgba(45, 97, 72, 0.3)', background: 'rgba(45, 97, 72, 0.03)',
+                      color: '#2d6148', flex: 1,
+                    }}
+                  >
+                    <Camera style={{ width: 22, height: 22 }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Live GPS Camera</div>
+                      <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.7 }}>Mandatory · Anti-Fraud</div>
+                    </div>
+                  </button>
+                )}
               </div>
 
-              {/* GPS Capture */}
-              <div className="glass p-6 rounded-[2rem] border border-white/10 flex flex-col justify-between min-h-[220px]">
+              {/* GPS capture */}
+              <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: 220 }}>
                 <div>
-                  <h2 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                    <div className="w-1.5 h-4 bg-indigo-500 rounded-full" />
+                  <h2 style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ width: 4, height: 14, background: '#475569', borderRadius: 9999, display: 'inline-block' }} />
                     Spatial Identity
                   </h2>
-                  <p className="text-[10px] text-slate-500 mb-4 font-bold uppercase tracking-widest">Factor 2: GPS Metadata</p>
+                  <p style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.2rem' }}>GPS Metadata</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={getLocation}
                   disabled={locLoading}
-                  className={`w-full flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border-2 border-dashed transition-all duration-500 ${
-                    formData.lat
-                      ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-400'
-                      : 'border-slate-700 hover:border-indigo-500/30 hover:bg-slate-800/50 text-slate-500'
-                  }`}
+                  style={{
+                    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: '0.75rem', padding: '1.25rem', borderRadius: 12, cursor: locLoading ? 'wait' : 'pointer',
+                    border: `2px dashed ${formData.lat ? 'rgba(45, 97, 72, 0.3)' : 'rgba(15, 23, 29, 0.1)'}`,
+                    background: formData.lat ? 'rgba(45, 97, 72, 0.04)' : '#f8fafc',
+                    color: formData.lat ? '#2d6148' : '#94a3b8',
+                    transition: 'all 0.25s',
+                  }}
                 >
-                  <div className="w-12 h-12 rounded-full bg-slate-900/50 flex items-center justify-center border border-white/5">
-                    {locLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
-                    ) : formData.lat ? (
-                      <CheckCircle2 className="w-5 h-5 text-indigo-400" />
-                    ) : (
-                      <Crosshair className="w-5 h-5" />
-                    )}
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: formData.lat ? 'rgba(45, 97, 72, 0.08)' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(15, 23, 29, 0.08)' }}>
+                    {locLoading ? <Loader2 style={{ width: 20, height: 20 }} className="animate-spin" /> : formData.lat ? <CheckCircle2 style={{ width: 20, height: 20 }} /> : <Crosshair style={{ width: 20, height: 20 }} />}
                   </div>
-                  <div className="text-center">
-                    <div className="font-bold text-sm tracking-tight">
-                      {formData.lat ? 'Spatial Link Locked' : 'Capture Location'}
-                    </div>
-                    <div className="text-[10px] opacity-60 mt-1 uppercase font-black tracking-widest">
-                      {formData.lat
-                        ? `${formData.lat.toFixed(4)}, ${formData.lng.toFixed(4)}`
-                        : 'Precision Lock Required'}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{formData.lat ? 'Location Locked' : 'Capture Location'}</div>
+                    <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.65, marginTop: 2 }}>
+                      {formData.lat ? `${formData.lat.toFixed(4)}, ${formData.lng.toFixed(4)}` : 'Required'}
                     </div>
                   </div>
                 </button>
-                
-                {/* Laptop/Offline Fallback: Manual Entry */}
+
                 {!formData.lat && !locLoading && (
                   <button
                     type="button"
                     onClick={() => {
-                      const lat = prompt("Enter Latitude (or leave blank for area center):", "22.5726");
-                      const lng = prompt("Enter Longitude (or leave blank for area center):", "88.3639");
+                      const lat = prompt("Enter Latitude:", "22.5726");
+                      const lng = prompt("Enter Longitude:", "88.3639");
                       if (lat && lng) setManualLocation(parseFloat(lat), parseFloat(lng));
                     }}
-                    className="mt-2 text-[10px] font-bold text-slate-500 hover:text-indigo-400 uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                    style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
                   >
-                    <Navigation className="w-3 h-3" />
-                    Can't get GPS? Enter Manually
+                    <Navigation style={{ width: 12, height: 12 }} />
+                    Enter manually instead
                   </button>
                 )}
               </div>
             </div>
 
-            {/* ── Submit Button ── */}
-            <button 
-              type="submit" 
-              disabled={loading} 
-              className="group relative w-full py-5 rounded-2xl overflow-hidden transition-all active:scale-[0.98]"
+            {/* ── Submit ──────────────────────────────────── */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+              style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '0.9rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-sky-600 to-indigo-600 group-hover:scale-105 transition-transform duration-500"></div>
-              <div className="relative flex items-center justify-center gap-3 text-white font-black uppercase tracking-[0.3em] text-sm">
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    {isOnline ? 'Initiate Transmission' : 'Queue Intel'}
-                  </>
-                )}
-              </div>
+              {loading ? <Loader2 style={{ width: 18, height: 18 }} className="animate-spin" /> : <Send style={{ width: 16, height: 16 }} />}
+              {loading ? 'Submitting...' : (isOnline ? 'Submit Report' : 'Queue for Sync')}
             </button>
 
-            <p className="text-center text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] pb-8">
-              Secured Connection • Intel Radiance v4.0 • SevaSetu Network
+            <p style={{ textAlign: 'center', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: '1rem' }}>
+              SevaSetu · Secured Field Reporting
             </p>
           </form>
-          
-
         </div>
       </div>
-      
+
       {showCamera && (
-        <CameraWatermark 
-          onCapture={(file) => {
-            updateField('imageFile', file);
-            setShowCamera(false);
-          }} 
-          onCancel={() => setShowCamera(false)} 
+        <CameraWatermark
+          onCapture={(file) => { updateField('imageFile', file); setShowCamera(false); }}
+          onCancel={() => setShowCamera(false)}
         />
       )}
     </MainLayout>

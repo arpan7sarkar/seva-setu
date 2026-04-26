@@ -1,54 +1,64 @@
+/* ── Volunteer Workspace ────────────────────────────────────── */
+
 .volunteer-shell {
   padding-block: clamp(1.5rem, 2vw + 1rem, 2.8rem);
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
+  background: #f8fafc;
 }
 
+/* Hero */
 .volunteer-hero {
-  padding: 1rem;
+  padding: 1.5rem;
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--color-surface-card) 85%, var(--color-accent-green) 15%),
-    color-mix(in oklab, var(--color-surface-card) 91%, var(--color-accent-sky) 9%)
+    rgba(45, 97, 72, 0.06),
+    rgba(255, 255, 255, 0)
   );
+  border-color: rgba(45, 97, 72, 0.1) !important;
 }
 
 .volunteer-title {
   font-size: clamp(1.4rem, 2.4vw, 2rem);
   line-height: 1.12;
+  color: #0f171d;
+  font-weight: 800;
 }
 
 .volunteer-subtitle {
   margin-top: 0.6rem;
-  color: var(--color-text-secondary);
+  color: #475569;
   font-size: 0.95rem;
 }
 
+/* Stats */
 .volunteer-stats-grid {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.75rem;
 }
 
 .volunteer-stat {
-  padding: 0.85rem;
+  padding: 1.25rem;
 }
 
 .volunteer-stat-label {
-  color: var(--color-text-muted);
-  font-size: 0.74rem;
+  color: #64748b;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .volunteer-stat-value {
-  margin-top: 0.35rem;
-  font-size: 1.4rem;
-  font-weight: 700;
+  margin-top: 0.5rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f171d;
 }
 
+/* Availability Toggle */
 .volunteer-availability {
-  padding: 0.9rem;
+  padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -56,26 +66,35 @@
 }
 
 .volunteer-toggle-btn {
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(15, 23, 29, 0.1);
   border-radius: 9999px;
-  padding: 0.4rem 0.7rem;
+  padding: 0.45rem 0.9rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  background: transparent;
-  color: var(--color-text-secondary);
+  gap: 0.45rem;
+  background: #ffffff;
+  color: #475569;
   font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
+.volunteer-toggle-btn:hover {
+  border-color: #2d6148;
+  color: #2d6148;
+}
+
+/* Task Cards */
 .volunteer-task-list {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.75rem;
 }
 
 .volunteer-task-card {
-  padding: 0.9rem;
+  padding: 1.25rem;
   display: grid;
-  gap: 0.7rem;
+  gap: 0.75rem;
 }
 
 .volunteer-task-header {
@@ -89,10 +108,129 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  color: var(--color-text-secondary);
+  color: #475569;
   font-size: 0.77rem;
 }
 
+/* Task meta tags - light theme replacements */
+.task-meta-tag {
+  padding: 0.2rem 0.6rem;
+  background: #f1f5f9;
+  border: 1px solid rgba(15, 23, 29, 0.08);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.task-meta-tag-distance {
+  padding: 0.2rem 0.6rem;
+  background: rgba(45, 97, 72, 0.06);
+  border: 1px solid rgba(45, 97, 72, 0.15);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: #2d6148;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Contact card for in-progress tasks */
+.volunteer-contact-card {
+  background: rgba(45, 97, 72, 0.05);
+  border: 1px solid rgba(45, 97, 72, 0.15);
+  padding: 0.85rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.volunteer-contact-label {
+  font-size: 0.65rem;
+  color: #2d6148;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.volunteer-contact-number {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f171d;
+}
+
+.volunteer-call-btn {
+  padding: 0.45rem 1rem;
+  background: #2d6148;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.volunteer-call-btn:hover {
+  background: #1e4231;
+}
+
+/* Map loading state */
+.volunteer-map-loading {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 29, 0.08);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  color: #64748b;
+}
+
+/* Verification error panel */
+.volunteer-verify-error {
+  background: rgba(195, 93, 81, 0.05);
+  border: 1px solid rgba(195, 93, 81, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.volunteer-verify-error-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #c35d51;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.volunteer-verify-error-item {
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+  background: rgba(15, 23, 29, 0.03);
+  border-radius: 6px;
+  border-left: 3px solid #c35d51;
+}
+
+.volunteer-verify-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.75rem;
+  font-style: italic;
+}
+
+/* Status Pills */
 .volunteer-task-actions {
   display: flex;
   align-items: center;
@@ -105,59 +243,69 @@
   align-items: center;
   border-radius: 9999px;
   border: 1px solid transparent;
-  padding: 0.22rem 0.5rem;
-  font-size: 0.68rem;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.67rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .volunteer-pill-assigned {
-  border-color: rgba(245, 158, 11, 0.35);
-  color: #f59e0b;
+  border-color: rgba(217, 119, 6, 0.2);
+  background: rgba(217, 119, 6, 0.08);
+  color: #d97706;
 }
 
 .volunteer-pill-in-progress {
-  border-color: rgba(56, 189, 248, 0.35);
-  color: #38bdf8;
+  border-color: rgba(45, 97, 72, 0.2);
+  background: rgba(45, 97, 72, 0.08);
+  color: #2d6148;
 }
 
 .volunteer-pill-completed {
-  border-color: rgba(52, 211, 153, 0.35);
-  color: #34d399;
+  border-color: rgba(5, 150, 105, 0.2);
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
 }
 
 .volunteer-pill-default {
-  border-color: var(--color-border);
-  color: var(--color-text-secondary);
+  border-color: rgba(15, 23, 29, 0.1);
+  background: #f1f5f9;
+  color: #64748b;
 }
 
+/* Celebration / Completed */
 .volunteer-celebration {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  border: 1px solid rgba(52, 211, 153, 0.35);
-  background: rgba(52, 211, 153, 0.12);
-  color: #8cf3c5;
+  gap: 0.4rem;
+  border: 1px solid rgba(5, 150, 105, 0.2);
+  background: rgba(5, 150, 105, 0.06);
+  color: #059669;
   border-radius: 0.6rem;
-  padding: 0.35rem 0.55rem;
-  font-size: 0.76rem;
-  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
+/* State panels */
 .volunteer-loading,
 .volunteer-error,
 .volunteer-empty,
 .volunteer-bg-sync {
-  padding: 0.85rem;
+  padding: 1rem;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
 .volunteer-error {
-  color: #ffc4cf;
-  border-color: rgba(251, 113, 133, 0.4);
+  color: #c35d51;
 }
 
+/* Responsive */
 @media (min-width: 760px) {
   .volunteer-stats-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

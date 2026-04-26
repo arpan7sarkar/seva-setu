@@ -53,7 +53,7 @@ const VolunteerApplicationModal = ({ onClose, onSubmitted }) => {
               background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <UserCheck className="w-5 h-5" style={{ color: '#34d399' }} />
+              <UserCheck className="w-5 h-5" style={{ color: '#2d6148' }} />
             </div>
             <div>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Volunteer Application</h2>
@@ -131,7 +131,7 @@ const VolunteerApplicationModal = ({ onClose, onSubmitted }) => {
               </p>
               <span style={{
                 fontSize: '0.65rem', fontFamily: 'monospace',
-                color: form.proof_of_work.length >= 30 ? '#34d399' : 'var(--color-text-muted)',
+                color: form.proof_of_work.length >= 30 ? '#059669' : 'var(--color-text-muted)',
               }}>
                 {form.proof_of_work.length}/30 min
               </span>

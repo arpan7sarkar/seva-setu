@@ -1,0 +1,217 @@
+/* ── Auth Page Revamp ───────────────────────────────────────── */
+
+.auth-shell {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  background: #ffffff;
+}
+
+.auth-visual-side {
+  flex: 1.2;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 5rem;
+  background: #0f171d;
+  color: #ffffff;
+}
+
+.auth-visual-side img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  mix-blend-mode: luminosity;
+}
+
+.auth-visual-content {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+}
+
+.auth-visual-content h2 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-visual-content p {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.auth-form-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  background: #fcfdfa;
+}
+
+.auth-card-wrap {
+  width: 100%;
+  max-width: 480px;
+  animation: authFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes authFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card {
+  background: #ffffff;
+  padding: 3rem;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 29, 0.08);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  position: relative;
+}
+
+.auth-back-link {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  transition: color 0.2s;
+}
+
+.auth-back-link:hover {
+  color: #2d6148;
+}
+
+.auth-header {
+  margin-top: 1rem;
+}
+
+.auth-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f171d;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-subtitle {
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Clerk Overrides for Revamp ───────────────────────────── */
+
+/* Root box — fill the container fully */
+.cl-rootBox {
+  width: 100%;
+}
+
+/* Strip Clerk's own card chrome entirely */
+.cl-card,
+.cl-cardBox {
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Kill the outer card wrapper too */
+.cl-card__main {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Hide Clerk's own header title/subtitle since we render our own */
+.cl-headerTitle,
+.cl-headerSubtitle {
+  display: none !important;
+}
+
+.cl-socialButtonsBlockButton {
+  border-radius: 12px !important;
+  border: 1px solid rgba(15, 23, 29, 0.08) !important;
+  transition: all 0.2s !important;
+}
+
+.cl-socialButtonsBlockButton:hover {
+  background: #f8fafc !important;
+  border-color: #2d6148 !important;
+}
+
+.cl-formButtonPrimary {
+  background: #2d6148 !important;
+  border-radius: 12px !important;
+  padding: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  transition: all 0.2s !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background: #1e4231 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 10px 20px rgba(45, 97, 72, 0.1) !important;
+}
+
+.cl-formFieldInput {
+  border-radius: 10px !important;
+  border: 1px solid rgba(15, 23, 29, 0.12) !important;
+  padding: 0.6rem 0.75rem !important;
+}
+
+.cl-formFieldInput:focus {
+  border-color: #2d6148 !important;
+  box-shadow: 0 0 0 3px rgba(45, 97, 72, 0.1) !important;
+}
+
+.cl-footerActionLink {
+  color: #2d6148 !important;
+  font-weight: 700 !important;
+}
+
+.cl-footerActionLink:hover {
+  color: #1e4231 !important;
+}
+
+.cl-identityPreviewEditButtonIcon {
+  color: #2d6148 !important;
+}
+
+.cl-userButtonPopoverCard {
+  border-radius: 16px !important;
+  border: 1px solid rgba(15, 23, 29, 0.08) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ── Responsive Auth ────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .auth-shell {
+    flex-direction: column;
+  }
+  .auth-visual-side {
+    display: none;
+  }
+  .auth-form-side {
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+}

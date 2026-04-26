@@ -93,7 +93,7 @@ const CoordinatorManagerModal = ({ onClose }) => {
         )}
         
         {successMsg && (
-          <div style={{ padding: '0.75rem', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.3)', borderRadius: '0.5rem', color: '#34d399', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <div style={{ padding: '0.75rem', background: 'rgba(45, 97, 72, 0.08)', border: '1px solid rgba(45, 97, 72, 0.2)', borderRadius: '0.5rem', color: '#2d6148', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <ShieldAlert size={16} /> {successMsg}
           </div>
         )}
