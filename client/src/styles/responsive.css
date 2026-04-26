@@ -1,0 +1,518 @@
+/* ══════════════════════════════════════════════════════════════
+   SEVASETU — RESPONSIVE SYSTEM
+   Breakpoints:
+     xs  < 480px   (small phones)
+     sm  480–767px (large phones)
+     md  768–1023px (tablets)
+     lg  1024px+   (desktop)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 1. MOBILE HAMBURGER MENU ──────────────────────────────── */
+
+.nav-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: none;
+  border: 1px solid rgba(15, 23, 29, 0.1);
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1100;
+}
+
+.nav-hamburger:hover {
+  background: rgba(45, 97, 72, 0.06);
+  border-color: rgba(45, 97, 72, 0.2);
+  color: #2d6148;
+}
+
+/* Mobile slide-down nav panel */
+.nav-mobile-menu {
+  display: none;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 29, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  animation: slideDown 0.2s ease;
+}
+
+.nav-mobile-menu.is-open {
+  display: flex;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.nav-mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.nav-mobile-link:hover,
+.nav-mobile-link:active {
+  background: rgba(45, 97, 72, 0.06);
+  color: #2d6148;
+}
+
+.nav-mobile-divider {
+  height: 1px;
+  background: rgba(15, 23, 29, 0.06);
+  margin: 0.5rem 0;
+}
+
+.nav-mobile-role-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(45, 97, 72, 0.08);
+  border: 1px solid rgba(45, 97, 72, 0.18);
+  color: #2d6148;
+  align-self: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.nav-mobile-cta {
+  background: #2d6148;
+  color: #ffffff !important;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.nav-mobile-cta:hover {
+  background: rgba(30, 66, 49, 1) !important;
+  color: #ffffff !important;
+}
+
+/* ── 2. GLOBAL CONTAINER ───────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .container-lg,
+  .container-narrow {
+    padding-inline: 1rem;
+  }
+}
+
+/* ── 3. NAVBAR ─────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Hide desktop links, show hamburger */
+  .nav-links-desktop {
+    display: none !important;
+  }
+
+  .nav-hamburger {
+    display: flex;
+  }
+
+  /* Hide right-side auth actions on small screens (moved to mobile menu) */
+  .nav-actions .nav-link,
+  .nav-actions .nav-cta,
+  .nav-actions .nav-user-section,
+  .nav-actions span[style] {
+    display: none;
+  }
+
+  /* Keep hamburger visible in nav-actions */
+  .nav-actions {
+    gap: 0.5rem;
+  }
+
+  .nav-bar {
+    height: 3.5rem;
+  }
+
+  .site-header {
+    height: auto;
+    min-height: 3.5rem;
+  }
+}
+
+/* ── 4. LANDING PAGE ───────────────────────────────────────── */
+
+/* Hero — stack on mobile */
+@media (max-width: 900px) {
+  .landing-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    text-align: center;
+  }
+
+  .landing-hero-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .hero-social-proof {
+    justify-content: center;
+  }
+
+  .hero-illustration {
+    transform: none !important;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .hero-floating-photo {
+    display: none;
+  }
+
+  .landing-subcopy {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-hero-revamp {
+    padding: 3rem 0;
+  }
+
+  .landing-display {
+    font-size: clamp(2rem, 7vw, 2.8rem);
+  }
+
+  .landing-subcopy {
+    font-size: 1rem;
+  }
+
+  .btn-primary-large,
+  .btn-ghost-large {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0 1rem;
+  }
+
+  .final-cta-revamp {
+    padding: 5rem 0;
+  }
+
+  .final-cta-revamp h2 {
+    font-size: 2rem;
+  }
+
+  .cta-checkmarks {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .dashboard-mockup {
+    height: 300px;
+  }
+}
+
+/* Impact / Stats section */
+@media (max-width: 767px) {
+  .impact-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .impact-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Features grid */
+@media (max-width: 900px) {
+  .features-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Workflow steps */
+@media (max-width: 767px) {
+  .workflow-steps,
+  .workflow-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Roles grid */
+@media (max-width: 900px) {
+  .roles-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .roles-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Footer */
+@media (max-width: 900px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3rem !important;
+  }
+
+  .footer-col-brand,
+  .footer-col-newsletter {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .footer-legal {
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .site-footer {
+    padding: 4rem 0 2rem;
+  }
+}
+
+/* Impact carousel */
+@media (max-width: 900px) {
+  .impact-carousel-slide {
+    grid-template-columns: 1fr !important;
+  }
+
+  .impact-carousel-visual {
+    height: 260px;
+  }
+}
+
+/* ── 5. AUTH PAGES ─────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Make auth split-screen stack vertically on mobile */
+  .auth-split {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+
+  .auth-left-panel {
+    display: none !important;
+  }
+
+  .auth-right-panel {
+    padding: 2rem 1rem !important;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ── 6. DASHBOARD (COORDINATOR) ────────────────────────────── */
+
+@media (max-width: 900px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-sidebar {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-shell {
+    padding-block: 1rem;
+  }
+}
+
+/* ── 7. VOLUNTEER PAGE ─────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .volunteer-split {
+    grid-template-columns: 1fr !important;
+  }
+
+  .volunteer-map-panel {
+    height: 300px;
+  }
+}
+
+@media (max-width: 640px) {
+  .task-card-actions {
+    flex-direction: column !important;
+  }
+
+  .volunteer-map-panel {
+    height: 240px;
+  }
+}
+
+/* ── 8. USER DASHBOARD ─────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .user-actions-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-actions-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── 9. FIELD FORM ─────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .container-narrow {
+    padding-inline: 1rem;
+  }
+
+  /* 6-card need-type grid → 3+3 already works via CSS grid, shrink on xs */
+}
+
+@media (max-width: 380px) {
+  /* Need type grid: 2 cols on very small phones */
+  .need-type-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── 10. NEEDS ARCHIVE / MODAL ─────────────────────────────── */
+
+@media (max-width: 767px) {
+  .match-modal {
+    margin: 1rem !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* ── 11. VOLUNTEER APPROVALS ───────────────────────────────── */
+
+@media (max-width: 767px) {
+  .approval-card-inner {
+    flex-direction: column !important;
+  }
+
+  .approval-actions {
+    flex-direction: row !important;
+    width: 100%;
+  }
+
+  .approval-actions button {
+    flex: 1;
+  }
+}
+
+/* ── 12. TYPOGRAPHY SCALING ────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .dashboard-title {
+    font-size: 1.4rem !important;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .landing-eyebrow {
+    font-size: 0.7rem;
+  }
+}
+
+/* ── 13. CARDS & FORMS (global) ─────────────────────────────── */
+
+@media (max-width: 640px) {
+  .card {
+    border-radius: 0.75rem;
+  }
+}
+
+/* ── 14. HEATMAP RESPONSIVE ────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .heatmap-container,
+  .leaflet-container {
+    height: 300px !important;
+    min-height: 240px !important;
+  }
+}
+
+/* ── 15. TOAST POSITIONING ─────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .dashboard-toast {
+    bottom: 1rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    transform: none !important;
+    text-align: center;
+  }
+}
+
+/* ── 16. REPORTER STATUS LIST ──────────────────────────────── */
+
+@media (max-width: 640px) {
+  .reporter-status-list .card {
+    border-radius: 0.65rem;
+  }
+}
+
+/* ── 17. HIDE OVERFLOW ON MOBILE ───────────────────────────── */
+
+body {
+  overflow-x: hidden;
+}

@@ -1,48 +1,48 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 import { useAuth } from '../hooks/useAuth';
 import {
-  ChevronDown, Send, LayoutDashboard, FileText,
-  Users, MapPin, ClipboardCheck, LogOut, UserCircle
+  ChevronDown, Send, LogOut, Menu, X,
+  LayoutDashboard, FileText, Users, MapPin, ClipboardCheck
 } from 'lucide-react';
 
 /* ── Role-based nav definitions ─────────────────────────────── */
 const NAV_BY_ROLE = {
   coordinator: [
-    { to: '/dashboard',            label: 'Dashboard' },
-    { to: '/needs-archive',        label: 'All Issues' },
-    { to: '/volunteer-approvals',  label: 'Volunteers' },
+    { to: '/dashboard',            label: 'Dashboard',  Icon: LayoutDashboard },
+    { to: '/needs-archive',        label: 'All Issues', Icon: FileText },
+    { to: '/volunteer-approvals',  label: 'Volunteers', Icon: Users },
   ],
   volunteer: [
-    { to: '/volunteer',   label: 'My Tasks' },
-    { to: '/my-reports',  label: 'Reports' },
+    { to: '/volunteer',   label: 'My Tasks',  Icon: ClipboardCheck },
+    { to: '/my-reports',  label: 'Reports',   Icon: FileText },
   ],
   field_worker: [
-    { to: '/field',       label: 'Report Need' },
-    { to: '/my-reports',  label: 'My Reports' },
+    { to: '/field',       label: 'Report Need',  Icon: MapPin },
+    { to: '/my-reports',  label: 'My Reports',   Icon: FileText },
   ],
   user: [
-    { to: '/user-dashboard', label: 'Dashboard' },
-    { to: '/field',          label: 'Report Need' },
-    { to: '/my-reports',     label: 'My Reports' },
+    { to: '/user-dashboard', label: 'Dashboard',   Icon: LayoutDashboard },
+    { to: '/field',          label: 'Report Need', Icon: MapPin },
+    { to: '/my-reports',     label: 'My Reports',  Icon: FileText },
   ],
 };
 
 const DASHBOARD_BY_ROLE = {
-  coordinator: '/dashboard',
-  volunteer:   '/volunteer',
+  coordinator:  '/dashboard',
+  volunteer:    '/volunteer',
   field_worker: '/field',
-  user:        '/user-dashboard',
+  user:         '/user-dashboard',
 };
 
 const DASHBOARD_LABEL_BY_ROLE = {
-  coordinator: 'Coordinator Hub',
-  volunteer:   'Volunteer Console',
+  coordinator:  'Coordinator Hub',
+  volunteer:    'Volunteer Console',
   field_worker: 'Field Terminal',
-  user:        'My Dashboard',
+  user:         'My Dashboard',
 };
 
-/* ── Landing nav links (public only) ────────────────────────── */
 const LANDING_NAV = [
   { href: '#features',  label: 'Features' },
   { href: '#workflow',  label: 'How It Works' },
@@ -52,8 +52,16 @@ const LANDING_NAV = [
 
 const MainLayout = ({ children }) => {
   const { isAuthenticated, currentUser, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
   const role = currentUser?.role;
   const authNavLinks = NAV_BY_ROLE[role] || [];
+
+  const closeMenu = () => setMenuOpen(false);
+
+  const handleLogout = () => {
+    closeMenu();
+    logout();
+  };
 
   return (
     <div className="layout-root">
@@ -64,26 +72,29 @@ const MainLayout = ({ children }) => {
 
           {/* Logo */}
           <div className="nav-left">
-            <Link to={isAuthenticated ? (DASHBOARD_BY_ROLE[role] || '/') : '/'} className="nav-logo-link">
+            <Link
+              to={isAuthenticated ? (DASHBOARD_BY_ROLE[role] || '/') : '/'}
+              className="nav-logo-link"
+              onClick={closeMenu}
+            >
               <Logo size={32} />
               <span className="nav-logo-text">SevaSetu</span>
             </Link>
 
-            {/* Context-aware nav links */}
+            {/* Desktop nav links */}
             <div className="nav-links-desktop">
-              {!isAuthenticated ? (
-                LANDING_NAV.map(({ href, label }) => (
-                  <a key={href} href={href} className="nav-link">{label}</a>
-                ))
-              ) : (
-                authNavLinks.map(({ to, label }) => (
-                  <Link key={to} to={to} className="nav-link">{label}</Link>
-                ))
-              )}
+              {!isAuthenticated
+                ? LANDING_NAV.map(({ href, label }) => (
+                    <a key={href} href={href} className="nav-link">{label}</a>
+                  ))
+                : authNavLinks.map(({ to, label }) => (
+                    <Link key={to} to={to} className="nav-link">{label}</Link>
+                  ))
+              }
             </div>
           </div>
 
-          {/* Right-side actions */}
+          {/* Right side — desktop */}
           <div className="nav-actions">
             {!isAuthenticated ? (
               <>
@@ -92,7 +103,6 @@ const MainLayout = ({ children }) => {
               </>
             ) : (
               <>
-                {/* Role badge */}
                 {role && (
                   <span style={{
                     fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase',
@@ -104,14 +114,12 @@ const MainLayout = ({ children }) => {
                   </span>
                 )}
 
-                {/* Primary dashboard shortcut */}
                 {DASHBOARD_BY_ROLE[role] && (
                   <Link to={DASHBOARD_BY_ROLE[role]} className="btn-primary nav-cta">
                     {DASHBOARD_LABEL_BY_ROLE[role]}
                   </Link>
                 )}
 
-                {/* Logout */}
                 <div className="nav-user-section">
                   <button
                     onClick={logout}
@@ -124,9 +132,71 @@ const MainLayout = ({ children }) => {
                 </div>
               </>
             )}
+
+            {/* Hamburger — mobile only */}
+            <button
+              className="nav-hamburger"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Toggle menu"
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </nav>
       </header>
+
+      {/* ── Mobile slide-down menu ─────────────────────────────── */}
+      <div className={`nav-mobile-menu${menuOpen ? ' is-open' : ''}`} role="navigation">
+        {!isAuthenticated ? (
+          <>
+            {LANDING_NAV.map(({ href, label }) => (
+              <a key={href} href={href} className="nav-mobile-link" onClick={closeMenu}>{label}</a>
+            ))}
+            <div className="nav-mobile-divider" />
+            <Link to="/login" className="nav-mobile-link" onClick={closeMenu}>Sign in</Link>
+            <Link to="/register" className="nav-mobile-link nav-mobile-cta" onClick={closeMenu}>Join the Mission</Link>
+          </>
+        ) : (
+          <>
+            {role && (
+              <span className="nav-mobile-role-badge">{role.replace('_', ' ')}</span>
+            )}
+            {authNavLinks.map(({ to, label, Icon }) => (
+              <Link key={to} to={to} className="nav-mobile-link" onClick={closeMenu}>
+                <Icon size={16} />
+                {label}
+              </Link>
+            ))}
+            <div className="nav-mobile-divider" />
+            {DASHBOARD_BY_ROLE[role] && (
+              <Link to={DASHBOARD_BY_ROLE[role]} className="nav-mobile-link nav-mobile-cta" onClick={closeMenu}>
+                {DASHBOARD_LABEL_BY_ROLE[role]}
+              </Link>
+            )}
+            <button
+              onClick={handleLogout}
+              className="nav-mobile-link"
+              style={{ color: '#c35d51', fontWeight: 600, width: '100%', textAlign: 'left' }}
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Overlay — closes menu when tapping outside */}
+      {menuOpen && (
+        <div
+          onClick={closeMenu}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 999,
+            background: 'rgba(15, 23, 29, 0.2)',
+            backdropFilter: 'blur(2px)',
+          }}
+        />
+      )}
 
       {/* ── Page Content ──────────────────────────────────────── */}
       <main className="layout-main">
@@ -135,7 +205,6 @@ const MainLayout = ({ children }) => {
 
       {/* ── Footer ────────────────────────────────────────────── */}
       {!isAuthenticated ? (
-        /* Full landing footer — public only */
         <footer className="site-footer">
           <div className="container-lg">
             <div className="footer-grid">
@@ -201,13 +270,15 @@ const MainLayout = ({ children }) => {
           </div>
         </footer>
       ) : (
-        /* Minimal footer for authenticated app pages */
         <footer style={{
           borderTop: '1px solid rgba(15, 23, 29, 0.06)',
           background: '#ffffff',
           padding: '1rem 0',
         }}>
-          <div className="container-lg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="container-lg" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            flexWrap: 'wrap', gap: '0.5rem',
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Logo size={20} />
               <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>SevaSetu</span>
@@ -218,7 +289,6 @@ const MainLayout = ({ children }) => {
           </div>
         </footer>
       )}
-
     </div>
   );
 };

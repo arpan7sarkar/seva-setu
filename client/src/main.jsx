@@ -10,6 +10,7 @@ import './styles/dashboard.css'
 import './styles/volunteer.css'
 import './styles/user-dashboard.css'
 import './styles/auth.css'
+import './styles/responsive.css'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
