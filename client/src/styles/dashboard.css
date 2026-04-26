@@ -26,11 +26,32 @@
   border-color: rgba(45, 97, 72, 0.1);
 }
 
+.dashboard-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.dashboard-hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .dashboard-title {
   font-size: clamp(1.5rem, 2.3vw, 2.3rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: #0f171d;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .dashboard-subtitle {
@@ -38,6 +59,24 @@
   color: #475569;
   line-height: 1.6;
   max-width: 70ch;
+}
+
+@media (max-width: 767px) {
+  .dashboard-hero-top {
+    flex-direction: column;
+  }
+
+  .dashboard-hero-actions {
+    width: 100%;
+  }
+
+  .dashboard-hero-actions .dashboard-dispatch-btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.5rem;
+  }
 }
 
 /* ── Summary Cards ──────────────────────────────────────────── */

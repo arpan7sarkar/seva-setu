@@ -265,7 +265,7 @@ const FieldForm = () => {
               </div>
 
               {/* Priority + Disaster mode */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div className="field-priority-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div style={{ background: 'rgba(45, 97, 72, 0.04)', border: '1px solid rgba(45, 97, 72, 0.12)', borderRadius: 12, padding: '1rem' }}>
                   <p style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#2d6148' }}>Priority Index</p>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', marginTop: '0.25rem' }}>

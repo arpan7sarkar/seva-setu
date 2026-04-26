@@ -59,7 +59,7 @@ router.get('/stats', auth, async (req, res) => {
     const totalMembers = stats.volunteers + stats.others;
 
     // Count pending volunteer requests
-    const pendingRequests = await prisma.volunteerRequest.count({
+    const pendingRequests = await prisma.volunteerRequest.ccount({
       where: { status: 'pending' },
     });
 

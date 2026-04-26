@@ -145,7 +145,7 @@ const VolunteerApprovalsPage = () => {
               <article key={req.id} className="dashboard-card" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
                   {/* Applicant Info */}
-                  <div style={{ flex: 1, minWidth: '250px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
                       <div style={{
                         width: '36px', height: '36px', borderRadius: '10px',

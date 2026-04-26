@@ -1,13 +1,48 @@
 /* ══════════════════════════════════════════════════════════════
-   SEVASETU — RESPONSIVE SYSTEM
+   SEVASETU — COMPREHENSIVE RESPONSIVE SYSTEM
+   ──────────────────────────────────────────────────────────────
    Breakpoints:
      xs  < 480px   (small phones)
-     sm  480–767px (large phones)
-     md  768–1023px (tablets)
-     lg  1024px+   (desktop)
+     sm  480–639px (large phones)
+     md  640–899px (tablets portrait)
+     lg  900–1023px (tablets landscape)
+     xl  1024px+   (desktop)
    ══════════════════════════════════════════════════════════════ */
 
-/* ── 1. MOBILE HAMBURGER MENU ──────────────────────────────── */
+/* ── GLOBAL: prevent horizontal overflow ───────────────────── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  width: 100%;
+}
+
+#root,
+.layout-root,
+.layout-main,
+main,
+section,
+.container-lg,
+.container-narrow,
+.card {
+  min-width: 0;
+}
+
+img, video, iframe, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   1. MOBILE HAMBURGER MENU
+   ══════════════════════════════════════════════════════════════ */
 
 .nav-hamburger {
   display: none;
@@ -29,21 +64,22 @@
   color: #2d6148;
 }
 
-/* Mobile slide-down nav panel */
 .nav-mobile-menu {
   display: none;
   position: fixed;
-  top: 64px;
+  top: var(--site-header-height, 80px);
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 1002;
   background: #ffffff;
   border-bottom: 1px solid rgba(15, 23, 29, 0.08);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  padding: 1rem;
+  padding: 1rem max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   flex-direction: column;
   gap: 0.25rem;
   animation: slideDown 0.2s ease;
+  max-height: calc(100dvh - var(--site-header-height, 80px));
+  overflow-y: auto;
 }
 
 .nav-mobile-menu.is-open {
@@ -102,23 +138,15 @@
 }
 
 .nav-mobile-cta:hover {
-  background: rgba(30, 66, 49, 1) !important;
+  background: #1e4231 !important;
   color: #ffffff !important;
 }
 
-/* ── 2. GLOBAL CONTAINER ───────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   2. NAVBAR RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 640px) {
-  .container-lg,
-  .container-narrow {
-    padding-inline: 1rem;
-  }
-}
-
-/* ── 3. NAVBAR ─────────────────────────────────────────────── */
-
-@media (max-width: 767px) {
-  /* Hide desktop links, show hamburger */
+@media (max-width: 1024px) {
   .nav-links-desktop {
     display: none !important;
   }
@@ -127,17 +155,17 @@
     display: flex;
   }
 
-  /* Hide right-side auth actions on small screens (moved to mobile menu) */
   .nav-actions .nav-link,
   .nav-actions .nav-cta,
   .nav-actions .nav-user-section,
-  .nav-actions span[style] {
-    display: none;
+  .nav-actions > span[style] {
+    display: none !important;
   }
+}
 
-  /* Keep hamburger visible in nav-actions */
-  .nav-actions {
-    gap: 0.5rem;
+@media (max-width: 767px) {
+  :root {
+    --site-header-height: 56px;
   }
 
   .nav-bar {
@@ -148,14 +176,30 @@
     height: auto;
     min-height: 3.5rem;
   }
+
+  .nav-logo-text {
+    font-size: 0.9rem !important;
+  }
 }
 
-/* ── 4. LANDING PAGE ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  .container-lg,
+  .container-narrow {
+    padding-inline: 1rem !important;
+  }
 
-/* Hero — stack on mobile */
-@media (max-width: 900px) {
+  .nav-logo-link {
+    gap: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. LANDING PAGE — HERO
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
   .landing-hero-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 2.5rem;
     text-align: center;
   }
@@ -171,7 +215,7 @@
 
   .hero-illustration {
     transform: none !important;
-    max-width: 480px;
+    max-width: 560px;
     margin: 0 auto;
   }
 
@@ -188,122 +232,442 @@
 
 @media (max-width: 640px) {
   .landing-hero-revamp {
-    padding: 3rem 0;
+    padding: 2.25rem 0 2.75rem;
   }
 
   .landing-display {
-    font-size: clamp(2rem, 7vw, 2.8rem);
+    font-size: clamp(1.75rem, 7vw, 2.5rem) !important;
   }
 
   .landing-subcopy {
+    font-size: 0.9375rem;
+  }
+
+  .landing-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    padding: 0;
+  }
+
+  .landing-hero-actions .btn-primary,
+  .landing-hero-actions .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dashboard-mockup {
+    height: auto;
+    min-height: 0;
+    border-radius: 14px;
+  }
+
+  .mockup-sidebar {
+    display: none;
+  }
+
+  .mockup-main {
+    min-width: 0;
+  }
+
+  .mockup-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .mockup-header .header-right {
+    display: none;
+  }
+
+  .mockup-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .mockup-stat {
+    padding: 0.7rem 0.6rem;
+    border-right: 1px solid rgba(15, 23, 29, 0.06);
+  }
+
+  .mockup-stat .stat-value {
     font-size: 1rem;
+    gap: 0.25rem;
+  }
+
+  .mockup-stat .stat-label {
+    font-size: 0.62rem;
+    line-height: 1.25;
+  }
+
+  .mockup-map-view {
+    flex: none;
+    height: 150px;
+    padding: 0.75rem;
+  }
+
+  .map-overlay-card,
+  .mockup-footer {
+    display: none;
+  }
+
+  .hero-social-proof {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-illustration {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. LANDING — STATS STRIP
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .landing-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-stats-grid {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+  }
+
+  .stat-icon-box {
+    margin: 0 auto 1rem;
+  }
+
+  .stats-revamp {
+    padding: 2.5rem 0;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. LANDING — PROBLEM / SOLUTION
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .problem-solution-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+
+  .arrow-connector {
+    margin: 0 auto;
+    transform: rotate(90deg);
+  }
+
+  .problem-image {
+    order: -1;
+  }
+
+  .problem-section-revamp {
+    padding: 4rem 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .problem-card, .solution-card {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .problem-section-revamp {
+    padding: 2.5rem 0;
+  }
+
+  .centered h2 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   6. LANDING — WORKFLOW STEPS
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .workflow-steps {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .workflow-steps {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem;
+  }
+
+  .workflow-revamp {
+    padding: 4rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .workflow-steps {
+    grid-template-columns: 1fr !important;
+  }
+
+  .workflow-step-card {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. LANDING — ROLES SECTION
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem;
+  }
+
+  .role-text h3 {
+    font-size: 1.75rem;
+  }
+
+  .floating-imgs {
+    display: none;
+  }
+
+  .roles-revamp {
+    padding: 4rem 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .role-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .role-tab-btn {
+    flex: 1 1 9rem;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .role-text h3 {
+    font-size: 1.4rem;
+  }
+
+  .role-content-wrap {
+    margin-top: 2.5rem;
+  }
+
+  .phone-mockup-wrap {
+    max-width: 280px;
+  }
+
+  .role-text li {
+    align-items: flex-start;
+    font-size: 0.95rem;
+  }
+
+  .role-text li svg {
+    flex: 0 0 auto;
+    margin-top: 0.15rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8. LANDING — TRUST SECTION
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .trust-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem;
+  }
+
+  .trust-revamp {
+    padding: 4rem 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .trust-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trust-card-content {
+    padding: 1.5rem;
+  }
+
+  .trust-card-image img {
+    height: 180px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   9. LANDING — IMPACT SECTION
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .impact-revamp {
+    margin: 2rem 1rem;
+    border-radius: 24px;
+    padding: 4rem 0;
+  }
+
+  .impact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 3rem;
+  }
+
+  .impact-heading {
+    font-size: 2rem;
+  }
+
+  .impact-stats {
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .impact-quote-card {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .impact-revamp {
+    margin: 1rem 0.5rem;
+    padding: 2.5rem 0;
+    border-radius: 16px;
+  }
+
+  .impact-heading {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .impact-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .impact-stat strong {
+    font-size: 2rem;
+  }
+
+  .impact-quote-card {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .impact-carousel-dots {
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .impact-visual {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10. LANDING — FINAL CTA
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .final-cta-revamp {
+    padding: 5rem 0;
+  }
+
+  .final-cta-revamp h2 {
+    font-size: 2.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .final-cta-revamp {
+    padding: 3rem 0;
+  }
+
+  .final-cta-revamp h2 {
+    font-size: 1.6rem;
+    line-height: 1.2;
   }
 
   .btn-primary-large,
   .btn-ghost-large {
-    padding: 1rem 2rem;
-    font-size: 1rem;
+    padding: 1rem 1.5rem;
+    font-size: 0.95rem;
     width: 100%;
     justify-content: center;
+    border-radius: 10px;
   }
 
   .cta-actions {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
-    padding: 0 1rem;
-  }
-
-  .final-cta-revamp {
-    padding: 5rem 0;
-  }
-
-  .final-cta-revamp h2 {
-    font-size: 2rem;
+    padding: 0;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
   }
 
   .cta-checkmarks {
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
-  .dashboard-mockup {
-    height: 300px;
-  }
-}
-
-/* Impact / Stats section */
-@media (max-width: 767px) {
-  .impact-stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 1rem;
+  .cta-icon-wrapper {
+    margin-bottom: 1rem;
   }
 }
 
-@media (max-width: 480px) {
-  .impact-stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
+/* ══════════════════════════════════════════════════════════════
+   11. LANDING — FOOTER
+   ══════════════════════════════════════════════════════════════ */
 
-/* Features grid */
-@media (max-width: 900px) {
-  .features-grid {
-    grid-template-columns: 1fr 1fr !important;
-  }
-}
-
-@media (max-width: 560px) {
-  .features-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Workflow steps */
-@media (max-width: 767px) {
-  .workflow-steps,
-  .workflow-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Roles grid */
-@media (max-width: 900px) {
-  .roles-grid {
-    grid-template-columns: 1fr 1fr !important;
-  }
-}
-
-@media (max-width: 560px) {
-  .roles-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Footer */
 @media (max-width: 900px) {
   .footer-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 3rem !important;
+    gap: 2.5rem !important;
+    margin-bottom: 4rem !important;
   }
 
   .footer-col-brand,
   .footer-col-newsletter {
     grid-column: 1 / -1;
   }
+
+  .site-footer {
+    padding: 5rem 0 3rem;
+  }
 }
 
 @media (max-width: 560px) {
   .footer-grid {
     grid-template-columns: 1fr !important;
-    gap: 2rem !important;
+    gap: 1.5rem !important;
+    margin-bottom: 2.5rem !important;
   }
 
   .footer-bottom {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
+    padding-top: 2rem;
   }
 
   .footer-legal {
@@ -313,43 +677,81 @@
   }
 
   .site-footer {
-    padding: 4rem 0 2rem;
+    padding: 3rem 0 2rem;
+  }
+
+  .footer-brand {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .footer-desc {
+    font-size: 0.9375rem;
+  }
+
+  .footer-newsletter-form {
+    align-items: stretch;
+  }
+
+  .footer-newsletter-form input {
+    min-width: 0;
+  }
+
+  .footer-newsletter-form button {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
-/* Impact carousel */
-@media (max-width: 900px) {
-  .impact-carousel-slide {
-    grid-template-columns: 1fr !important;
+/* ══════════════════════════════════════════════════════════════
+   12. LANDING SECTION HEADINGS (general)
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .section-title-revamp,
+  .centered h2 {
+    font-size: 1.5rem !important;
   }
 
-  .impact-carousel-visual {
-    height: 260px;
-  }
-}
-
-/* ── 5. AUTH PAGES ─────────────────────────────────────────── */
-
-@media (max-width: 767px) {
-  /* Make auth split-screen stack vertically on mobile */
-  .auth-split {
-    grid-template-columns: 1fr !important;
-    min-height: auto !important;
+  .section-title-revamp + p,
+  .centered p {
+    font-size: 0.9375rem;
   }
 
-  .auth-left-panel {
-    display: none !important;
-  }
-
-  .auth-right-panel {
-    padding: 2rem 1rem !important;
-    min-height: 100vh;
-    align-items: center;
-    justify-content: center;
+  .landing-eyebrow {
+    font-size: 0.7rem;
   }
 }
 
-/* ── 6. DASHBOARD (COORDINATOR) ────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   13. AUTH PAGES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Already handled in auth.css at 1024px but need further for phones */
+@media (max-width: 640px) {
+  .auth-form-side {
+    padding: 1.5rem max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)) !important;
+    min-height: calc(100dvh - var(--site-header-height, 56px)) !important;
+  }
+
+  .auth-card {
+    padding: 1.75rem 1.25rem !important;
+    border-radius: 16px !important;
+  }
+
+  .auth-title {
+    font-size: 1.5rem !important;
+  }
+
+  .auth-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   14. COORDINATOR DASHBOARD
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 900px) {
   .dashboard-layout {
@@ -358,6 +760,7 @@
 
   .dashboard-sidebar {
     width: 100% !important;
+    position: static !important;
   }
 }
 
@@ -374,10 +777,32 @@
 
   .dashboard-shell {
     padding-block: 1rem;
+    gap: 0.75rem;
+  }
+
+  .dashboard-hero {
+    padding: 1.25rem !important;
+  }
+
+  .dashboard-title {
+    font-size: 1.25rem !important;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-card,
+  .dashboard-sidebar-card,
+  .dashboard-summary-card {
+    padding: 1rem;
+    border-radius: 0.85rem;
   }
 }
 
-/* ── 7. VOLUNTEER PAGE ─────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   15. VOLUNTEER PAGE
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 900px) {
   .volunteer-split {
@@ -386,20 +811,19 @@
 
   .volunteer-map-panel {
     height: 300px;
+    order: -1;
   }
 }
 
 @media (max-width: 640px) {
-  .task-card-actions {
-    flex-direction: column !important;
-  }
-
   .volunteer-map-panel {
     height: 240px;
   }
 }
 
-/* ── 8. USER DASHBOARD ─────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   16. USER DASHBOARD
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 767px) {
   .user-actions-grid {
@@ -413,24 +837,23 @@
   }
 }
 
-/* ── 9. FIELD FORM ─────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   17. FIELD FORM (inline styles — override via specificity)
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 640px) {
   .container-narrow {
-    padding-inline: 1rem;
+    padding-inline: 1rem !important;
   }
 
-  /* 6-card need-type grid → 3+3 already works via CSS grid, shrink on xs */
-}
-
-@media (max-width: 380px) {
-  /* Need type grid: 2 cols on very small phones */
-  .need-type-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+  .field-priority-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
-/* ── 10. NEEDS ARCHIVE / MODAL ─────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   18. NEEDS ARCHIVE / MODALS
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 767px) {
   .match-modal {
@@ -440,48 +863,9 @@
   }
 }
 
-/* ── 11. VOLUNTEER APPROVALS ───────────────────────────────── */
-
-@media (max-width: 767px) {
-  .approval-card-inner {
-    flex-direction: column !important;
-  }
-
-  .approval-actions {
-    flex-direction: row !important;
-    width: 100%;
-  }
-
-  .approval-actions button {
-    flex: 1;
-  }
-}
-
-/* ── 12. TYPOGRAPHY SCALING ────────────────────────────────── */
-
-@media (max-width: 640px) {
-  .dashboard-title {
-    font-size: 1.4rem !important;
-  }
-
-  .dashboard-subtitle {
-    font-size: 0.875rem;
-  }
-
-  .landing-eyebrow {
-    font-size: 0.7rem;
-  }
-}
-
-/* ── 13. CARDS & FORMS (global) ─────────────────────────────── */
-
-@media (max-width: 640px) {
-  .card {
-    border-radius: 0.75rem;
-  }
-}
-
-/* ── 14. HEATMAP RESPONSIVE ────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   19. LEAFLET MAP
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 767px) {
   .heatmap-container,
@@ -491,7 +875,9 @@
   }
 }
 
-/* ── 15. TOAST POSITIONING ─────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   20. TOAST POSITIONING
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 640px) {
   .dashboard-toast {
@@ -503,16 +889,225 @@
   }
 }
 
-/* ── 16. REPORTER STATUS LIST ──────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   21. GLOBAL CARDS & SECTIONS
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 640px) {
-  .reporter-status-list .card {
-    border-radius: 0.65rem;
+  .card {
+    border-radius: 0.75rem;
+  }
+
+  /* Reduce large section padding */
+  section[style*="padding"] {
+    padding-inline: 1rem;
   }
 }
 
-/* ── 17. HIDE OVERFLOW ON MOBILE ───────────────────────────── */
+@media (hover: none) {
+  .btn-primary:hover,
+  .btn-success:hover,
+  .btn-primary-large:hover,
+  .workflow-step-card:hover,
+  .dashboard-summary-card:hover,
+  .dashboard-task-card:hover,
+  .user-dashboard-action-card:hover {
+    transform: none !important;
+  }
+}
 
-body {
-  overflow-x: hidden;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   22. IMPACT CAROUSEL
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .impact-carousel-slide {
+    grid-template-columns: 1fr !important;
+  }
+
+  .impact-carousel-visual {
+    height: 240px;
+  }
+}
+
+@media (max-width: 640px) {
+  .impact-carousel-visual {
+    height: 180px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   23. GLOBAL TEXT OVERFLOW PROTECTION
+   ══════════════════════════════════════════════════════════════ */
+
+h1, h2, h3, h4, h5, h6, p {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   24. DASHBOARD NEEDS TABLE — scroll on mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .dashboard-needs-table-wrap {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .dashboard-card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   25. KANBAN BOARD — stack columns on mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  .dashboard-kanban-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-match-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   26. DASHBOARD MODAL — full-width on phones
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .dashboard-modal {
+    border-radius: 1rem;
+    padding: 1rem;
+    max-height: 90vh;
+  }
+
+  .dashboard-modal-backdrop {
+    padding: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   27. VOLUNTEER PAGE — title & stats mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .volunteer-title {
+    font-size: 1.25rem !important;
+  }
+
+  .volunteer-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .volunteer-stat-value {
+    font-size: 1.3rem;
+  }
+
+  .volunteer-availability {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .volunteer-contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   28. USER DASHBOARD — title mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .user-dashboard-title {
+    font-size: 1.25rem !important;
+  }
+
+  .user-dashboard-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .user-dashboard-action-card {
+    padding: 1rem;
+  }
+
+  .user-dashboard-action-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .user-dashboard-action-title {
+    font-size: 0.85rem;
+  }
+
+  .user-dashboard-action-desc {
+    font-size: 0.75rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   29. VOLUNTEER APPROVALS — cards mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .dashboard-dispatch-btn,
+  .dashboard-text-btn {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.65rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   30. FIELD FORM — need type grid mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 380px) {
+  /* Ensure 2-col grid on very small phones */
+  [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   31. REPORTER STATUS LIST — mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .reporter-status-list .card,
+  .reporter-status-card {
+    border-radius: 0.65rem;
+    padding: 1rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   32. COORDINATOR MANAGER MODAL — mobile
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .dashboard-modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 }
