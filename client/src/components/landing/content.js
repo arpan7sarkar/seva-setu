@@ -1,55 +1,129 @@
 export const LANDING_STATS = [
-  { value: '3.3M+', label: 'Civil Organizations Reach' },
-  { value: '< 5 min', label: 'Average Dispatch Time' },
-  { value: '98%', label: 'Match Confidence' },
-  { value: '24/7', label: 'Operational Readiness' },
+  { value: '3', label: 'Workspaces Connected', detail: 'Field, coordination, and volunteer teams work from one shared record.' },
+  { value: 'Top 3', label: 'Volunteer Matches', detail: 'Dispatch shortlists responders by distance, skills, availability, and reliability.' },
+  { value: 'Offline', label: 'Field Reporting', detail: 'Reports can queue locally and sync when connectivity comes back.' },
+  { value: 'GPS + AI', label: 'Trust Layer', detail: 'Location, timestamp, and image signals reduce fake or duplicate work.' },
+];
+
+export const PROBLEM_POINTS = [
+  'WhatsApp threads bury the newest need under dozens of updates.',
+  'Coordinators cannot tell which request is urgent, verified, or already assigned.',
+  'Volunteers waste time asking where to go and what proof is needed.',
 ];
 
 export const FEATURE_GROUPS = [
   {
-    title: 'Signal Intake',
+    title: 'Verified Intake',
     description:
-      'Reports from field teams are ingested with location, severity, and context so coordinators can act with full visibility.',
-    points: ['Geo-lock validation', 'Auto-priority scoring', 'Duplicate detection'],
+      'Field teams submit structured needs with location, category, people affected, and context even from low-connectivity areas.',
+    points: ['GPS capture', 'Offline queue', 'Urgency preview'],
   },
   {
-    title: 'Smart Routing',
+    title: 'Priority Intelligence',
     description:
-      'A weighted dispatch engine maps needs to the closest capable responders based on skills, load, and travel constraints.',
-    points: ['Radius-based matching', 'Responder confidence score', 'Live reassignment'],
+      'Every need is scored so coordinators can triage medical, food, shelter, and disaster-zone cases without guesswork.',
+    points: ['Weighted urgency score', 'Disaster-mode boost', 'Live status pipeline'],
   },
   {
-    title: 'Execution Layer',
+    title: 'Smart Dispatch',
     description:
-      'Command teams track status transitions, SLA clocks, and proof-of-resolution in one synchronized command surface.',
-    points: ['SLA guardrails', 'Team handoff timeline', 'Verified completion log'],
+      'SevaSetu ranks nearby volunteers using geospatial distance, skill overlap, availability, and completion history.',
+    points: ['PostGIS proximity', 'Skill matching', 'Coordinator assignment'],
+  },
+  {
+    title: 'Proof of Resolution',
+    description:
+      'Volunteers check in, progress tasks, and close work with evidence so teams know help actually reached the ground.',
+    points: ['GPS check-in', 'Image verification', 'Completion record'],
+  },
+];
+
+export const ROLE_CARDS = [
+  {
+    title: 'Field Workers',
+    label: 'Report fast',
+    description: 'Capture needs from affected communities with mobile-first forms, location, and offline safety.',
+  },
+  {
+    title: 'Coordinators',
+    label: 'Decide clearly',
+    description: 'See heatmaps, urgency rankings, open tasks, and matched volunteers in a single command view.',
+  },
+  {
+    title: 'Volunteers',
+    label: 'Act confidently',
+    description: 'Receive assigned missions, check in on arrival, and update completion without back-and-forth calls.',
   },
 ];
 
 export const WORKFLOW_STEPS = [
   {
     step: '01',
-    title: 'Capture need from the field',
+    title: 'A need is captured',
     detail:
-      'A field worker submits a structured request with location and urgency context in under a minute.',
+      'A field worker records what happened, where help is needed, how many people are affected, and the support category.',
   },
   {
     step: '02',
-    title: 'Rank and broadcast',
+    title: 'The system prioritizes',
     detail:
-      'The system computes severity and immediately alerts the most relevant NGO and volunteer clusters.',
+      'Urgency scoring turns messy ground reports into a ranked queue that coordinators can trust during pressure.',
   },
   {
     step: '03',
-    title: 'Deploy and coordinate',
+    title: 'The right volunteer is matched',
     detail:
-      'Responders accept assignments, receive movement guidance, and update operations in real time.',
+      'The matching engine compares distance, skills, availability, and reliability to recommend the best responders.',
   },
   {
     step: '04',
-    title: 'Verify and learn',
+    title: 'Response is tracked live',
     detail:
-      'Resolution evidence is confirmed and fed back to improve future routing confidence.',
+      'Assignments move from open to assigned, in progress, and complete so every team sees the same operational truth.',
+  },
+  {
+    step: '05',
+    title: 'Closure is verified',
+    detail:
+      'GPS and image checks help confirm that work happened in the right place before it becomes a completed record.',
+  },
+];
+
+export const TRUST_SIGNALS = [
+  {
+    title: 'Spatial Confidence',
+    description: 'PostGIS distance checks keep reports and volunteer movement tied to real coordinates.',
+  },
+  {
+    title: 'Photo Evidence',
+    description: 'Camera, EXIF, OCR fallback, and CLIP validation help reduce spoofed completion claims.',
+  },
+  {
+    title: 'Role-Based Access',
+    description: 'Clerk authentication and coordinator whitelisting keep dispatch controls with authorized teams.',
+  },
+];
+
+export const FAQ_ITEMS = [
+  {
+    question: 'Who is SevaSetu built for?',
+    answer:
+      'NGO coordinators, field workers, and volunteers who need one reliable place to report needs, dispatch help, and close tasks.',
+  },
+  {
+    question: 'Does it work when the field team has poor internet?',
+    answer:
+      'Yes. The field reporting flow is designed as a PWA with an offline queue, then syncs reports when the network returns.',
+  },
+  {
+    question: 'What makes the dispatch smarter than a spreadsheet?',
+    answer:
+      'The matching service weighs distance, skill overlap, volunteer availability, and completion rate instead of relying on manual sorting.',
+  },
+  {
+    question: 'How does SevaSetu reduce false reports?',
+    answer:
+      'It combines GPS metadata, timestamp checks, image verification, and coordinator-controlled task states into a trust layer.',
   },
 ];
 

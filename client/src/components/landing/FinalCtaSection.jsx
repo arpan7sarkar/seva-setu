@@ -1,26 +1,31 @@
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
-const FinalCtaSection = () => (
-  <section className="landing-section">
-    <div className="container-lg">
-      <div className="landing-cta-shell">
-        <h2>Move from fragmented updates to coordinated action.</h2>
-        <p>
-          Bring your NGO operations, field teams, and volunteer dispatch into one clean command flow.
-        </p>
-        <div className="landing-hero-actions">
-          <Link to="/register" className="btn-primary">
-            Join SevaSetu
-            <ArrowRight style={{ width: 16, height: 16 }} />
-          </Link>
-          <Link to="/dashboard" className="btn-ghost">
-            View Dashboard
-          </Link>
+const FinalCtaSection = () => {
+  return (
+    <section className="landing-section final-cta-revamp">
+      <div className="container-lg">
+        <div className="cta-content centered">
+          <h2 className="landing-heading">Don’t let help get lost in chaos.</h2>
+          <p className="landing-subcopy">Join SevaSetu and coordinate real impact today.</p>
+          
+          <div className="cta-actions">
+            <button className="btn-primary-large">
+              Get Started for Free <ArrowRight size={20} />
+            </button>
+            <button className="btn-ghost-large">
+              Book a Demo
+            </button>
+          </div>
+
+          <div className="cta-checkmarks">
+            <div className="checkmark-item"><CheckCircle2 size={18} /> No credit card required</div>
+            <div className="checkmark-item"><CheckCircle2 size={18} /> Free for NGOs</div>
+            <div className="checkmark-item"><CheckCircle2 size={18} /> Setup in minutes</div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default FinalCtaSection;

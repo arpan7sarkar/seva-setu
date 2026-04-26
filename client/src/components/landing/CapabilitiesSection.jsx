@@ -5,9 +5,9 @@ const CapabilitiesSection = () => (
   <section className="landing-section">
     <div className="container-lg space-y-10">
       <SectionIntro
-        eyebrow="Capabilities"
-        title="Built as modular operations blocks, not a cluttered one-screen dump."
-        description="Each capability is isolated and measurable, so teams can improve response quality without redesigning the whole workflow."
+        eyebrow="What The Platform Does"
+        title="One operating rhythm from first report to verified closure."
+        description="The landing page now explains SevaSetu as a human workflow, not just a technical system."
       />
 
       <div className="landing-feature-grid">
