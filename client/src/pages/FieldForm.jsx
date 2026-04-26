@@ -24,6 +24,7 @@ const FieldForm = () => {
     updateField,
     resetForm,
     getLocation,
+    setManualLocation,
     submitForm,
   } = useFieldForm();
 
@@ -328,6 +329,22 @@ const FieldForm = () => {
                     </div>
                   </div>
                 </button>
+                
+                {/* Laptop/Offline Fallback: Manual Entry */}
+                {!formData.lat && !locLoading && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const lat = prompt("Enter Latitude (or leave blank for area center):", "22.5726");
+                      const lng = prompt("Enter Longitude (or leave blank for area center):", "88.3639");
+                      if (lat && lng) setManualLocation(parseFloat(lat), parseFloat(lng));
+                    }}
+                    className="mt-2 text-[10px] font-bold text-slate-500 hover:text-indigo-400 uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Navigation className="w-3 h-3" />
+                    Can't get GPS? Enter Manually
+                  </button>
+                )}
               </div>
             </div>
 

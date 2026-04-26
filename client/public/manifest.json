@@ -1,0 +1,26 @@
+{
+  "name": "SevaSetu Community Needs Intelligence",
+  "short_name": "SevaSetu",
+  "description": "Real-time Volunteer Coordination & Community Needs Intelligence Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1c",
+  "theme_color": "#38bdf8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["utilities", "productivity", "social"],
+  "screenshots": []
+}

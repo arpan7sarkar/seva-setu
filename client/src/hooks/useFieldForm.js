@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import exifr from 'exifr';
 import api from '../services/api';
 import {
   clearQueuedNeedSubmission,
@@ -44,7 +45,20 @@ export const useFieldForm = () => {
 
     for (const item of queued) {
       try {
-        await api.post('/needs', item.payload);
+        const { payload } = item;
+        const form = new FormData();
+        
+        Object.keys(payload).forEach(key => {
+          if (key === 'imageFile' && payload[key]) {
+            form.append('image', payload[key]);
+          } else {
+            form.append(key, payload[key]);
+          }
+        });
+
+        await api.post('/needs', form, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         await clearQueuedNeedSubmission(item.id);
       } catch (syncError) {
         console.error('Queue sync failed for item:', item.id, syncError);
@@ -75,8 +89,25 @@ export const useFieldForm = () => {
     };
   }, [refreshQueuedCount, syncOfflineQueue]);
 
-  const updateField = useCallback((key, value) => {
+  const updateField = useCallback(async (key, value) => {
     setFormData((p) => ({ ...p, [key]: value }));
+
+    // If a photo is added, try to extract GPS coordinates from its metadata (works offline)
+    if (key === 'imageFile' && value instanceof File) {
+      try {
+        const gps = await exifr.gps(value);
+        if (gps && gps.latitude && gps.longitude) {
+          setFormData(p => ({
+            ...p,
+            lat: gps.latitude,
+            lng: gps.longitude
+          }));
+          console.log('GPS extracted from photo:', gps.latitude, gps.longitude);
+        }
+      } catch (err) {
+        console.warn('Metadata extraction failed (might be missing GPS):', err);
+      }
+    }
   }, []);
 
   const resetForm = useCallback(() => {
@@ -107,18 +138,37 @@ export const useFieldForm = () => {
       return;
     }
 
+    // Try to get fresh location
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        updateField('lat', pos.coords.latitude);
-        updateField('lng', pos.coords.longitude);
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        updateField('lat', lat);
+        updateField('lng', lng);
+        
+        // Save to "Last Known" memory for offline use
+        localStorage.setItem('sevasetu_last_lat', lat);
+        localStorage.setItem('sevasetu_last_lng', lng);
+        
         setLocLoading(false);
       },
       (err) => {
-        console.error('Location error:', err);
-        setError('Could not get location. Please enable GPS and allow permissions.');
+        console.warn('Live GPS failed, checking memory:', err);
+        
+        // Fallback: Check localStorage for Last Known Position
+        const lastLat = localStorage.getItem('sevasetu_last_lat');
+        const lastLng = localStorage.getItem('sevasetu_last_lng');
+        
+        if (lastLat && lastLng) {
+          updateField('lat', parseFloat(lastLat));
+          updateField('lng', parseFloat(lastLng));
+          setSuccessMessage('Live GPS failed. Used your last known stable position.');
+        } else {
+          setError('Could not get live or saved location. Please try taking a photo to auto-geotag.');
+        }
         setLocLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
     );
   }, [updateField]);
 
@@ -126,11 +176,22 @@ export const useFieldForm = () => {
     async (e) => {
       if (e) e.preventDefault();
 
+      // Validation
       if (!formData.need_type) return setError('Please select a need type.');
       if (!formData.title) return setError('Please provide a report headline.');
       if (!formData.district) return setError('Please provide the district name.');
       if (!formData.ward) return setError('Please provide the area/ward name.');
-      if (!formData.lat || !formData.lng) return setError('GPS coordinates are required for spatial matching.');
+
+      // Hard GPS requirement only when online. When offline on a laptop, we allow "Estimated" location.
+      if (isOnline && (!formData.lat || !formData.lng)) {
+        return setError('GPS coordinates are required for real-time spatial matching.');
+      }
+      
+      // If offline and no GPS, we'll use 0,0 and mark it as estimated in the payload
+      const hasGPS = formData.lat && formData.lng;
+      if (!isOnline && !hasGPS) {
+        console.warn('Offline submission without GPS. Using area-based estimation.');
+      }
 
       setLoading(true);
       setError('');
@@ -147,12 +208,12 @@ export const useFieldForm = () => {
 
       try {
         if (!navigator.onLine) {
-          // Offline mode: queue without image for now (size constraints)
-          const { imageFile, ...payload } = formData;
-          await queueNeedSubmission({ ...payload, people_affected: parseInt(payload.people_affected, 10) || 0 });
+          // Offline mode: queue with image (now supported via IndexedDB Blobs)
+          const payload = { ...formData, people_affected: parseInt(formData.people_affected, 10) || 0 };
+          await queueNeedSubmission(payload);
           await refreshQueuedCount();
           setSuccess(true);
-          setSuccessMessage('Saved offline. Your report (text only) will auto-sync when internet returns.');
+          setSuccessMessage('Saved offline with photo! Your report will auto-sync when internet returns.');
           return;
         }
 
@@ -182,6 +243,12 @@ export const useFieldForm = () => {
     people_affected: formData.people_affected,
   });
 
+  const setManualLocation = useCallback((lat, lng) => {
+    updateField('lat', lat);
+    updateField('lng', lng);
+    setSuccessMessage('Location set manually. Note: This will be marked as an estimated position.');
+  }, [updateField]);
+
   return {
     formData,
     loading,
@@ -196,6 +263,7 @@ export const useFieldForm = () => {
     updateField,
     resetForm,
     getLocation,
+    setManualLocation,
     submitForm,
   };
 };
