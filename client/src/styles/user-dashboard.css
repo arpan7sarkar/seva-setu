@@ -1,36 +1,42 @@
 /* ══════════════════════════════════════════════════════════════
-   USER DASHBOARD STYLES
+   USER DASHBOARD STYLES — Light NGO Theme
    ══════════════════════════════════════════════════════════════ */
 
 .user-dashboard-shell {
   padding-block: clamp(2rem, 2vw + 1.5rem, 3.5rem);
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
+  background: #f8fafc;
 }
 
+/* ── Hero ──────────────────────────────────────────────────── */
+
 .user-dashboard-hero {
-  padding: clamp(1.25rem, 1.8vw + 0.8rem, 2rem);
+  padding: clamp(1.5rem, 1.8vw + 0.8rem, 2.25rem);
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--color-surface-card) 84%, var(--color-accent-green) 16%),
-    color-mix(in oklab, var(--color-surface-card) 90%, var(--color-accent-sky) 10%)
+    rgba(45, 97, 72, 0.06),
+    rgba(255, 255, 255, 0)
   );
+  border-color: rgba(45, 97, 72, 0.1) !important;
 }
 
 .user-dashboard-title {
   font-size: clamp(1.4rem, 2.2vw, 2.2rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
+  color: #0f171d;
+  font-weight: 800;
 }
 
 .user-dashboard-subtitle {
   margin-top: 0.7rem;
-  color: var(--color-text-secondary);
+  color: #475569;
   line-height: 1.6;
   max-width: 65ch;
 }
 
-/* ── Quick Actions Grid ────────────────────────────────────── */
+/* ── Quick Actions Grid ─────────────────────────────────────── */
 
 .user-dashboard-actions-grid {
   display: grid;
@@ -38,35 +44,23 @@
 }
 
 .user-dashboard-action-card {
-  padding: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   text-decoration: none;
   color: inherit;
   position: relative;
   overflow: hidden;
-}
-
-.user-dashboard-action-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);
-  opacity: 0;
-  transition: opacity 300ms;
+  background: #ffffff;
 }
 
 .user-dashboard-action-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
-  border-color: var(--color-border-hover);
-}
-
-.user-dashboard-action-card:hover::before {
-  opacity: 1;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  border-color: rgba(45, 97, 72, 0.2) !important;
 }
 
 .user-dashboard-action-icon {
@@ -83,18 +77,18 @@
 .user-dashboard-action-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: #0f171d;
   margin-bottom: 0.2rem;
 }
 
 .user-dashboard-action-desc {
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: #64748b;
   line-height: 1.5;
 }
 
 .user-dashboard-action-arrow {
-  color: var(--color-text-muted);
+  color: #94a3b8;
   flex-shrink: 0;
   margin-left: auto;
   transition: transform 200ms, color 200ms;
@@ -102,18 +96,19 @@
 
 .user-dashboard-action-card:hover .user-dashboard-action-arrow {
   transform: translateX(3px);
-  color: var(--color-accent-sky);
+  color: #2d6148;
 }
 
-/* ── Volunteer Section ─────────────────────────────────────── */
+/* ── Volunteer Section ────────────────────────────────────────  */
 
 .user-dashboard-volunteer-section {
   padding: 1.5rem;
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--color-surface-card) 88%, var(--color-accent-green) 12%),
-    var(--color-surface-card)
+    rgba(45, 97, 72, 0.04),
+    rgba(255, 255, 255, 0)
   );
+  border-color: rgba(45, 97, 72, 0.1) !important;
 }
 
 .user-dashboard-volunteer-header {
@@ -127,12 +122,13 @@
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: rgba(52, 211, 153, 0.08);
-  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: rgba(45, 97, 72, 0.06);
+  border: 1px solid rgba(45, 97, 72, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #2d6148;
 }
 
 .user-dashboard-volunteer-title {
@@ -140,28 +136,30 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   margin-bottom: 0.3rem;
+  color: #0f171d;
 }
 
 .user-dashboard-volunteer-desc {
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: #475569;
   line-height: 1.6;
 }
 
 .user-dashboard-apply-btn {
   width: 100%;
   justify-content: center;
-  padding: 0.85rem 1.5rem;
-  background: linear-gradient(135deg, #34d399, #059669) !important;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+  padding: 0.9rem 1.5rem;
+  background: #2d6148 !important;
+  box-shadow: 0 4px 12px rgba(45, 97, 72, 0.2);
   font-size: 0.9rem;
 }
 
 .user-dashboard-apply-btn:hover {
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+  background: #1e4231 !important;
+  box-shadow: 0 8px 24px rgba(45, 97, 72, 0.3) !important;
 }
 
-/* ── Status Banner ─────────────────────────────────────────── */
+/* ── Status Banner ──────────────────────────────────────────── */
 
 .user-dashboard-status-banner {
   padding: 1rem 1.25rem;
@@ -174,17 +172,17 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 0;
-  color: var(--color-text-muted);
+  color: #64748b;
   font-size: 0.85rem;
 }
 
-/* ── Reports Section ───────────────────────────────────────── */
+/* ── Reports Section ────────────────────────────────────────── */
 
 .user-dashboard-reports-section {
   padding: 0 0.25rem;
 }
 
-/* ── Responsive ────────────────────────────────────────────── */
+/* ── Responsive ─────────────────────────────────────────────── */
 
 @media (min-width: 640px) {
   .user-dashboard-actions-grid {

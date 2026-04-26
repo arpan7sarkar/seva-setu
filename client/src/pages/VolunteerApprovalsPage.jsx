@@ -101,9 +101,9 @@ const VolunteerApprovalsPage = () => {
                   padding: '0.5rem 1rem', borderRadius: '0.6rem',
                   fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
                   textTransform: 'uppercase', letterSpacing: '0.04em',
-                  background: filter === tab.key ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
-                  color: filter === tab.key ? '#38bdf8' : 'var(--color-text-secondary)',
-                  border: filter === tab.key ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid transparent',
+                  background: filter === tab.key ? 'rgba(45, 97, 72, 0.08)' : 'transparent',
+                  color: filter === tab.key ? '#2d6148' : 'var(--color-text-secondary)',
+                  border: filter === tab.key ? '1px solid rgba(45, 97, 72, 0.2)' : '1px solid transparent',
                   transition: 'all 200ms',
                 }}
               >
@@ -149,10 +149,10 @@ const VolunteerApprovalsPage = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
                       <div style={{
                         width: '36px', height: '36px', borderRadius: '10px',
-                        background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15))',
-                        border: '1px solid rgba(56, 189, 248, 0.2)',
+                        background: 'rgba(45, 97, 72, 0.06)',
+                        border: '1px solid rgba(45, 97, 72, 0.15)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 900, fontSize: '0.85rem', color: '#38bdf8',
+                        fontWeight: 900, fontSize: '0.85rem', color: '#2d6148',
                       }}>
                         {req.fullName?.[0]?.toUpperCase() || '?'}
                       </div>
@@ -175,7 +175,7 @@ const VolunteerApprovalsPage = () => {
                     {/* Proof of Work */}
                     <div style={{
                       padding: '0.85rem', borderRadius: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)',
+                      background: '#f8fafc', border: '1px solid rgba(15, 23, 29, 0.06)',
                       marginTop: '0.5rem',
                     }}>
                       <p style={{
@@ -229,9 +229,9 @@ const VolunteerApprovalsPage = () => {
                     <div style={{
                       padding: '0.4rem 0.8rem', borderRadius: '9999px', fontSize: '0.7rem',
                       fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
-                      background: filter === 'approved' ? 'rgba(52, 211, 153, 0.1)' : 'rgba(251, 113, 133, 0.1)',
-                      color: filter === 'approved' ? '#34d399' : '#fb7185',
-                      border: `1px solid ${filter === 'approved' ? 'rgba(52, 211, 153, 0.3)' : 'rgba(251, 113, 133, 0.3)'}`,
+                      background: filter === 'approved' ? 'rgba(5, 150, 105, 0.08)' : 'rgba(195, 93, 81, 0.08)',
+                      color: filter === 'approved' ? '#059669' : '#c35d51',
+                      border: `1px solid ${filter === 'approved' ? 'rgba(5, 150, 105, 0.2)' : 'rgba(195, 93, 81, 0.2)'}`,
                     }}>
                       {filter}
                     </div>

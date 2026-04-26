@@ -1,7 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/react'
-import { dark } from '@clerk/themes'
 import App from './App.jsx'
 import AuthTokenBridge from './components/AuthTokenBridge.jsx'
 import 'leaflet/dist/leaflet.css'
