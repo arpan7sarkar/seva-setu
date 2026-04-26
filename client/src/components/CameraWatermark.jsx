@@ -4,96 +4,68 @@ import { Camera, SwitchCamera, X, Check, Loader2, ChevronLeft } from 'lucide-rea
 const CameraWatermark = ({ onCapture, onCancel }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  
-  const [stream, setStream] = useState(null);
+  const streamRef = useRef(null); // Use ref so we always have fresh handle
+
   const [facingMode, setFacingMode] = useState('environment');
   const [location, setLocation] = useState(null);
   const [locError, setLocError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [cameraCount, setCameraCount] = useState(0); // 0 = unknown, 1 = laptop, 2+ = mobile
+  const [cameraCount, setCameraCount] = useState(0);
 
-  // 1. Device Enumeration — detect how many cameras exist
+  // 1. Device Enumeration
   useEffect(() => {
-    const detectCameras = async () => {
+    (async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputs = devices.filter(d => d.kind === 'videoinput');
-        setCameraCount(videoInputs.length);
-        console.log(`[Camera] Detected ${videoInputs.length} camera(s).`);
-      } catch (err) {
-        console.warn('[Camera] Device enumeration failed:', err);
-        setCameraCount(1); // Assume single camera on failure
-      }
-    };
-    detectCameras();
+        setCameraCount(devices.filter(d => d.kind === 'videoinput').length);
+      } catch { setCameraCount(1); }
+    })();
   }, []);
 
-  // 2. Get GPS Location
+  // 2. GPS — continuous watch
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLocation({
-            lat: pos.coords.latitude.toFixed(6),
-            lng: pos.coords.longitude.toFixed(6),
-            accuracy: pos.coords.accuracy.toFixed(1)
-          });
-        },
-        (err) => {
-          setLocError(err.message);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      setLocError('Geolocation not supported');
+    if (!('geolocation' in navigator)) { setLocError('Not supported'); return; }
+    const id = navigator.geolocation.watchPosition(
+      (pos) => setLocation({ lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), accuracy: pos.coords.accuracy.toFixed(1) }),
+      (err) => setLocError(err.message),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, []);
+
+  // 3. Camera — hard kill / start via ref
+  const killCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+      console.log('[Camera] Hardware released.');
     }
   }, []);
 
-  // 3. Camera Lifecycle Management
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-  }, [stream]);
-
-  const startCamera = useCallback(async (mode) => {
-    // Stop any existing stream first
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
+  const openCamera = useCallback(async (mode) => {
+    killCamera();
     try {
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: mode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: mode, width: { ideal: 1920 }, height: { ideal: 1080 } }
       });
-      setStream(newStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
+      streamRef.current = s;
+      if (videoRef.current) videoRef.current.srcObject = s;
     } catch (err) {
-      console.error('[Camera] Error accessing camera:', err);
+      console.error('[Camera] Access error:', err);
     }
-  }, []);
+  }, [killCamera]);
 
+  // Open camera when viewfinder active, kill when photo captured
   useEffect(() => {
     if (!capturedImage) {
-      startCamera(facingMode);
+      openCamera(facingMode);
     } else {
-      stopCamera();
+      killCamera();
     }
-
-    return () => {
-      // Cleanup on unmount
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [facingMode, !!capturedImage]);
+    return () => killCamera(); // always cleanup on unmount
+  }, [facingMode, !!capturedImage, openCamera, killCamera]);
 
   const toggleCamera = () => {
     setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
@@ -106,61 +78,68 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
+
     // Hidden EXIF metadata injection — NO visual text on the image
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    
-    try {
-      const piexifModule = await import('piexifjs');
-      const piexif = piexifModule.default || piexifModule;
-      
-      const zeroth = {};
-      const exif = {};
-      const gps = {};
-      
-      const toRational = (number) => {
-        const absolute = Math.abs(number);
-        const d = Math.floor(absolute);
-        const m = Math.floor((absolute - d) * 60);
-        const s = Math.round((absolute - d - m / 60) * 3600 * 100);
-        return [[d, 1], [m, 1], [s, 100]];
-      };
+    let gpsInjected = false;
 
-      gps[piexif.GPSIFD.GPSLatitudeRef] = parseFloat(location.lat) >= 0 ? 'N' : 'S';
-      gps[piexif.GPSIFD.GPSLatitude] = toRational(parseFloat(location.lat));
-      gps[piexif.GPSIFD.GPSLongitudeRef] = parseFloat(location.lng) >= 0 ? 'E' : 'W';
-      gps[piexif.GPSIFD.GPSLongitude] = toRational(parseFloat(location.lng));
-      gps[piexif.GPSIFD.GPSVersionID] = [2, 2, 0, 0];
-      
-      const exifObj = { "0th": zeroth, "Exif": exif, "GPS": gps };
-      const exifStr = piexif.dump(exifObj);
-      const newImgData = piexif.insert(exifStr, dataUrl);
-      
-      const parts = newImgData.split(',');
-      const byteString = atob(parts[1]);
-      const mimeString = parts[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
+    try {
+      if (location) {
+        const piexifModule = await import('piexifjs');
+        const piexif = piexifModule.default || piexifModule;
+
+        const zeroth = {};
+        const exif = {};
+        const gps = {};
+
+        const toRational = (number) => {
+          const absolute = Math.abs(number);
+          const d = Math.floor(absolute);
+          const m = Math.floor((absolute - d) * 60);
+          const s = Math.round((absolute - d - m / 60) * 3600 * 100);
+          return [[d, 1], [m, 1], [s, 100]];
+        };
+
+        gps[piexif.GPSIFD.GPSLatitudeRef] = parseFloat(location.lat) >= 0 ? 'N' : 'S';
+        gps[piexif.GPSIFD.GPSLatitude] = toRational(parseFloat(location.lat));
+        gps[piexif.GPSIFD.GPSLongitudeRef] = parseFloat(location.lng) >= 0 ? 'E' : 'W';
+        gps[piexif.GPSIFD.GPSLongitude] = toRational(parseFloat(location.lng));
+        gps[piexif.GPSIFD.GPSVersionID] = [2, 2, 0, 0];
+
+        const exifObj = { "0th": zeroth, "Exif": exif, "GPS": gps };
+        const exifStr = piexif.dump(exifObj);
+        const newImgData = piexif.insert(exifStr, dataUrl);
+
+        const parts = newImgData.split(',');
+        const byteString = atob(parts[1]);
+        const mimeString = parts[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { type: mimeString });
+        const file = new File([blob], `sevasetu_geotagged_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+        console.log('[Camera] Geotag injected successfully into EXIF.');
+        gpsInjected = true;
+        setCapturedImage({ file, hasGps: true });
+        setIsCapturing(false);
+        return;
       }
-      const blob = new Blob([ab], { type: mimeString });
-      const file = new File([blob], `sevasetu_geotagged_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      
-      console.log('[Camera] Geotag injected successfully into EXIF.');
-      setCapturedImage(file);
-      setIsCapturing(false);
+      // No location available — capture without GPS
+      throw new Error('No GPS location available');
     } catch (err) {
-      console.error('[Camera] Failed to inject EXIF:', err);
+      console.warn('[Camera] Capturing without GPS:', err.message);
       canvas.toBlob((blob) => {
         const file = new File([blob], `sevasetu_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
-        setCapturedImage(file);
+        setCapturedImage({ file, hasGps: false });
         setIsCapturing(false);
       }, 'image/jpeg', 0.9);
     }
@@ -168,7 +147,8 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
 
   const confirmCapture = () => {
     if (capturedImage) {
-      onCapture(capturedImage);
+      // Pass the file and GPS status to the parent
+      onCapture(capturedImage.file, capturedImage.hasGps);
     }
   };
 
@@ -251,20 +231,71 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
         justifyContent: 'center',
       }}>
         {capturedImage ? (
-          <img 
-            src={capturedImage instanceof File ? URL.createObjectURL(capturedImage) : capturedImage} 
-            alt="Captured" 
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-          />
+          <>
+            <img
+              src={URL.createObjectURL(capturedImage.file)}
+              alt="Captured"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+
+            {/* GPS VERIFIED / NO GPS tag — Top Left */}
+            <div style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              zIndex: 25,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '12px',
+              backdropFilter: 'blur(12px)',
+              background: capturedImage.hasGps ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)',
+              border: capturedImage.hasGps ? '1px solid rgba(16,185,129,0.5)' : '1px solid rgba(239,68,68,0.5)',
+              fontFamily: 'monospace',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: capturedImage.hasGps ? '#34d399' : '#f87171',
+            }}>
+              <span style={{ fontSize: '14px' }}>{capturedImage.hasGps ? '📍' : '⚠️'}</span>
+              {capturedImage.hasGps ? 'GPS VERIFIED' : 'NO GPS'}
+            </div>
+
+            {/* Close / Discard button — Top Right */}
+            <button
+              onClick={retryCapture}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                zIndex: 25,
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'rgba(0,0,0,0.6)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <X style={{ width: 22, height: 22 }} />
+            </button>
+          </>
         ) : (
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline 
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
-        
+
         <canvas ref={canvasRef} style={{ display: 'none' }} />
 
         {/* GPS Lock Info — only shown while viewfinder is active */}
@@ -347,7 +378,7 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
             </button>
           </div>
         ) : (
-          <button 
+          <button
             onClick={capturePhoto}
             disabled={isCapturing}
             style={{

@@ -33,9 +33,24 @@ const MainLayout = ({ children }) => {
                 <Link to="/field" className="nav-link">
                 Report Need
                 </Link>
-                <Link to="/dashboard" className="btn-primary nav-cta">
-                  Dashboard
+                <Link to="/my-reports" className="nav-link">
+                My Reports
                 </Link>
+                {currentUser?.role === 'coordinator' && (
+                  <Link to="/dashboard" className="btn-primary nav-cta">
+                    Dashboard
+                  </Link>
+                )}
+                {currentUser?.role === 'volunteer' && (
+                  <Link to="/volunteer" className="btn-primary nav-cta">
+                    Volunteer Dash
+                  </Link>
+                )}
+                {currentUser?.role === 'field_worker' && (
+                  <Link to="/field" className="btn-primary nav-cta">
+                    Field Terminal
+                  </Link>
+                )}
                 <div className="nav-user-section">
                   <span className="nav-user-name">
                     {currentUser?.name || currentUser?.email || 'User'}

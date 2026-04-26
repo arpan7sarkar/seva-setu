@@ -35,8 +35,11 @@ const DashboardPage = () => {
     closeDispatchModal,
     assignVolunteer,
     updatePipelineStatus,
+    deleteNeed, // THIS IS THE FUNCTION
     toast,
   } = useCoordinatorDashboard();
+
+  console.log("DEBUG DASHBOARD: deleteNeed type is", typeof deleteNeed);
 
   return (
     <MainLayout>
@@ -109,6 +112,7 @@ const DashboardPage = () => {
                   sorting={sorting}
                   setSort={setSort}
                   onDispatch={openDispatchModal}
+                  onDelete={deleteNeed} 
                 />
 
                 {sortedNeeds.length > 6 && (
@@ -126,6 +130,7 @@ const DashboardPage = () => {
               tasks={tasks}
               onDispatch={openDispatchModal}
               onUpdateTask={updatePipelineStatus}
+              onDelete={deleteNeed}
             />
           </>
         ) : null}

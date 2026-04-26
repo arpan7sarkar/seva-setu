@@ -62,7 +62,12 @@ export const useFieldForm = () => {
         await clearQueuedNeedSubmission(item.id);
       } catch (syncError) {
         console.error('Queue sync failed for item:', item.id, syncError);
-        break;
+        const status = syncError.response?.status;
+        // If it's a 4xx error (bad request), drop it so it doesn't block the queue forever.
+        // If it's a 5xx error, we still keep it and retry later.
+        if (status >= 400 && status < 500) {
+          await clearQueuedNeedSubmission(item.id);
+        }
       }
     }
 
@@ -71,7 +76,14 @@ export const useFieldForm = () => {
   }, [refreshQueuedCount]);
 
   useEffect(() => {
-    void getQueuedNeedSubmissions().then((queued) => setQueuedCount(queued.length));
+    const initQueue = async () => {
+      const queued = await getQueuedNeedSubmissions();
+      setQueuedCount(queued.length);
+      if (navigator.onLine && queued.length > 0) {
+        await syncOfflineQueue();
+      }
+    };
+    initQueue();
 
     const onOnline = async () => {
       setIsOnline(true);

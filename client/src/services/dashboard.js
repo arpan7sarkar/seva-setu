@@ -58,3 +58,13 @@ export const removeCoordinator = async (id) => {
   const { data } = await api.delete(`/coordinators/${id}`);
   return data;
 };
+
+export const deleteNeedFromServer = async (needId) => {
+  const { data } = await api.delete(`/needs/${needId}`);
+  return data;
+};
+
+export const fetchSystemStats = async () => {
+  const { data } = await api.get('/coordinators/stats');
+  return data;
+};

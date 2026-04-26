@@ -26,6 +26,7 @@ enum NeedType {
   shelter
   accidental
   rescue
+  education
   other
 }
 
@@ -35,6 +36,9 @@ enum NeedStatus {
   in_progress
   completed
   archived
+  pending
+  accepted
+  rejected
 }
 
 enum TaskStatus {
@@ -112,7 +116,8 @@ model Need {
   isVerified             Boolean    @default(false) @map("is_verified")
   verificationConfidence Float?     @map("verification_confidence")
   imageUrl               String?    @map("image_url")
-  status                 NeedStatus @default(open)
+  status                 NeedStatus @default(pending)
+  rejectionReason        String?    @map("rejection_reason")
   isDisasterZone         Boolean    @default(false) @map("is_disaster_zone")
   reportedBy             String?    @map("reported_by") @db.Uuid
   createdAt              DateTime   @default(now()) @map("created_at")

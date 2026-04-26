@@ -26,6 +26,43 @@ router.get('/', auth, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/coordinators/stats
+ * @desc    Get system-wide stats (total users, etc)
+ * @access  Private (Coordinator)
+ */
+router.get('/stats', auth, async (req, res) => {
+  if (req.user.role !== 'coordinator') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  try {
+    const counts = await prisma.user.groupBy({
+      by: ['role'],
+      _count: { id: true }
+    });
+    
+    // Calculate "General Users" (not coordinator, not volunteer)
+    const stats = {
+      totalUsers: 0,
+      coordinators: 0,
+      volunteers: 0,
+      others: 0
+    };
+
+    counts.forEach(c => {
+      if (c.role === 'coordinator') stats.coordinators = c._count.id;
+      else if (c.role === 'volunteer') stats.volunteers = c._count.id;
+      else stats.others += c._count.id;
+    });
+
+    res.json({ totalUsers: stats.others }); // We only return "others" as Total Users per request
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * @route   POST /api/coordinators
  * @desc    Add a new email to the coordinator whitelist
  * @access  Private (Coordinator)

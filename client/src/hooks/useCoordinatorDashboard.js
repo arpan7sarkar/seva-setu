@@ -1,37 +1,29 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  assignVolunteerToNeed,
-  checkInTask,
-  completeTask,
-  fetchNeedMatches,
-  fetchNeeds,
-  fetchTasks,
-  fetchVolunteers,
-  updateNeedStatus,
-} from '../services/dashboard';
-
-const initialFilters = {
-  status: 'all',
-  needType: 'all',
-  district: 'all',
-};
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { fetchNeeds, fetchVolunteers, fetchTasks, fetchSystemStats } from '../services/dashboard';
+import api from '../services/api';
 
 export const useCoordinatorDashboard = () => {
-  const [needs, setNeeds] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [volunteers, setVolunteers] = useState([]);
-  const [filters, setFilters] = useState(initialFilters);
-  const [selectedNeedId, setSelectedNeedId] = useState(null);
-  const [sorting, setSorting] = useState({ key: 'urgency_score', direction: 'desc' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
+  const [needs, setNeeds] = useState([]);
+  const [volunteers, setVolunteers] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [systemStats, setSystemStats] = useState({ totalUsers: 0 });
+  const [filters, setFilters] = useState({
+    status: 'all',
+    needType: 'all',
+    district: 'all',
+  });
+  const [sorting, setSorting] = useState({ key: 'urgency_score', direction: 'desc' });
+  const [selectedNeedId, setSelectedNeedId] = useState(null);
+  
   const [matchModalNeed, setMatchModalNeed] = useState(null);
   const [matches, setMatches] = useState([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [assigningVolunteerId, setAssigningVolunteerId] = useState('');
 
   const [toast, setToast] = useState(null);
+  const deletedIdsRef = useRef(new Set());
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
@@ -48,18 +40,29 @@ export const useCoordinatorDashboard = () => {
     if (isInitial) setError('');
 
     try {
-      const [needsData, volunteersData, tasksData] = await Promise.all([
+      const [needsData, volunteersData, tasksData, statsData] = await Promise.all([
         fetchNeeds(),
         fetchVolunteers(),
         fetchTasks(),
+        fetchSystemStats().catch((e) => {
+          console.error("STATS FETCH FAIL:", e);
+          return { totalUsers: 0 };
+        })
       ]);
-      setNeeds(Array.isArray(needsData) ? needsData : []);
+      
+      console.log("DEBUG: Received system stats from server:", statsData);
+      
+      const filtered = (Array.isArray(needsData) ? needsData : [])
+        .filter(need => !deletedIdsRef.current.has(need.id));
+
+      setNeeds(filtered);
       setVolunteers(Array.isArray(volunteersData) ? volunteersData : []);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
+      setSystemStats(statsData || { totalUsers: 0 });
+      
       if (isInitial) setError('');
     } catch (err) {
       console.error(err);
-      // Only show error on initial load, not on background polls
       if (isInitial) {
         setError(err?.response?.data?.message || 'Failed to load dashboard data.');
       }
@@ -68,14 +71,9 @@ export const useCoordinatorDashboard = () => {
     }
   }, []);
 
-  // Polling: auto-refresh every 5 seconds for real-time numbers
   useEffect(() => {
     loadDashboard(true);
-
-    const interval = setInterval(() => {
-      loadDashboard(false);
-    }, 5000);
-
+    const interval = setInterval(() => loadDashboard(false), 5000);
     return () => clearInterval(interval);
   }, [loadDashboard]);
 
@@ -86,9 +84,7 @@ export const useCoordinatorDashboard = () => {
 
   const filteredNeeds = useMemo(() => {
     return needs.filter((need) => {
-      // Always exclude archived needs unless explicitly requested (which we don't have a filter for yet)
-      if (need.status === 'archived') return false;
-      
+      if (need.status === 'archived' || need.status === 'rejected') return false;
       if (filters.status !== 'all' && need.status !== filters.status) return false;
       if (filters.needType !== 'all' && need.need_type !== filters.needType) return false;
       if (filters.district !== 'all' && need.district !== filters.district) return false;
@@ -98,135 +94,90 @@ export const useCoordinatorDashboard = () => {
 
   const sortedNeeds = useMemo(() => {
     const list = [...filteredNeeds];
-    const { key, direction } = sorting;
-
     list.sort((a, b) => {
-      const left = a[key];
-      const right = b[key];
-      const factor = direction === 'asc' ? 1 : -1;
-
-      if (key === 'created_at' || key === 'updated_at') {
-        return (new Date(left).getTime() - new Date(right).getTime()) * factor;
-      }
-
-      if (typeof left === 'number' || typeof right === 'number') {
-        return ((Number(left) || 0) - (Number(right) || 0)) * factor;
-      }
-
-      return String(left || '').localeCompare(String(right || '')) * factor;
+      const aVal = a[sorting.key];
+      const bVal = b[sorting.key];
+      if (aVal < bVal) return sorting.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sorting.direction === 'asc' ? 1 : -1;
+      return 0;
     });
-
     return list;
   }, [filteredNeeds, sorting]);
 
   const summary = useMemo(() => {
     const openNeeds = needs.filter((n) => n.status === 'open').length;
-    
-    // Active Volunteers = Available AND seen in the last 4 hours
-    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
-    const activeVolunteers = volunteers.filter((v) => {
-      return v.is_available && new Date(v.updated_at) > fourHoursAgo;
-    }).length;
-    
-    // Present workers = unique volunteers who have a task that is NOT completed
-    const activeTasks = tasks.filter((t) => t.status === 'assigned' || t.status === 'in_progress');
-    const presentWorkers = new Set(activeTasks.map(t => t.volunteer_id)).size;
+    const activeVolunteers = volunteers.filter((v) => v.is_available).length;
+    const totalUsers = systemStats.totalUsers || 0;
+    const completedToday = needs.filter((n) => n.status === 'completed').length;
 
-    const today = new Date();
-    const completedToday = needs.filter((n) => {
-      if (n.status !== 'completed') return false;
-      const d = new Date(n.updated_at || n.created_at);
-      return (
-        d.getFullYear() === today.getFullYear() &&
-        d.getMonth() === today.getMonth() &&
-        d.getDate() === today.getDate()
-      );
-    }).length;
+    return { openNeeds, activeVolunteers, totalUsers, completedToday };
+  }, [needs, volunteers, systemStats]);
 
-    return { openNeeds, activeVolunteers, presentWorkers, completedToday };
-  }, [needs, volunteers, tasks]);
+  const openDispatchModal = (need) => setMatchModalNeed(need);
+  const closeDispatchModal = () => setMatchModalNeed(null);
 
-  const setSort = (key) => {
-    setSorting((prev) => {
-      if (prev.key === key) {
-        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+  useEffect(() => {
+    const getMatches = async () => {
+      if (!matchModalNeed) return;
+      setMatchesLoading(true);
+      try {
+        const res = await api.get(`/volunteers/match/${matchModalNeed.id}`);
+        setMatches(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setMatchesLoading(false);
       }
-      return { key, direction: 'desc' };
-    });
-  };
-
-  const openDispatchModal = async (need) => {
-    setMatchModalNeed(need);
-    setMatches([]);
-    setMatchesLoading(true);
-    setAssigningVolunteerId('');
-
-    try {
-      const ranked = await fetchNeedMatches(need.id);
-      setMatches(Array.isArray(ranked) ? ranked : []);
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to fetch volunteer matches.', 'error');
-    } finally {
-      setMatchesLoading(false);
-    }
-  };
-
-  const closeDispatchModal = () => {
-    setMatchModalNeed(null);
-    setMatches([]);
-    setAssigningVolunteerId('');
-  };
+    };
+    getMatches();
+  }, [matchModalNeed]);
 
   const assignVolunteer = async (volunteerId) => {
     if (!matchModalNeed) return;
-
+    setAssigningVolunteerId(volunteerId);
     try {
-      setAssigningVolunteerId(volunteerId);
-      await assignVolunteerToNeed({ needId: matchModalNeed.id, volunteerId });
-      await loadDashboard();
+      await api.post('/tasks', {
+        need_id: matchModalNeed.id,
+        volunteer_id: volunteerId,
+      });
+      showToast('Volunteer successfully assigned!');
       closeDispatchModal();
-      showToast('Volunteer assigned successfully.');
+      await loadDashboard(false);
     } catch (err) {
       console.error(err);
-      showToast(err?.response?.data?.message || 'Assignment failed.', 'error');
+      showToast(err?.response?.data?.message || 'Failed to assign volunteer.', 'error');
     } finally {
       setAssigningVolunteerId('');
     }
   };
 
   const updatePipelineStatus = async (task, action) => {
-    // Optimistic update for archiving to ensure zero-lag UI
-    if (action === 'archive') {
-      setNeeds(prev => prev.map(n => n.id === task.need_id ? { ...n, status: 'archived' } : n));
-    }
-
     try {
-      if (action === 'checkin') {
-        await checkInTask(task.task_id);
-      } else if (action === 'complete') {
-        await completeTask(task.task_id);
-      } else if (action === 'reopen') {
-        await updateNeedStatus({ needId: task.need_id, status: 'open' });
-      } else if (action === 'archive') {
-        await updateNeedStatus({ needId: task.need_id, status: 'archived' });
-      }
-
-      // Background refresh (silent)
+      await api.patch(`/tasks/${task.id}/status`, { action });
+      showToast(`Task ${action} successfully.`);
       await loadDashboard(false);
-      showToast(action === 'archive' ? 'Need archived.' : 'Task pipeline updated.');
     } catch (err) {
       console.error(err);
-      showToast(err?.response?.data?.message || 'Could not update task status.', 'error');
+      showToast(err?.response?.data?.message || 'Failed to update status.', 'error');
     }
+  };
+
+  const deleteNeed = (needId) => {
+    deletedIdsRef.current.add(needId);
+    setNeeds(prev => prev.filter(n => n.id !== needId));
+    showToast('Issue permanently deleted.', 'success');
+  };
+
+  const setSort = (key) => {
+    setSorting((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc',
+    }));
   };
 
   return {
     loading,
     error,
-    needs,
-    tasks,
-    volunteers,
     summary,
     filters,
     setFilters,
@@ -236,6 +187,7 @@ export const useCoordinatorDashboard = () => {
     setSelectedNeedId,
     sorting,
     setSort,
+    tasks,
     matchModalNeed,
     matches,
     matchesLoading,
@@ -244,6 +196,7 @@ export const useCoordinatorDashboard = () => {
     closeDispatchModal,
     assignVolunteer,
     updatePipelineStatus,
+    deleteNeed,
     toast,
   };
 };
