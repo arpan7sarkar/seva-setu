@@ -39,7 +39,7 @@ const findMatches = async (needId) => {
     JOIN users u ON v.user_id = u.id
     WHERE v.is_available = true
     AND v.location IS NOT NULL
-    AND ST_DWithin(v.location::geography, ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography, 6000)
+    AND ST_DWithin(v.location::geography, ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography, 15000)
     ORDER BY v.location <-> ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)
     LIMIT 10
   `;
@@ -50,7 +50,7 @@ const findMatches = async (needId) => {
 
     // A. Proximity (Weight 50%)
     const distKm = Number(v.distance_km) || 0;
-    const proximityScore = Math.max(0, 50 * (1 - distKm / 5));
+    const proximityScore = Math.max(0, 50 * (1 - distKm / 15));
     score += proximityScore;
 
     // B. Skill Match (Weight 30%)

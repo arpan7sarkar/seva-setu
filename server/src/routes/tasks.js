@@ -14,7 +14,7 @@ router.post('/', auth, async (req, res) => {
     return res.status(403).json({ message: 'Access denied' });
   }
 
-  const { need_id, assigned_volunteer_id, notes } = req.body;
+  const { need_id, volunteer_id, notes } = req.body;
 
   try {
     const taskId = await prisma.$transaction(async (tx) => {
@@ -22,7 +22,7 @@ router.post('/', auth, async (req, res) => {
       const task = await tx.task.create({
         data: {
           needId: need_id,
-          assignedVolunteerId: assigned_volunteer_id,
+          assignedVolunteerId: volunteer_id,
           notes,
           status: 'assigned',
           assignedAt: new Date(),
@@ -358,6 +358,8 @@ router.get('/my', auth, async (req, res) => {
         n.urgency_score,
         n.ward,
         n.district,
+        n.contact_number,
+        n.contact_number as "contactNumber",
         n.image_url,
         ST_X(n.location::geometry) as lng,
         ST_Y(n.location::geometry) as lat

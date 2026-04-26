@@ -98,6 +98,19 @@ const NeedsList = ({
                       )}
                     </div>
 
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        {need.title?.startsWith('WA:') && (
+                          <span style={{ background: '#25D366', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', letterSpacing: '0.5px' }}>
+                            WA
+                          </span>
+                        )}
+                        <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                          {need.title?.replace(/^WA:\s*/, '') || 'Unknown Issue'}
+                        </span>
+                      </div>
+                    </div>
+
                     {(need.status === 'completed' || need.status === 'rejected') && (
                       <button
                         type="button"
@@ -139,7 +152,7 @@ const NeedsList = ({
                       e.stopPropagation();
                       onDispatch(need);
                     }}
-                    disabled={need.status !== 'open'}
+                    disabled={need.status !== 'open' && need.status !== 'pending'}
                   >
                     Dispatch
                   </button>

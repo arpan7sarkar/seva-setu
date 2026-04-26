@@ -39,8 +39,10 @@ const KanbanBoard = ({ needs, tasks, onDispatch, onUpdateTask, onDelete }) => {
 
   needs.forEach((need) => {
     const task = tasksByNeedId[need.id];
-    if (!lanes[need.status]) return;
-    lanes[need.status].push({ need, task });
+    let laneStatus = need.status;
+    if (laneStatus === 'pending') laneStatus = 'open';
+    if (!lanes[laneStatus]) return;
+    lanes[laneStatus].push({ need, task });
   });
 
   return (

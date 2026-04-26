@@ -217,6 +217,11 @@
   border-color: rgba(167, 139, 250, 0.35);
 }
 
+.dashboard-pill-pending {
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
 .dashboard-dispatch-btn,
 .dashboard-text-btn {
   border: 1px solid var(--color-border);

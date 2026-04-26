@@ -34,7 +34,6 @@ module.exports = async (req, res, next) => {
   }
 
   // ── Step 2: Optimized DB Lookup ─────────────────────────────────────
-  // Fast path: If user exists in DB, skip Clerk API calls and redundant writes.
   try {
     let dbUser = await prisma.user.findUnique({
       where: { clerkId: clerkUserId },
@@ -47,71 +46,77 @@ module.exports = async (req, res, next) => {
       },
     });
 
-    if (dbUser) {
-      // ── Step 2.5: Throttled Heartbeat ───────────────────────────────
-      // If volunteer, update their 'last seen' timestamp at most every 15 mins.
-      // This ensures they show up as "Active" on the dashboard even if just polling.
-      if (dbUser.role === 'volunteer' && dbUser.volunteer) {
+    if (!dbUser) {
+      // ── Step 2.1: Check by email (for seeded/migrated users) ────────
+      const clerkUser = await getClerkUser(clerkUserId);
+      const primaryEmailObj = clerkUser.emailAddresses.find(
+        (email) => email.id === clerkUser.primaryEmailAddressId
+      );
+      const email = primaryEmailObj?.emailAddress;
+
+      if (email) {
+        dbUser = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, role: true, email: true, name: true, volunteer: { select: { updatedAt: true } } }
+        });
+
+        if (dbUser) {
+          // Link the Clerk ID to the existing account
+          console.log(`[auth] Linking existing user ${email} to Clerk ID ${clerkUserId}`);
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { clerkId: clerkUserId }
+          });
+        } else {
+          // ── Step 3: Fetch Clerk profile (ONLY for new users) ──────────────
+          console.log(`[auth] New user detected (${email}), creating in DB...`);
+          const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'User';
+
+          // Check whitelist table
+          const isWhitelisted = await prisma.coordinatorEmail.findUnique({
+            where: { email },
+          });
+          
+          const assignedRole = isWhitelisted ? 'coordinator' : 'volunteer';
+
+          dbUser = await prisma.user.create({
+            data: {
+              clerkId: clerkUserId,
+              name,
+              email,
+              passwordHash: '',
+              role: assignedRole,
+            },
+            select: { id: true, role: true, email: true, name: true },
+          });
+
+          if (dbUser.role === 'volunteer') {
+            await prisma.volunteer.upsert({
+              where: { userId: dbUser.id },
+              create: { userId: dbUser.id, skills: [] },
+              update: {},
+            });
+          }
+        }
+      } else {
+        return res.status(400).json({ message: 'Clerk user has no primary email' });
+      }
+    }
+
+    // ── Step 4: Throttled Heartbeat (Fire-and-forget) ───────────
+    if (dbUser.role === 'volunteer') {
+      if (!dbUser.volunteer) {
+        await prisma.volunteer.create({ data: { userId: dbUser.id, skills: [] } });
+      } else {
         const lastSeen = new Date(dbUser.volunteer.updatedAt);
         const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
-        
         if (lastSeen < fifteenMinsAgo) {
-          // Fire-and-forget update to keep the request response time low
           prisma.volunteer.update({
             where: { userId: dbUser.id },
             data: { updatedAt: new Date() }
           }).catch(err => console.error('[auth] Heartbeat failed:', err.message));
         }
       }
-
-      req.user = {
-        id: dbUser.id,
-        role: dbUser.role,
-        email: dbUser.email,
-        name: dbUser.name,
-        clerkId: clerkUserId,
-      };
-      return next();
-    }
-
-    // ── Step 3: Fetch Clerk profile (ONLY for new users) ──────────────
-    console.log(`[auth] New user detected (${clerkUserId}), syncing with Clerk...`);
-    const clerkUser = await getClerkUser(clerkUserId);
-    const primaryEmailObj = clerkUser.emailAddresses.find(
-      (email) => email.id === clerkUser.primaryEmailAddressId
-    );
-    const email = primaryEmailObj?.emailAddress;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Clerk user has no primary email' });
-    }
-
-    const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'User';
-
-    // Check whitelist table
-    const isWhitelisted = await prisma.coordinatorEmail.findUnique({
-      where: { email },
-    });
-    
-    const assignedRole = isWhitelisted ? 'coordinator' : 'volunteer';
-
-    dbUser = await prisma.user.create({
-      data: {
-        clerkId: clerkUserId,
-        name,
-        email,
-        passwordHash: '',
-        role: assignedRole,
-      },
-      select: { id: true, role: true, email: true, name: true },
-    });
-
-    if (dbUser.role === 'volunteer') {
-      await prisma.volunteer.upsert({
-        where: { userId: dbUser.id },
-        create: { userId: dbUser.id, skills: [] },
-        update: {},
-      });
     }
 
     req.user = {
@@ -120,7 +125,7 @@ module.exports = async (req, res, next) => {
       email: dbUser.email,
       name: dbUser.name,
       clerkId: clerkUserId,
-      isNewUser: true,
+      isNewUser: !dbUser.volunteer // Simple heuristic or just pass true if it was newly created
     };
     next();
   } catch (err) {

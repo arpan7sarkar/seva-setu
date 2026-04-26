@@ -121,7 +121,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     // ═══════════════════════════════════════════════════════════
     isVerified = geoTagPassed && aiPassed;
 
-    const finalStatus = isVerified ? 'accepted' : 'rejected';
+    const finalStatus = isVerified ? 'open' : 'rejected';
     const rejectionReason = !isVerified ? errors.join(' | ') : null;
 
     // Save file to disk
@@ -148,6 +148,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
           needType: need_type,
           ward,
           district,
+          contactNumber: req.body.contact_number || null,
           peopleAffected: parseInt(people_affected),
           urgencyScore: urgency_score,
           isVerified: isVerified,
