@@ -101,7 +101,7 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
 
   // 4. Capture & EXIF Injection
   const capturePhoto = async () => {
-    if (!videoRef.current || !location) return;
+    if (!videoRef.current) return;
     setIsCapturing(true);
 
     const video = videoRef.current;
@@ -286,20 +286,17 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
                 <div style={{ color: '#fff' }}>LAT: {location.lat}</div>
                 <div style={{ color: '#fff' }}>LNG: {location.lng}</div>
               </div>
-            ) : locError ? (
-              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#fb7185' }}>
-                {locError}. GPS required to capture.
-              </div>
             ) : (
-              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} /> ACQUIRING SATELLITE LOCK...
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#fbbf24' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠ NO GPS SIGNAL</div>
+                <div style={{ color: '#fff' }}>Capture photo anyway — app will attempt to geotag from file metadata.</div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* ── Bottom Controls — fixed at bottom, well-separated from top nav ── */}
+      {/* ── Bottom Controls ── */}
       <div style={{
         height: '140px',
         backgroundColor: '#000',
@@ -352,22 +349,21 @@ const CameraWatermark = ({ onCapture, onCancel }) => {
         ) : (
           <button 
             onClick={capturePhoto}
-            disabled={!location || isCapturing}
+            disabled={isCapturing}
             style={{
               width: '80px',
               height: '80px',
               borderRadius: '50%',
-              border: `4px solid ${location ? '#10b981' : '#475569'}`,
-              background: location ? 'rgba(16,185,129,0.2)' : '#1e293b',
+              border: '4px solid #10b981',
+              background: 'rgba(16,185,129,0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: location ? 'pointer' : 'not-allowed',
-              opacity: location ? 1 : 0.5,
+              cursor: 'pointer',
               transition: 'all 0.2s',
             }}
           >
-            <Camera style={{ width: 32, height: 32, color: location ? '#34d399' : '#64748b' }} />
+            <Camera style={{ width: 32, height: 32, color: '#34d399' }} />
           </button>
         )}
       </div>
