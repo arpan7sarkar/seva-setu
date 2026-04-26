@@ -10,6 +10,7 @@ import './styles/landing.css'
 import './styles/dashboard.css'
 import './styles/volunteer.css'
 import './styles/user-dashboard.css'
+import './styles/auth.css'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -22,23 +23,22 @@ createRoot(document.getElementById('root')).render(
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
       appearance={{
-        baseTheme: dark,
         variables: {
-          colorPrimary: '#38bdf8',
-          colorBackground: 'transparent',
-          colorInputBackground: '#111a20',
-          colorInputText: '#f2f7fb',
-          colorText: '#f2f7fb',
+          colorPrimary: '#2d6148',
+          colorBackground: '#ffffff',
+          colorInputBackground: '#ffffff',
+          colorInputText: '#0f171d',
+          colorText: '#0f171d',
+          colorTextSecondary: '#475569',
           colorTextOnPrimaryBackground: '#ffffff',
           borderRadius: '0.75rem',
-          fontFamily: 'Manrope, Segoe UI, sans-serif',
+          fontFamily: 'Inter, Manrope, sans-serif',
         },
         elements: {
-          cardBox: { boxShadow: 'none' },
-          card: { background: 'transparent', boxShadow: 'none', padding: 0 },
+          cardBox: { boxShadow: '0 40px 100px rgba(0, 0, 0, 0.05)', border: '1px solid rgba(15, 23, 29, 0.08)' },
+          card: { background: '#ffffff', borderRadius: '24px' },
           footer: { background: 'transparent' },
-          footerAction: { background: 'transparent' },
-          internal: { background: 'transparent' } // In case there are some internal banner classes
+          footerAction: { color: '#2d6148' },
         }
       }}
     >

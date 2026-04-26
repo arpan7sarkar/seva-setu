@@ -3,28 +3,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface-primary: #0b1014;
-  --color-surface-secondary: #111a20;
-  --color-surface-card: #152029;
-  --color-surface-hover: #1b2b36;
+  /* ── Earthy & Professional Palette ── */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-hover: #f1f5f9;
 
-  --color-accent-green: #34d399;
-  --color-accent-sky: #38bdf8;
-  --color-accent-indigo: #6366f1;
-  --color-accent-amber: #f59e0b;
-  --color-accent-rose: #fb7185;
+  --color-accent-moss: #2d6148;
+  --color-accent-moss-dark: #1e4231;
+  --color-accent-rust: #c35d51;
+  --color-accent-slate: #475569;
+  --color-accent-charcoal: #0f171d;
 
-  --color-text-primary: #f2f7fb;
-  --color-text-secondary: #b6c5d0;
-  --color-text-muted: #7f97a8;
+  --color-text-primary: #0f171d;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
 
-  --color-border: rgba(154, 183, 203, 0.2);
-  --color-border-hover: rgba(190, 214, 230, 0.4);
+  --color-border: rgba(15, 23, 29, 0.08);
+  --color-border-hover: rgba(15, 23, 29, 0.15);
 
-  --shadow-card: 0 6px 20px rgba(2, 10, 17, 0.28);
-  --shadow-card-hover: 0 14px 38px rgba(2, 10, 17, 0.38);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 12px 30px rgba(0, 0, 0, 0.08);
+  --shadow-premium: 0 40px 100px rgba(0, 0, 0, 0.05);
 
-  --font-sans: 'Manrope', 'Segoe UI', sans-serif;
+  --font-sans: 'Inter', 'Manrope', sans-serif;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -191,9 +193,9 @@ button {
   top: 0;
   z-index: 1001;
   border-bottom: 1px solid var(--color-border);
-  background: rgba(11, 16, 20, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .nav-bar {
@@ -379,17 +381,17 @@ button {
     font-size: 0.875rem;
     font-weight: 700;
     transition: all 200ms;
-    background: linear-gradient(135deg, var(--color-accent-sky), var(--color-accent-indigo));
+    background: var(--color-accent-moss);
     color: #ffffff;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 4px 12px rgba(45, 97, 72, 0.15);
   }
 
   .btn-primary:hover {
+    background: var(--color-accent-moss-dark);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(56, 189, 248, 0.35);
-    filter: brightness(1.1);
+    box-shadow: 0 8px 24px rgba(45, 97, 72, 0.25);
   }
 
   .btn-primary:active {
