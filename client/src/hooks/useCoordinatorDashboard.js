@@ -121,7 +121,7 @@ export const useCoordinatorDashboard = () => {
       if (!matchModalNeed) return;
       setMatchesLoading(true);
       try {
-        const res = await api.get(`/volunteers/match/${matchModalNeed.id}`);
+        const res = await api.get(`/needs/${matchModalNeed.id}/matches`);
         setMatches(res.data);
       } catch (err) {
         console.error(err);

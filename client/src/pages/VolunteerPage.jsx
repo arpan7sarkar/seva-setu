@@ -188,9 +188,25 @@ const VolunteerPage = () => {
                   </div>
                 )}
 
-                {/* SHOW MAP for IN PROGRESS tasks */}
+                {/* SHOW MAP AND CONTACT INFO for IN PROGRESS tasks */}
                 {task.task_status === 'in_progress' && (
                   <div className="mt-3">
+                    {(task.contact_number || task.contactNumber) ? (
+                      <div className="bg-sky-500/10 border border-sky-500/20 p-3 rounded-xl flex items-center justify-between gap-3 mb-3">
+                        <div className="flex flex-col">
+                          <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">Reporter Contact</p>
+                          <p className="text-sm font-semibold text-white">{task.contact_number || task.contactNumber}</p>
+                        </div>
+                        <a 
+                          href={`tel:${(task.contact_number || task.contactNumber).replace(/\D/g, '')}`} 
+                          className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-lg transition-colors"
+                        >
+                          Call
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="hidden">No contact info available</div>
+                    )}
                     {volunteerCoords && typeof task.lat === 'number' && typeof task.lng === 'number' ? (
                       <VolunteerTaskMap 
                         volunteerCoords={volunteerCoords} 

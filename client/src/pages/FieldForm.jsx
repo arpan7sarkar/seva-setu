@@ -176,6 +176,17 @@ const FieldForm = () => {
                 </div>
 
                 <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Contact Number (WhatsApp/Call)</label>
+                  <input
+                    type="tel"
+                    className="w-full bg-slate-900/50 border border-slate-700/50 text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500/50 outline-none transition-all"
+                    placeholder="e.g. +91 9876543210"
+                    value={formData.contact_number || ''}
+                    onChange={(e) => updateField('contact_number', e.target.value)}
+                  />
+                </div>
+
+                <div>
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Report Headline *</label>
                   <input
                     required

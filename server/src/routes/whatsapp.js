@@ -88,8 +88,19 @@ router.post('/webhook', async (req, res) => {
       await prisma.botSession.update({
         where: { phoneNumber: fromNumber },
         data: { 
-          step: 'awaiting_location', 
+          step: 'awaiting_contact_number', 
           stateData: { ...state, description: incomingMsg } 
+        }
+      });
+      twiml.message('Please provide a Contact Number (Call/WhatsApp) where you can be reached (e.g. 9876543210):');
+    } else if (session.step === 'awaiting_contact_number') {
+      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+      
+      await prisma.botSession.update({
+        where: { phoneNumber: fromNumber },
+        data: { 
+          step: 'awaiting_location', 
+          stateData: { ...state, contactNumber: incomingMsg } 
         }
       });
       twiml.message('Almost done. Please share your exact GPS location using the 📎 pin icon in WhatsApp -> Location -> "Send your current location".\n\n(No photo is required for WhatsApp reports)');
@@ -110,7 +121,7 @@ router.post('/webhook', async (req, res) => {
         const autoTitle = state.description ? state.description.substring(0, 40) + '...' : 'Urgent WhatsApp Report';
 
         await prisma.$executeRaw`
-          INSERT INTO needs (title, description, ward, district, need_type, people_affected, urgency_score, location, is_disaster_zone)
+          INSERT INTO needs (title, description, ward, district, need_type, people_affected, urgency_score, location, is_disaster_zone, status, contact_number)
           VALUES (
             ${'WA: ' + autoTitle}, 
             ${state.description || ''},
@@ -120,7 +131,9 @@ router.post('/webhook', async (req, res) => {
             ${state.peopleAffected || 1},
             ${priorityScore}, 
             ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 
-            true
+            true,
+            'open'::"NeedStatus",
+            ${state.contactNumber || null} /* Auto-collection commented out for now: ${fromNumber} */
           )
         `;
 
