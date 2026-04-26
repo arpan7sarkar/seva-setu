@@ -4,32 +4,32 @@ const WorkflowSection = () => {
   const steps = [
     {
       icon: <ClipboardList />,
-      title: "Report is Captured",
-      desc: "Field teams submit needs with location, category, and context.",
+      title: "Field Intelligence",
+      desc: "Capture needs with GPS coordinates, photos, and severity data—even when offline.",
       step: 1
     },
     {
       icon: <BrainCircuit />,
-      title: "AI Prioritizes Urgency",
-      desc: "Requests are scored based on severity, impact & disaster type.",
+      title: "AI Urgency Scoring",
+      desc: "Our engine prioritizes every request in real-time using a normalized 1-10 severity scale.",
       step: 2
     },
     {
       icon: <UserCheck />,
-      title: "Best Volunteer Matched",
-      desc: "Our engine matches the right person, based on skills & proximity.",
+      title: "Smart Dispatching",
+      desc: "PostGIS-powered matching connects the most qualified volunteers based on proximity and skills.",
       step: 3
     },
     {
       icon: <Activity />,
-      title: "Task Tracked Live",
-      desc: "Real-time updates from assignment to progress in one place.",
+      title: "Live Coordination",
+      desc: "Track missions from assignment to check-in on a real-time command heatmap.",
       step: 4
     },
     {
       icon: <ShieldCheck />,
-      title: "Proof & Closure",
-      desc: "GPS check-in, photo verification & final completion.",
+      title: "Verified Completion",
+      desc: "Close the loop with GPS-backed check-ins and multi-factor proof of impact.",
       step: 5
     }
   ];

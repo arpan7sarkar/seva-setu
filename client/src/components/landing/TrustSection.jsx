@@ -4,20 +4,20 @@ const TrustSection = () => {
   const trustItems = [
     {
       icon: <MapPin size={24} />,
-      title: "Location Verified",
-      desc: "GPS & PostGIS checks ensure reports and movements are tied to real coordinates.",
+      title: "Geospatial Accuracy",
+      desc: "Integrated PostGIS ensures every report and volunteer movement is anchored to verified coordinates.",
       img: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=400"
     },
     {
       icon: <Camera size={24} />,
-      title: "Photo Evidence",
-      desc: "Camera, EXIF, OCR & CLIP validation reduce spoofed or fake competitions.",
+      title: "Photo Proofing",
+      desc: "EXIF and OCR validation of completion photos ensures proof-backed impact for NGO reporting.",
       img: "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&q=80&w=400"
     },
     {
       icon: <LockKeyhole size={24} />,
-      title: "Role-Based Access",
-      desc: "Field teams, coordinators, and volunteers see what's relevant to their mission.",
+      title: "Secure Coordination",
+      desc: "Granular RBAC ensures field workers, coordinators, and volunteers see only what is mission-critical.",
       img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400"
     }
   ];

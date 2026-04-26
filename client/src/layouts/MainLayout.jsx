@@ -33,7 +33,7 @@ const MainLayout = ({ children }) => {
             {!isAuthenticated ? (
               <>
                 <Link to="/login" className="nav-link">Sign in</Link>
-                <Link to="/register" className="btn-primary nav-cta">Get Started</Link>
+                <Link to="/register" className="btn-primary nav-cta">Join the Mission</Link>
               </>
             ) : (
               <>
@@ -67,12 +67,12 @@ const MainLayout = ({ children }) => {
             </div>
             
             <div className="footer-col">
-              <h4>Product</h4>
+              <h4>Platform</h4>
               <nav>
                 <a href="#">Features</a>
                 <a href="#">How It Works</a>
                 <a href="#">Roles</a>
-                <a href="#">Pricing</a>
+                <a href="#">Open Source</a>
               </nav>
             </div>
 

@@ -1,26 +1,31 @@
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Heart, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const FinalCtaSection = () => {
   return (
     <section className="landing-section final-cta-revamp">
       <div className="container-lg">
         <div className="cta-content centered">
-          <h2 className="landing-heading">Don’t let help get lost in chaos.</h2>
-          <p className="landing-subcopy">Join SevaSetu and coordinate real impact today.</p>
+          <div className="cta-icon-wrapper">
+            <Heart className="heart-icon" size={48} />
+          </div>
+          <h2 className="landing-heading">Empower your mission. Coordinate for good.</h2>
+          <p className="landing-subcopy">
+            SevaSetu is a <strong>free, open-access platform</strong> dedicated to helping NGOs and volunteers 
+            reach those in need faster. Join our network of relief teams today.
+          </p>
           
           <div className="cta-actions">
-            <button className="btn-primary-large">
-              Get Started for Free <ArrowRight size={20} />
-            </button>
-            <button className="btn-ghost-large">
-              Book a Demo
-            </button>
+            <Link to="/register" className="btn-primary-large">
+              Join the Network
+              <Globe size={20} />
+            </Link>
           </div>
 
           <div className="cta-checkmarks">
-            <div className="checkmark-item"><CheckCircle2 size={18} /> No credit card required</div>
-            <div className="checkmark-item"><CheckCircle2 size={18} /> Free for NGOs</div>
-            <div className="checkmark-item"><CheckCircle2 size={18} /> Setup in minutes</div>
+            <div className="checkmark-item"><Heart size={18} fill="currentColor" /> 100% Free for NGOs</div>
+            <div className="checkmark-item"><Heart size={18} fill="currentColor" /> Community Driven</div>
+            <div className="checkmark-item"><Heart size={18} fill="currentColor" /> Instant Mission Setup</div>
           </div>
         </div>
       </div>

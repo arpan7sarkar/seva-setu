@@ -10,13 +10,13 @@ const ProblemSection = () => {
 
         <div className="problem-solution-grid">
           <div className="problem-card">
-            <h3>Without SevaSetu (The Chaos)</h3>
+            <h3>The Fragmentation Chaos</h3>
             <ul>
-              <li><XCircle size={18} className="text-rust" /> WhatsApp threads bury urgent needs</li>
-              <li><XCircle size={18} className="text-rust" /> Duplicate requests & conflicting updates</li>
-              <li><XCircle size={18} className="text-rust" /> No visibility on who is doing what</li>
-              <li><XCircle size={18} className="text-rust" /> Hard to verify, easy to misuse</li>
-              <li><XCircle size={18} className="text-rust" /> Volunteers waste time & effort</li>
+              <li><XCircle size={18} className="text-rust" /> <strong>WhatsApp Lag:</strong> Critical needs buried in message threads.</li>
+              <li><XCircle size={18} className="text-rust" /> <strong>Redundant Effort:</strong> Duplicate requests waste precious supplies.</li>
+              <li><XCircle size={18} className="text-rust" /> <strong>Manual Matching:</strong> Calling 50+ people to find one volunteer.</li>
+              <li><XCircle size={18} className="text-rust" /> <strong>Dark Zones:</strong> No visibility on status or resource location.</li>
+              <li><XCircle size={18} className="text-rust" /> <strong>Trust Gaps:</strong> Hard to verify impact or coordinate proof.</li>
             </ul>
           </div>
 
@@ -25,13 +25,13 @@ const ProblemSection = () => {
           </div>
 
           <div className="solution-card">
-            <h3>With SevaSetu (The Clarity)</h3>
+            <h3>The Intelligence Clarity</h3>
             <ul>
-              <li><CheckCircle2 size={18} className="text-moss" /> All requests in one verified system</li>
-              <li><CheckCircle2 size={18} className="text-moss" /> AI prioritization & smart matching</li>
-              <li><CheckCircle2 size={18} className="text-moss" /> Real-time visibility for everyone</li>
-              <li><CheckCircle2 size={18} className="text-moss" /> Proof-based verification & trust layer</li>
-              <li><CheckCircle2 size={18} className="text-moss" /> Volunteers act with confidence</li>
+              <li><CheckCircle2 size={18} className="text-moss" /> <strong>Unified Command:</strong> Every need captured in one PostGIS system.</li>
+              <li><CheckCircle2 size={18} className="text-moss" /> <strong>AI Scoring:</strong> Automatic prioritization based on impact data.</li>
+              <li><CheckCircle2 size={18} className="text-moss" /> <strong>Smart Dispatch:</strong> Instantly find the nearest qualified person.</li>
+              <li><CheckCircle2 size={18} className="text-moss" /> <strong>Live Heatmaps:</strong> Real-time situational awareness for NGOs.</li>
+              <li><CheckCircle2 size={18} className="text-moss" /> <strong>Proof of Impact:</strong> GPS & Photo backed completion logs.</li>
             </ul>
           </div>
 

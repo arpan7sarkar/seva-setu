@@ -11,10 +11,10 @@ const HeroSection = () => {
         <div className="landing-hero-grid">
           <div className="landing-hero-copy">
             <h1 className="landing-display">
-              When every second matters, <span>clarity saves lives.</span>
+              When every second matters, <span>intelligence saves lives.</span>
             </h1>
             <p className="landing-subcopy">
-              SevaSetu turns scattered relief requests into verified, prioritized, and coordinated action.
+              SevaSetu is the AI-powered operating layer for NGOs—turning scattered field reports into verified, prioritized, and coordinated relief missions.
             </p>
             <div className="landing-hero-actions">
               <Link to="/register" className="btn-primary">
@@ -39,6 +39,7 @@ const HeroSection = () => {
 
           <div className="hero-illustration">
             <div className="dashboard-mockup">
+              {/* ... existing mockup content ... */}
               <div className="mockup-sidebar">
                 <div className="sidebar-dot" />
                 <div className="sidebar-dot" />
@@ -47,25 +48,25 @@ const HeroSection = () => {
               <div className="mockup-main">
                 <div className="mockup-header">
                   <div className="header-left">
-                    <span>Live Operations</span>
+                    <span>Needs Intelligence</span>
                     <em className="status-badge">Live</em>
                   </div>
                   <div className="header-right">
-                    <strong>Flood Zone 7</strong>
+                    <strong>Coordination Zone: Kolkata</strong>
                   </div>
                 </div>
                 
                 <div className="mockup-stats">
                   <div className="mockup-stat">
-                    <span className="stat-label">Requests Today</span>
+                    <span className="stat-label">Total Needs</span>
                     <span className="stat-value">24 <em className="stat-trend">+12%</em></span>
                   </div>
                   <div className="mockup-stat">
-                    <span className="stat-label">In Progress</span>
+                    <span className="stat-label">Dispatched</span>
                     <span className="stat-value">18 <em className="status-dot pending" /></span>
                   </div>
                   <div className="mockup-stat">
-                    <span className="stat-label">Completed</span>
+                    <span className="stat-label">Verified Resolved</span>
                     <span className="stat-value">14 <em className="status-dot success" /></span>
                   </div>
                 </div>
@@ -94,17 +95,24 @@ const HeroSection = () => {
 
                 <div className="mockup-footer">
                   <div className="footer-status-bar">
-                    <div className="status-item"><Globe size={14} /> Reported</div>
-                    <div className="status-item active"><MapPinned size={14} /> Verified</div>
-                    <div className="status-item"><UsersRound size={14} /> Assigned</div>
-                    <div className="status-item"><Clock size={14} /> In Progress</div>
-                    <div className="status-item"><CheckCircle2 size={14} /> Completed</div>
+                    <div className="status-item"><Globe size={14} /> Logged</div>
+                    <div className="status-item active"><MapPinned size={14} /> Scored</div>
+                    <div className="status-item"><UsersRound size={14} /> Matched</div>
+                    <div className="status-item"><Clock size={14} /> Active</div>
+                    <div className="status-item"><CheckCircle2 size={14} /> Resolved</div>
                   </div>
                   <div className="footer-meta">
-                    <span><CheckCircle2 size={14} /> 31 requests resolved today</span>
-                    <span>Last updated 2min ago</span>
+                    <span><CheckCircle2 size={14} /> Normalized Urgency Scale: 1-10</span>
+                    <span>System synced 2min ago</span>
                   </div>
                 </div>
+              </div>
+            </div>
+            {/* Floating Detail Photo */}
+            <div className="hero-floating-photo">
+              <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=400" alt="Coordination Center" />
+              <div className="photo-badge">
+                <UsersRound size={12} /> 12 Responders Online
               </div>
             </div>
           </div>

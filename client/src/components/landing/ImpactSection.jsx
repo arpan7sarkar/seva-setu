@@ -29,7 +29,7 @@ const ImpactSection = () => {
 
           <div className="impact-visual">
             <div className="impact-img-container">
-              <img src="https://images.unsplash.com/photo-1544391682-171734a70908?auto=format&fit=crop&q=80&w=800" alt="Assam Floods Relief" />
+              <img src="/images/flood-relief.png" alt="Assam Floods Relief Efforts" />
               <div className="impact-quote-card">
                 <Quote size={24} className="quote-icon" />
                 <p>

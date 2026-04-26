@@ -125,5 +125,10 @@ export const FAQ_ITEMS = [
     answer:
       'It combines GPS metadata, timestamp checks, image verification, and coordinator-controlled task states into a trust layer.',
   },
+  {
+    question: 'How much does SevaSetu cost?',
+    answer:
+      'SevaSetu is 100% free for NGOs and community relief teams. We believe that intelligence should be a public good during times of crisis.',
+  },
 ];
 
