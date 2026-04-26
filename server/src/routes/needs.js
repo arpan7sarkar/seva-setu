@@ -121,17 +121,8 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     // ═══════════════════════════════════════════════════════════
     isVerified = geoTagPassed && aiPassed;
 
-    if (errors.length > 0 && !isVerified) {
-      console.log(`[VERIFICATION] ❌ REJECTED with ${errors.length} error(s).`);
-      return res.status(400).json({
-        message: 'Verification Failed',
-        errors,
-        statusSummary: {
-          geoTag: geoTagPassed ? 'PASSED' : 'FAILED',
-          aiContent: aiPassed ? 'PASSED' : 'FAILED',
-        }
-      });
-    }
+    const finalStatus = isVerified ? 'accepted' : 'rejected';
+    const rejectionReason = !isVerified ? errors.join(' | ') : null;
 
     // Save file to disk
     const fileName = `${Date.now()}-${req.file.originalname?.replace(/\s+/g, '_') || 'capture.jpg'}`;
@@ -164,7 +155,8 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
           imageUrl: imageUrl,
           isDisasterZone: is_disaster_zone === 'true',
           reportedBy: req.user.id,
-          status: 'open',
+          status: finalStatus,
+          rejectionReason: rejectionReason,
         },
       });
 
@@ -177,7 +169,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     });
 
     const fullNeeds = await prisma.$queryRaw`
-      SELECT id, title, description, need_type, people_affected, urgency_score, status, ward, district, is_disaster_zone, is_verified, verification_confidence, image_url, created_at, updated_at,
+      SELECT id, title, description, need_type, people_affected, urgency_score, status, rejection_reason, ward, district, is_disaster_zone, is_verified, verification_confidence, image_url, created_at, updated_at,
              ST_X(location::geometry) as lng, ST_Y(location::geometry) as lat
       FROM needs
       WHERE id = ${needId}::uuid
@@ -203,6 +195,11 @@ router.get('/', auth, async (req, res) => {
     const conditions = [];
     const params = [];
 
+    if (req.user.role !== 'coordinator') {
+      params.push(req.user.id);
+      conditions.push(`reported_by = $${params.length}::uuid`);
+    }
+
     if (status) {
       params.push(status);
       conditions.push(`status = $${params.length}::need_status`);
@@ -223,7 +220,7 @@ router.get('/', auth, async (req, res) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const needs = await prisma.$queryRawUnsafe(
-      `SELECT id, title, description, need_type, people_affected, urgency_score, status, ward, district, is_disaster_zone, created_at, updated_at,
+      `SELECT id, title, description, need_type, people_affected, urgency_score, status, rejection_reason, ward, district, is_disaster_zone, created_at, updated_at,
               ST_X(location::geometry) as lng, ST_Y(location::geometry) as lat
        FROM needs
        ${whereClause}
@@ -266,7 +263,7 @@ router.get('/heatmap', async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const need = await prisma.$queryRaw`
-      SELECT id, title, description, need_type, people_affected, urgency_score, status, ward, district, is_disaster_zone, is_verified, verification_confidence, image_url, created_at, updated_at,
+      SELECT id, title, description, need_type, people_affected, urgency_score, status, rejection_reason, ward, district, is_disaster_zone, is_verified, verification_confidence, image_url, created_at, updated_at,
              ST_X(location::geometry) as lng,
              ST_Y(location::geometry) as lat
       FROM needs
@@ -292,12 +289,19 @@ router.patch('/:id/status', auth, async (req, res) => {
     return res.status(403).json({ message: 'Access denied' });
   }
 
-  const { status } = req.body;
+  const { status, rejection_reason } = req.body;
 
   try {
+    const updateData = { status, updatedAt: new Date() };
+    if (status === 'rejected' && rejection_reason) {
+      updateData.rejectionReason = rejection_reason;
+    } else if (status === 'accepted') {
+      updateData.rejectionReason = null;
+    }
+
     await prisma.need.update({
       where: { id: req.params.id },
-      data: { status, updatedAt: new Date() },
+      data: updateData,
       select: { id: true }, // Avoid fetching geometry column
     });
     res.json({ message: 'Status updated' });
@@ -325,6 +329,46 @@ router.get('/:id/matches', auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message || 'Server error' });
+  }
+});
+
+/**
+ * @route   DELETE /api/needs/:id
+ * @desc    Delete a need (completed or rejected)
+ * @access  Private (Coordinator)
+ */
+router.delete('/:id', auth, async (req, res) => {
+  if (req.user.role !== 'coordinator') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  try {
+    // Use raw SQL to check status — avoids Prisma crash on PostGIS geometry column
+    const rows = await prisma.$queryRaw`
+      SELECT id, status FROM needs WHERE id = ${req.params.id}::uuid LIMIT 1
+    `;
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ message: 'Need not found' });
+    }
+
+    const need = rows[0];
+    if (need.status !== 'completed' && need.status !== 'rejected') {
+      return res.status(400).json({ message: 'Only completed or rejected issues can be deleted.' });
+    }
+
+    // Delete related tasks first, then the need itself
+    // Use select: { id: true } to avoid fetching geometry column
+    await prisma.task.deleteMany({ where: { needId: req.params.id } });
+    await prisma.need.delete({
+      where: { id: req.params.id },
+      select: { id: true },
+    });
+
+    res.json({ message: 'Need deleted successfully' });
+  } catch (err) {
+    console.error('[DELETE /needs/:id]', err);
+    res.status(500).json({ message: 'Server error', details: err.message });
   }
 });
 

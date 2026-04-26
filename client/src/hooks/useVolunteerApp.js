@@ -11,7 +11,7 @@ import { useAuth } from './useAuth';
 
 const toRadians = (deg) => (deg * Math.PI) / 180;
 
-const haversineKm = (a, b) => {
+export const haversineKm = (a, b) => {
   const R = 6371;
   const dLat = toRadians(b.lat - a.lat);
   const dLon = toRadians(b.lng - a.lng);
@@ -30,7 +30,12 @@ const getCurrentCoords = () =>
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => resolve({ 
+        lat: pos.coords.latitude, 
+        lng: pos.coords.longitude,
+        heading: pos.coords.heading, // Direction in degrees (0-360)
+        speed: pos.coords.speed      // Speed in m/s
+      }),
       reject,
       { enableHighAccuracy: true, timeout: 12000 }
     );
@@ -201,12 +206,18 @@ export const useVolunteerApp = () => {
 
   useEffect(() => {
     if (!availability && activeTasks.length === 0) return;
+    
+    // Check if any task is 'in_progress' for "High-Frequency Real-Time Tracking"
+    const hasActiveMission = tasks.some(t => t.task_status === 'in_progress');
+    const intervalTime = hasActiveMission ? 5000 : 3 * 60 * 1000; // 5s if on mission, else 3 mins
+    
     pushCurrentLocation().catch(console.error);
     const interval = setInterval(() => {
       pushCurrentLocation().catch(console.error);
-    }, 3 * 60 * 1000);
+    }, intervalTime);
+    
     return () => clearInterval(interval);
-  }, [availability, activeTasks.length, pushCurrentLocation]);
+  }, [availability, activeTasks.length, tasks, pushCurrentLocation]);
 
   // --- 5. Browser Close Detection (Beacon "Go Offline" Signal) ---
   useEffect(() => {
@@ -261,5 +272,6 @@ export const useVolunteerApp = () => {
     checkInTask,
     completeTask,
     toast,
+    volunteerCoords,
   };
 };

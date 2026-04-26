@@ -358,6 +358,7 @@ router.get('/my', auth, async (req, res) => {
         n.urgency_score,
         n.ward,
         n.district,
+        n.image_url,
         ST_X(n.location::geometry) as lng,
         ST_Y(n.location::geometry) as lat
       FROM tasks t

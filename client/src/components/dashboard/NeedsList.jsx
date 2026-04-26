@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { formatElapsed } from '../../utils/dashboard';
+import { Trash2 } from 'lucide-react';
+import api from '../../services/api';
 
 const StatusPill = ({ status }) => (
   <span className={`dashboard-pill dashboard-pill-${status}`}>{status.replace('_', ' ')}</span>
@@ -11,7 +14,32 @@ const NeedsList = ({
   sorting,
   setSort,
   onDispatch,
+  onDelete,
 }) => {
+
+  const handleDelete = (e, needId) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // NO confirm dialog — delete instantly on click
+    console.log("STEP 1: handleDelete called for:", needId);
+    console.log("STEP 2: onDelete is:", typeof onDelete);
+    
+    // Remove from UI INSTANTLY
+    if (onDelete) {
+      console.log("STEP 3: Calling onDelete NOW");
+      onDelete(needId);
+      console.log("STEP 4: onDelete returned");
+    } else {
+      console.error("STEP 3 FAIL: onDelete is undefined!");
+    }
+
+    // Fire-and-forget API call in the background
+    api.delete('/needs/' + needId)
+      .then(() => console.log("STEP 5: Server delete success for", needId))
+      .catch(err => console.error("STEP 5 FAIL: Server delete error:", err));
+  };
+
   const sortable = [
     { key: 'district', label: 'District' },
     { key: 'ward', label: 'Ward' },
@@ -32,7 +60,7 @@ const NeedsList = ({
         <table className="dashboard-needs-table">
           <thead>
             <tr>
-              <th>Evidence</th>
+              <th>Issue</th>
               {sortable.map((col) => (
                 <th key={col.key}>
                   <button
@@ -41,7 +69,7 @@ const NeedsList = ({
                     onClick={() => setSort(col.key)}
                   >
                     {col.label}
-                    {sorting.key === col.key ? (sorting.direction === 'asc' ? ' ?' : ' ?') : ''}
+                    {sorting.key === col.key ? (sorting.direction === 'asc' ? ' ↑' : ' ↓') : ''}
                   </button>
                 </th>
               ))}
@@ -54,39 +82,49 @@ const NeedsList = ({
                 key={need.id}
                 className={selectedNeedId === need.id ? 'is-selected' : ''}
                 onClick={() => setSelectedNeedId(need.id)}
+                style={{ cursor: 'pointer' }}
               >
                 <td>
-                  <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
-                    {need.image_url ? (
-                      <img 
-                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${need.image_url}`} 
-                        alt="Evidence"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">No Pix</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {need.image_url ? (
+                        <img 
+                          src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${need.image_url}`} 
+                          alt="Evidence"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">No Pix</div>
+                      )}
+                    </div>
+
+                    {(need.status === 'completed' || need.status === 'rejected') && (
+                      <button
+                        type="button"
+                        title="Delete Permanently"
+                        onClick={(e) => handleDelete(e, need.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '6px',
+                          borderRadius: '8px',
+                          background: 'rgba(244, 63, 94, 0.15)',
+                          border: '1px solid rgba(244, 63, 94, 0.3)',
+                          color: '#fb7185',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     )}
                   </div>
                 </td>
                 <td>{need.district || '-'}</td>
                 <td>{need.ward || '-'}</td>
-                <td className="capitalize">
-                  <div className="flex items-center gap-1.5">
-                    {need.need_type}
-                    {need.is_verified && (
-                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-accent-green/20 text-accent-green" title="AI Verified Ground Report">
-                        ?
-                      </span>
-                    )}
-                  </div>
-                </td>
+                <td className="capitalize">{need.need_type}</td>
                 <td>
-                  <div className="flex flex-col">
-                    <span className="font-bold">{Number(need.urgency_score || 0).toFixed(1)}</span>
-                    {need.is_verified && (
-                      <span className="text-[10px] text-accent-green font-medium">Verified x2</span>
-                    )}
-                  </div>
+                  <span className="font-bold">{Number(need.urgency_score || 0).toFixed(1)}</span>
                 </td>
                 <td>{need.people_affected || 0}</td>
                 <td>

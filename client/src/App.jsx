@@ -14,6 +14,7 @@ const PostLoginRedirect = lazy(() => import('./pages/PostLoginRedirect'));
 const FieldForm = lazy(() => import('./pages/FieldForm'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const NeedsArchivePage = lazy(() => import('./pages/NeedsArchivePage'));
+const MyReportsPage = lazy(() => import('./pages/MyReportsPage'));
 
 const PageLoader = () => (
   <div className="page-loader">
@@ -83,6 +84,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <FieldForm />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/my-reports"
+              element={
+                <ProtectedRoute>
+                  <MyReportsPage />
                 </ProtectedRoute>
               }
             />
