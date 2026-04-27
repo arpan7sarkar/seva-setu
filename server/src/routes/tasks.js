@@ -134,93 +134,66 @@ router.patch('/:id/complete', auth, upload.single('image'), async (req, res) => 
     let geoTagPassed = false;
     try {
       console.log(`[GEOTAG] Scanning metadata for: ${req.file.originalname} (${req.file.size} bytes)`);
+      console.log(`[GEOTAG] Target Incident Location: Lat=${lat}, Lng=${lng}`);
 
-      // Try multiple extraction methods to cover all image formats
       let photoLat = undefined;
       let photoLng = undefined;
 
-      // Method 1: Direct GPS extraction (fastest, works for most JPEGs)
+      // Method 1: Full parse (most reliable for all formats)
       try {
-        const gpsData = await exifr.gps(req.file.buffer);
-        if (gpsData && typeof gpsData.latitude === 'number') {
-          photoLat = gpsData.latitude;
-          photoLng = gpsData.longitude;
-          console.log(`[GEOTAG] Method 1 (exifr.gps) found:`, { lat: photoLat, lng: photoLng });
+        const metadata = await exifr.parse(req.file.buffer, { gps: true });
+        if (metadata && typeof metadata.latitude === 'number') {
+          photoLat = metadata.latitude;
+          photoLng = metadata.longitude;
+          console.log(`[GEOTAG] Metadata found: Lat=${photoLat}, Lng=${photoLng}`);
         }
       } catch (e) {
-        console.log(`[GEOTAG] Method 1 failed: ${e.message}`);
+        console.log(`[GEOTAG] Parse failed: ${e.message}`);
       }
 
-      // Method 2: Full parse fallback (catches XMP, IPTC, and other GPS formats)
-      if (typeof photoLat !== 'number') {
-        try {
-          const fullMeta = await exifr.parse(req.file.buffer, true);
-          if (fullMeta && typeof fullMeta.latitude === 'number') {
-            photoLat = fullMeta.latitude;
-            photoLng = fullMeta.longitude;
-            console.log(`[GEOTAG] Method 2 (exifr.parse) found:`, { lat: photoLat, lng: photoLng });
-          } else {
-            console.log(`[GEOTAG] Method 2 returned:`, fullMeta ? 'object WITHOUT lat/lng' : 'null');
-          }
-        } catch (e) {
-          console.log(`[GEOTAG] Method 2 failed: ${e.message}`);
-        }
-      }
+      // STEP 1.1: Extract Browser-Side Verification Coords (The "Distance in the Map")
+      const browserLat = req.body.browserLat ? Number(req.body.browserLat) : null;
+      const browserLng = req.body.browserLng ? Number(req.body.browserLng) : null;
+      
+      const toRad = (val) => (val * Math.PI) / 180;
+      const R = 6371; // Earth's radius in km
 
-      // Method 3: OCR Fallback (reads coordinates printed on the image)
-      let ocrPassed = false;
-      if (typeof photoLat !== 'number') {
-        console.log('[GEOTAG] Attempting OCR fallback for stamped GPS coordinates...');
-        try {
-          const Tesseract = require('tesseract.js');
-          const { data: { text } } = await Tesseract.recognize(req.file.buffer, 'eng');
-          
-          const latFuzzy = parseFloat(lat).toFixed(2);
-          const lngFuzzy = parseFloat(lng).toFixed(2);
-          const latFuzzy1 = parseFloat(lat).toFixed(1);
-          const lngFuzzy1 = parseFloat(lng).toFixed(1);
-          
-          if ((text.includes(latFuzzy) || text.includes(latFuzzy1)) && 
-              (text.includes(lngFuzzy) || text.includes(lngFuzzy1))) {
-            console.log('[GEOTAG] Method 3 (OCR) PASSED.');
-            ocrPassed = true;
-          } else {
-            console.log('[GEOTAG] Method 3 (OCR) FAILED.');
-          }
-        } catch (ocrErr) {
-          console.warn('[GEOTAG] OCR processing failed:', ocrErr.message);
-        }
-      }
+      const getDistance = (lat1, lon1, lat2, lon2) => {
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      };
 
-      // Final verdict on coordinates
-      const hasValidGps = typeof photoLat === 'number' && 
-                          typeof photoLng === 'number' &&
-                          (Math.abs(photoLat) > 0.0001 || Math.abs(photoLng) > 0.0001);
+      // VERDICT LOGIC: We strictly use the Browser GPS (The "Distance in the Map")
+      // This is what the volunteer sees on their screen, so it must be the ground truth.
+      if (browserLat !== null && browserLng !== null) {
+        const browserDist = getDistance(browserLat, browserLng, Number(lat), Number(lng));
+        console.log(`[GEOTAG] Live Map Distance: ${browserDist.toFixed(3)}km`);
 
-      if (ocrPassed) {
-        geoTagPassed = true;
-      } else if (!hasValidGps) {
-        console.log(`[GEOTAG] ❌ VERDICT: NO VALID GPS DATA FOUND`);
-        errors.push('⚠️ GEO-TAG MISSING: This image does not contain any valid GPS data or stamped coordinates. You must use the Live Camera feature.');
-      } else {
-        // Proximity check for EXIF
-        const dist = Math.sqrt(
-          Math.pow(photoLat - Number(lat), 2) +
-          Math.pow(photoLng - Number(lng), 2)
-        );
-        console.log(`[GEOTAG] Distance from target: ${dist.toFixed(6)} (~${(dist * 111).toFixed(2)} km)`);
-
-        if (dist > 0.01) {
-          console.log(`[GEOTAG] ❌ VERDICT: TOO FAR FROM TARGET`);
-          errors.push('⚠️ LOCATION MISMATCH: This photo was taken too far from the incident site. You must be at the location to submit proof.');
-        } else {
-          console.log(`[GEOTAG] ✅ VERDICT: GPS VERIFIED`);
+        if (browserDist <= 1.0) {
+          console.log(`[GEOTAG] ✅ VERDICT: GPS VERIFIED (Map Distance < 1km)`);
           geoTagPassed = true;
+        } else {
+          console.log(`[GEOTAG] ❌ VERDICT: TOO FAR (${browserDist.toFixed(2)}km)`);
+          errors.push(`⚠️ LOCATION MISMATCH: The map shows you are ${browserDist.toFixed(2)}km away. You must be within 1km to submit proof.`);
+        }
+      } else {
+        // Fallback to Photo EXIF only if Browser GPS is somehow unavailable
+        console.log(`[GEOTAG] Warning: Browser GPS missing, falling back to Photo EXIF`);
+        if (typeof photoLat === 'number' && typeof photoLng === 'number') {
+          const photoDist = getDistance(photoLat, photoLng, Number(lat), Number(lng));
+          if (photoDist <= 1.0) geoTagPassed = true;
+          else errors.push(`⚠️ LOCATION MISMATCH: Photo shows you are ${photoDist.toFixed(2)}km away.`);
+        } else {
+          errors.push('⚠️ GEO-TAG MISSING: Could not verify your location from the map or photo.');
         }
       }
     } catch (exifErr) {
       console.error(`[GEOTAG] ❌ FATAL ERROR:`, exifErr);
-      errors.push('⚠️ GEO-TAG ERROR: Could not read metadata from this image file. The file may be corrupted or in an unsupported format.');
+      errors.push('⚠️ GEO-TAG ERROR: Could not read metadata from this image file.');
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -255,7 +228,8 @@ router.patch('/:id/complete', auth, upload.single('image'), async (req, res) => 
       const isGenuine = aiResponse.data.is_verified && (
         topMatch.includes(needType) ||
         topMatch.includes('help') ||
-        topMatch.includes('disaster')
+        topMatch.includes('disaster') ||
+        topMatch.includes('emergency')
       );
 
       if (!isGenuine) {
@@ -362,9 +336,16 @@ router.get('/my', auth, async (req, res) => {
         n.contact_number as "contactNumber",
         n.image_url,
         ST_X(n.location::geometry) as lng,
-        ST_Y(n.location::geometry) as lat
+        ST_Y(n.location::geometry) as lat,
+        ST_X(v.location::geometry) as volunteer_lng,
+        ST_Y(v.location::geometry) as volunteer_lat,
+        CASE WHEN v.location IS NOT NULL AND n.location IS NOT NULL
+          THEN ST_Distance(v.location::geography, n.location::geography) / 1000
+          ELSE NULL
+        END as server_distance_km
       FROM tasks t
       JOIN needs n ON t.need_id = n.id
+      LEFT JOIN volunteers v ON v.user_id = t.assigned_volunteer_id
       WHERE t.assigned_volunteer_id = ${req.user.id}::uuid
       ORDER BY t.assigned_at DESC
     `;

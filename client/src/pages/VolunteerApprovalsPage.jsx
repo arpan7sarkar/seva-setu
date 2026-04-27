@@ -7,7 +7,8 @@ const VolunteerApprovalsPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending');
-  const [processingId, setProcessingId] = useState(null);
+  const [approvingId, setApprovingId] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
   const [toast, setToast] = useState(null);
   const initialLoadDone = useRef(false);
 
@@ -42,7 +43,7 @@ const VolunteerApprovalsPage = () => {
   }, [loadRequests]);
 
   const handleApprove = async (requestId) => {
-    setProcessingId(requestId);
+    setApprovingId(requestId);
     try {
       await api.patch(`/volunteer-requests/${requestId}/approve`);
       setRequests(prev => prev.filter(r => r.id !== requestId));
@@ -50,12 +51,12 @@ const VolunteerApprovalsPage = () => {
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to approve', 'error');
     } finally {
-      setProcessingId(null);
+      setApprovingId(null);
     }
   };
 
   const handleReject = async (requestId) => {
-    setProcessingId(requestId);
+    setRejectingId(requestId);
     try {
       await api.patch(`/volunteer-requests/${requestId}/reject`, {
         review_note: 'Application did not meet the requirements at this time.',
@@ -65,7 +66,7 @@ const VolunteerApprovalsPage = () => {
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to reject', 'error');
     } finally {
-      setProcessingId(null);
+      setRejectingId(null);
     }
   };
 
@@ -194,41 +195,55 @@ const VolunteerApprovalsPage = () => {
 
                   {/* Actions */}
                   {filter === 'pending' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '140px' }}>
+                    <div key={`actions-${req.id}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '140px' }}>
                       <button
                         type="button"
-                        className="btn-success"
-                        disabled={processingId === req.id}
+                        disabled={approvingId === req.id || rejectingId === req.id}
                         onClick={() => handleApprove(req.id)}
-                        style={{ 
-                          fontSize: '0.8rem', 
-                          padding: '0.6rem 1rem', 
-                          justifyContent: 'center',
-                          background: '#2d6148',
+                        style={{
+                          width: '100%',
+                          minHeight: '40px',
+                          backgroundColor: '#2d6148',
                           color: '#ffffff',
+                          borderRadius: '10px',
+                          border: 'none',
+                          fontWeight: '800',
+                          fontSize: '0.8rem',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '0.5rem'
+                          justifyContent: 'center',
+                          gap: '8px',
+                          boxShadow: '0 4px 12px rgba(45, 97, 72, 0.2)',
+                          cursor: (approvingId === req.id || rejectingId === req.id) ? 'not-allowed' : 'pointer',
+                          opacity: (approvingId === req.id || rejectingId === req.id) ? 0.7 : 1,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          transition: 'all 0.2s ease'
                         }}
                       >
-                        {processingId === req.id ? (
-                          <Loader2 className="w-4 h-4 icon-spin" />
+                        {approvingId === req.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <CheckCircle className="w-4 h-4" />
                         )}
-                        Approve
+                        APPROVE
                       </button>
                       <button
                         type="button"
                         className="btn-ghost"
-                        disabled={processingId === req.id}
+                        disabled={approvingId === req.id || rejectingId === req.id}
                         onClick={() => handleReject(req.id)}
                         style={{
                           fontSize: '0.8rem', padding: '0.6rem 1rem', justifyContent: 'center',
                           borderColor: 'rgba(251, 113, 133, 0.3)', color: '#fb7185',
+                          display: 'flex', alignItems: 'center', gap: '0.5rem'
                         }}
                       >
-                        <XCircle className="w-4 h-4" />
+                        {rejectingId === req.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <XCircle className="w-4 h-4" />
+                        )}
                         Reject
                       </button>
                     </div>

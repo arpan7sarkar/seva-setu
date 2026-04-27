@@ -27,15 +27,17 @@ export const checkInTaskById = async (taskId, coords) => {
   return data;
 };
 
-export const completeTaskById = async (taskId, imageFile) => {
-  if (imageFile) {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    const { data } = await api.patch(`/tasks/${taskId}/complete`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return data;
+export const completeTaskById = async (taskId, imageFile, browserCoords = null) => {
+  const formData = new FormData();
+  if (imageFile) formData.append('image', imageFile);
+  
+  if (browserCoords && browserCoords.lat && browserCoords.lng) {
+    formData.append('browserLat', browserCoords.lat);
+    formData.append('browserLng', browserCoords.lng);
   }
-  const { data } = await api.patch(`/tasks/${taskId}/complete`);
+
+  const { data } = await api.patch(`/tasks/${taskId}/complete`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return data;
 };

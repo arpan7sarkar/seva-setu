@@ -25,7 +25,7 @@ const findMatches = async (needId) => {
 
   const { lat, lng, need_type } = need;
 
-  // 2. Fetch available volunteers WITHIN 6km, ordered by proximity
+  // 2. Fetch available volunteers WITHIN 6km radius, ordered by proximity
   const volunteers = await prisma.$queryRaw`
     SELECT
       u.id,
@@ -39,7 +39,7 @@ const findMatches = async (needId) => {
     JOIN users u ON v.user_id = u.id
     WHERE v.is_available = true
     AND v.location IS NOT NULL
-    AND ST_DWithin(v.location::geography, ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography, 15000)
+    AND ST_DWithin(v.location::geography, ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography, 6000)
     ORDER BY v.location <-> ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)
     LIMIT 10
   `;
@@ -50,7 +50,7 @@ const findMatches = async (needId) => {
 
     // A. Proximity (Weight 50%)
     const distKm = Number(v.distance_km) || 0;
-    const proximityScore = Math.max(0, 50 * (1 - distKm / 15));
+    const proximityScore = Math.max(0, 50 * (1 - distKm / 6));
     score += proximityScore;
 
     // B. Skill Match (Weight 30%)
