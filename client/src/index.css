@@ -134,8 +134,15 @@ button {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .icon-spin {
@@ -143,8 +150,13 @@ button {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .verified-pulse {
@@ -157,11 +169,13 @@ button {
     stroke-opacity: 1;
     r: 10;
   }
+
   50% {
     stroke-width: 8;
     stroke-opacity: 0;
     r: 14;
   }
+
   100% {
     stroke-width: 2;
     stroke-opacity: 0;
@@ -502,6 +516,7 @@ button {
     color: var(--color-text-muted);
     opacity: 0.5;
   }
+
   .input-field:focus {
     border-color: #2d6148;
     background: #ffffff;

@@ -18,6 +18,7 @@ import { useVolunteerApp, haversineKm } from '../hooks/useVolunteerApp';
 import { volunteerStatusClass, volunteerStatusLabel } from '../utils/volunteer';
 import CameraWatermark from '../components/CameraWatermark';
 import VolunteerTaskMap from '../components/VolunteerTaskMap';
+import BroadcastAlert from '../components/BroadcastAlert';
 
 const VolunteerPage = () => {
   const [activeCameraTask, setActiveCameraTask] = useState(null);
@@ -35,6 +36,10 @@ const VolunteerPage = () => {
     completeTask,
     toast,
     volunteerCoords,
+    broadcasts,
+    broadcastBusy,
+    acceptBroadcastTask,
+    rejectBroadcastTask,
   } = useVolunteerApp();
 
   const [selectedFiles, setSelectedFiles] = useState({}); // { taskId: { file, preview } }
@@ -111,6 +116,20 @@ const VolunteerPage = () => {
             Stay available, check in at incident sites, and close tasks with live status sync.
           </p>
         </section>
+
+        {broadcasts.length > 0 && (
+          <section className="volunteer-broadcasts">
+            {broadcasts.map(broadcast => (
+              <BroadcastAlert
+                key={broadcast.broadcast_id}
+                broadcast={broadcast}
+                onAccept={acceptBroadcastTask}
+                onReject={rejectBroadcastTask}
+                isBusy={broadcastBusy}
+              />
+            ))}
+          </section>
+        )}
 
         <section className="volunteer-stats-grid">
           <article className="volunteer-stat card">
