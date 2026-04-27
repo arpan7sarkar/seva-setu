@@ -150,19 +150,39 @@ const VolunteerApplicationModal = ({ onClose, onSubmitted }) => {
           )}
 
           {/* Submit */}
-          <button
-            type="submit"
-            className="btn-success"
-            disabled={submitting}
-            style={{ width: '100%', justifyContent: 'center' }}
-          >
-            {submitting ? (
-              <Loader2 className="w-4 h-4 icon-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-            {submitting ? 'Submitting Application...' : 'Submit Application'}
-          </button>
+          <div style={{ marginTop: '0.5rem', paddingBottom: '0.5rem' }}>
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                width: '100%',
+                minHeight: '52px',
+                backgroundColor: '#2d6148',
+                color: '#ffffff',
+                borderRadius: '12px',
+                border: 'none',
+                fontWeight: '800',
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: '0 8px 20px rgba(45, 97, 72, 0.25)',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                opacity: submitting ? 0.7 : 1,
+                textTransform: 'uppercase',
+                letterSpacing: '0.02em',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {submitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+              {submitting ? 'Submitting Application...' : 'Submit Application'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

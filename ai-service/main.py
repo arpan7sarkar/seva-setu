@@ -99,19 +99,21 @@ async def verify_image(
             "a photo of a computer screen"
         ]
         
-        is_valid_disaster = top_result["label"] not in invalid_labels and top_result["confidence"] > 0.35
+        # Verdict: Must be a disaster label AND have high confidence
+        is_valid_disaster = top_result["label"] not in invalid_labels and top_result["confidence"] > 0.40
 
-        # Boost confidence if it strictly matches the requested need_type
+        # Contextual validation: Does it match the mission type?
         matches_need = False
         if need_type and is_valid_disaster:
             top_three_labels = [r["label"] for r in results[:3]]
             if need_type == "medical" and any("medical" in l or "injured" in l or "ambulance" in l for l in top_three_labels): matches_need = True
             elif need_type == "accidental" and any("accident" in l or "crash" in l for l in top_three_labels): matches_need = True
-            elif need_type == "food" and any("food" in l or "starving" in l for l in top_three_labels): matches_need = True
+            elif need_type == "food" and any("food" in l or "distribution" in l for l in top_three_labels): matches_need = True
             elif need_type == "shelter" and any("homeless" in l or "camp" in l or "ruined" in l for l in top_three_labels): matches_need = True
             elif need_type == "rescue" and any("rescue" in l or "trapped" in l for l in top_three_labels): matches_need = True
             elif need_type == "other" or any("low light" in l for l in top_three_labels): matches_need = True
             
+            # If the user is reporting a specific need, the AI MUST see evidence of that need
             if not matches_need and need_type != "other":
                 is_valid_disaster = False
 

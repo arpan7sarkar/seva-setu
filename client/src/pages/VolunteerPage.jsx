@@ -114,8 +114,8 @@ const VolunteerPage = () => {
 
         <section className="volunteer-stats-grid">
           <article className="volunteer-stat card">
-            <p className="volunteer-stat-label">Tasks Completed</p>
-            <p className="volunteer-stat-value">{stats?.tasksCompleted ?? 0}</p>
+            <p className="volunteer-stat-label">Total Impact</p>
+            <p className="volunteer-stat-value">{stats?.totalImpact ?? 0}</p>
           </article>
           <article className="volunteer-stat card">
             <p className="volunteer-stat-label">Completion Rate</p>
@@ -178,12 +178,19 @@ const VolunteerPage = () => {
                     <span className="task-meta-tag capitalize">{task.need_type}</span>
                     <span className="task-meta-tag">{task.ward || 'Zone'}, {task.district || 'City'}</span>
                     <span className="task-meta-tag">Urgency: {Number(task.urgency_score || 0).toFixed(2)}</span>
-                    {volunteerCoords && typeof task.lat === 'number' && typeof task.lng === 'number' && (
+                    
+                    {/* LOGIC: Prioritize real-time calculation if we have a GPS lock */}
+                    {volunteerCoords && task.lat != null && task.lng != null ? (
                       <span className="task-meta-tag-distance">
                         <Navigation className="w-3 h-3" />
-                        {haversineKm(volunteerCoords, { lat: task.lat, lng: task.lng }).toFixed(2)} km away
+                        {haversineKm(volunteerCoords, { lat: Number(task.lat), lng: Number(task.lng) }).toFixed(2)} km away
                       </span>
-                    )}
+                    ) : task.server_distance_km != null ? (
+                      <span className="task-meta-tag-distance">
+                        <Navigation className="w-3 h-3" />
+                        {Number(task.server_distance_km).toFixed(2)} km away
+                      </span>
+                    ) : null}
                   </div>
                 )}
 
@@ -206,7 +213,7 @@ const VolunteerPage = () => {
                     ) : (
                       <div className="hidden">No contact info available</div>
                     )}
-                    {volunteerCoords && typeof task.lat === 'number' && typeof task.lng === 'number' ? (
+                    {volunteerCoords && task.lat != null && task.lng != null && !isNaN(Number(task.lat)) ? (
                       <VolunteerTaskMap 
                         volunteerCoords={volunteerCoords} 
                         taskCoords={{ lat: Number(task.lat), lng: Number(task.lng) }} 
@@ -350,37 +357,58 @@ const VolunteerPage = () => {
                         </div>
                       )}
 
-                      {!selectedFiles[task.task_id] ? (
-                        <button
-                          type="button"
-                          className="btn-primary"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setActiveCameraTask(task.task_id);
-                          }}
-                          disabled={busyTaskId === task.task_id}
-                        >
-                          <ShieldCheck className="w-4 h-4" />
-                          Capture Proof
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn-success w-full"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            onCompleteMission(task, selectedFiles[task.task_id].file);
-                          }}
-                          disabled={busyTaskId === task.task_id}
-                        >
-                          {busyTaskId === task.task_id ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <Sparkles className="w-5 h-5" />
-                          )}
-                          <span>Verify & Complete</span>
-                        </button>
-                      )}
+                      {/* PRIMARY ACTION BUTTONS */}
+                      <div className="mt-4 pb-2" style={{ width: '100%' }}>
+                        {!selectedFiles[task.task_id] ? (
+                          <button
+                            type="button"
+                            className="btn-primary w-full"
+                            style={{ minHeight: '50px' }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setActiveCameraTask(task.task_id);
+                            }}
+                            disabled={busyTaskId === task.task_id}
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                            Capture Proof
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            style={{
+                              width: '100%',
+                              minHeight: '60px',
+                              backgroundColor: '#2d6148',
+                              color: 'white',
+                              borderRadius: '12px',
+                              fontWeight: '800',
+                              fontSize: '1rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '12px',
+                              boxShadow: '0 10px 25px rgba(45, 97, 72, 0.3)',
+                              border: '2px solid rgba(255, 255, 255, 0.2)',
+                              cursor: 'pointer',
+                              zIndex: 10,
+                              position: 'relative'
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              onCompleteMission(task, selectedFiles[task.task_id].file);
+                            }}
+                            disabled={busyTaskId === task.task_id}
+                          >
+                            {busyTaskId === task.task_id ? (
+                              <Loader2 className="w-6 h-6 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-6 h-6" />
+                            )}
+                            VERIFY & COMPLETE MISSION
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ) : null}
 

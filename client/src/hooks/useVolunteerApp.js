@@ -1,3 +1,4 @@
+/* useVolunteerApp.js - FINAL STABILIZED VERSION */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   checkInTaskById,
@@ -12,40 +13,21 @@ import { useAuth } from './useAuth';
 const toRadians = (deg) => (deg * Math.PI) / 180;
 
 export const haversineKm = (a, b) => {
+  if (!a || !b || a.lat === undefined || b.lat === undefined) return 0;
   const R = 6371;
-  const dLat = toRadians(b.lat - a.lat);
-  const dLon = toRadians(b.lng - a.lng);
-  const lat1 = toRadians(a.lat);
-  const lat2 = toRadians(b.lat);
-  const h =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+  const dLat = toRadians(Number(b.lat) - Number(a.lat));
+  const dLon = toRadians(Number(b.lng) - Number(a.lng));
+  const lat1 = toRadians(Number(a.lat));
+  const lat2 = toRadians(Number(b.lat));
+  const h = Math.sin(dLat / 2) ** 2 +
+            Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
   return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 };
-
-const getCurrentCoords = () =>
-  new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation not supported.'));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ 
-        lat: pos.coords.latitude, 
-        lng: pos.coords.longitude,
-        heading: pos.coords.heading, // Direction in degrees (0-360)
-        speed: pos.coords.speed      // Speed in m/s
-      }),
-      reject,
-      { enableHighAccuracy: true, timeout: 12000 }
-    );
-  });
 
 export const useVolunteerApp = () => {
   const { currentUser } = useAuth();
   const userId = currentUser?.id;
 
-  // --- 1. All State ---
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState(null);
   const [availability, setAvailability] = useState(true);
@@ -55,47 +37,81 @@ export const useVolunteerApp = () => {
   const [toast, setToast] = useState(null);
   const [volunteerCoords, setVolunteerCoords] = useState(null);
 
-  // --- 2. Callbacks (Stable) ---
+  const gpsLocked = useRef(false);
+  const initialLoadDone = useRef(false);
+  const syncingAvailabilityRef = useRef(false);
+  const lastUpdatePos = useRef(null);
+
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
   }, []);
 
-  const initialLoadDone = useRef(false);
-
-  const syncingAvailabilityRef = useRef(false);
-
   const loadData = useCallback(async () => {
     if (!initialLoadDone.current) setLoading(true);
-    setError('');
     try {
       const [tasksData, statsData] = await Promise.all([fetchMyTasks(), fetchMyVolunteerStats()]);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
       setStats(statsData || null);
       
-      // Prevent background polling from overwriting local state while the user is toggling
-      if (!syncingAvailabilityRef.current) {
-        setAvailability(Boolean(statsData?.isAvailable ?? true));
+      // LOGIC: Only use server coords if GPS hasn't locked AND we have absolutely no state yet
+      if (!gpsLocked.current && !initialLoadDone.current && tasksData?.[0]) {
+        const task = tasksData[0];
+        if (task.volunteer_lat !== null && task.volunteer_lng !== null) {
+          console.log('[GPS] Using server coordinates for initial placement');
+          setVolunteerCoords({
+            lat: Number(task.volunteer_lat),
+            lng: Number(task.volunteer_lng),
+            heading: null,
+            accuracy: 0,
+          });
+        }
       }
       
+      if (!syncingAvailabilityRef.current) setAvailability(Boolean(statsData?.isAvailable ?? true));
       initialLoadDone.current = true;
     } catch (err) {
-      console.error(err);
-      setError(err?.response?.data?.message || 'Unable to load volunteer workspace.');
+      setError('Unable to load volunteer workspace.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // REMOVED [volunteerCoords] to stop state battles
 
   const pushCurrentLocation = useCallback(async () => {
-    try {
-      const coords = await getCurrentCoords();
-      setVolunteerCoords(coords);
-      await updateMyLocation(coords);
-      return coords;
-    } catch (err) {
-      console.warn('Geolocation failed:', err.message);
-      return null;
-    }
+    if (!navigator.geolocation) return null;
+
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude, heading, accuracy } = pos.coords;
+          console.log(`[GPS-LOG] Raw coords: lat=${latitude}, lng=${longitude}, accuracy=${accuracy}m`);
+
+          // Filter out low-accuracy (often IP-based) coordinates
+          if (accuracy && accuracy > 1000) {
+            console.warn(`[GPS] Accuracy extremely low: ${accuracy}m. Skipping.`);
+            return resolve(null);
+          }
+
+          const newCoords = { lat: latitude, lng: longitude, heading, accuracy };
+
+          // JITTER FILTER: Ignore shifts smaller than 10 meters (reduced from 15)
+          if (lastUpdatePos.current) {
+            const drift = haversineKm(newCoords, lastUpdatePos.current);
+            if (drift < 0.010) return resolve(lastUpdatePos.current);
+          }
+
+          lastUpdatePos.current = newCoords;
+          gpsLocked.current = true; // LOCK GPS: stop server poll from overwriting location
+          setVolunteerCoords(newCoords);
+          await updateMyLocation(newCoords).catch((e) => console.error('[GPS] Update failed:', e));
+          resolve(newCoords);
+        },
+        (err) => {
+          console.warn('[GPS] Geolocation error:', err.message);
+          resolve(null);
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    });
   }, []);
 
   const toggleAvailability = useCallback(async () => {
@@ -104,16 +120,12 @@ export const useVolunteerApp = () => {
     syncingAvailabilityRef.current = true;
     try {
       await updateAvailability(next);
-      showToast(next ? 'Availability set to ON' : 'Availability set to OFF');
+      showToast(next ? 'Availability ON' : 'Availability OFF');
     } catch (err) {
-      console.error(err);
       setAvailability(!next);
-      showToast('Failed to update availability.', 'error');
+      showToast('Update failed.', 'error');
     } finally {
-      // Allow a 2s grace period for the server to reflect the change before we trust polling again
-      setTimeout(() => {
-        syncingAvailabilityRef.current = false;
-      }, 2000);
+      setTimeout(() => { syncingAvailabilityRef.current = false; }, 2000);
     }
   }, [availability, showToast]);
 
@@ -122,11 +134,10 @@ export const useVolunteerApp = () => {
       setBusyTaskId(task.task_id);
       const coords = await pushCurrentLocation();
       await checkInTaskById(task.task_id, coords);
-      showToast('Checked in successfully. Task moved to In Progress.');
+      showToast('Checked in.');
       await loadData();
     } catch (err) {
-      console.error(err);
-      showToast('Could not check in. Please retry.', 'error');
+      showToast('Check-in failed.', 'error');
     } finally {
       setBusyTaskId('');
     }
@@ -135,143 +146,66 @@ export const useVolunteerApp = () => {
   const completeTask = useCallback(async (task, imageFile) => {
     try {
       setBusyTaskId(task.task_id);
-      await completeTaskById(task.task_id, imageFile);
-      showToast('Task completed. Great impact!', 'success');
+      await completeTaskById(task.task_id, imageFile, volunteerCoords);
+      showToast('Task completed!');
       await loadData();
     } catch (err) {
-      console.error(err);
-      throw err;
+      showToast('Verification failed.', 'error');
+      throw err; // RE-THROW so VolunteerPage can show detailed errors
     } finally {
       setBusyTaskId('');
     }
-  }, [loadData, showToast]);
+  }, [loadData, showToast, volunteerCoords]);
 
-  // --- 3. Memos (Derived Data) ---
-  const activeTasks = useMemo(
-    () => tasks.filter((t) => t.task_status === 'assigned' || t.task_status === 'in_progress'),
+  const distanceCoveredKm = useMemo(() => {
+    // Priority: Real-time sum from backend stats
+    if (stats?.totalDistanceCovered !== undefined && stats?.totalDistanceCovered !== null) {
+      return Number(stats.totalDistanceCovered);
+    }
+    
+    // Fallback: Calculate from currently loaded tasks
+    const completed = tasks.filter((t) => t.task_status === 'completed' && t.lat && t.lng);
+    let total = 0;
+    completed.forEach(t => {
+      if (t.check_in_lat && t.check_in_lng) {
+        const d = haversineKm({ lat: t.check_in_lat, lng: t.check_in_lng }, { lat: t.lat, lng: t.lng });
+        if (d < 300) total += d;
+      }
+    });
+    return total;
+  }, [stats, tasks]);
+
+  const activeTasks = useMemo(() => 
+    tasks.filter(t => t.task_status !== 'completed'),
     [tasks]
   );
 
-  const distanceCoveredKm = useMemo(() => {
-    const completed = tasks
-      .filter((t) => t.task_status === 'completed' && t.lat && t.lng)
-      .sort((a, b) => new Date(a.completed_at || 0) - new Date(b.completed_at || 0));
-
-    if (completed.length === 0) return 0;
-
-    let total = 0;
-    
-    // 1. Calculate travel to each task (Check-in Loc -> Task Loc)
-    // 2. Calculate travel between tasks (Previous Task Loc -> Next Check-in Loc)
-    for (let i = 0; i < completed.length; i++) {
-      const task = completed[i];
-      const taskLoc = { lat: Number(task.lat), lng: Number(task.lng) };
-      
-      // Distance from where they checked in to where the task was
-      if (task.check_in_lat && task.check_in_lng) {
-        const checkInLoc = { lat: Number(task.check_in_lat), lng: Number(task.check_in_lng) };
-        total += haversineKm(checkInLoc, taskLoc);
-      } else {
-        // Fallback for legacy tasks without check-in coords
-        total += 0.5; 
-      }
-
-      // Distance from previous task to current check-in
-      if (i > 0) {
-        const prevTask = completed[i - 1];
-        const prevLoc = { lat: Number(prevTask.lat), lng: Number(prevTask.lng) };
-        if (task.check_in_lat && task.check_in_lng) {
-          const currentCheckIn = { lat: Number(task.check_in_lat), lng: Number(task.check_in_lng) };
-          total += haversineKm(prevLoc, currentCheckIn);
-        }
-      }
-    }
-    
-    return total;
-  }, [tasks]);
-
-  // --- 4. Effects (Lifecycle) ---
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2400);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
   useEffect(() => {
     loadData();
-    // High frequency polling (5s) for real-time mission updates
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, [loadData]);
 
   useEffect(() => {
     if (!availability && activeTasks.length === 0) return;
-    
-    // Check if any task is 'in_progress' for "High-Frequency Real-Time Tracking"
-    const hasActiveMission = tasks.some(t => t.task_status === 'in_progress');
-    const intervalTime = hasActiveMission ? 5000 : 3 * 60 * 1000; // 5s if on mission, else 3 mins
-    
-    pushCurrentLocation().catch(console.error);
-    const interval = setInterval(() => {
-      pushCurrentLocation().catch(console.error);
-    }, intervalTime);
-    
+    pushCurrentLocation();
+    const interval = setInterval(pushCurrentLocation, 5000);
     return () => clearInterval(interval);
-  }, [availability, activeTasks.length, tasks, pushCurrentLocation]);
+  }, [availability, activeTasks.length, pushCurrentLocation]);
 
-  // --- 5. Browser Close Detection (Beacon "Go Offline" Signal) ---
-  useEffect(() => {
-    if (!userId) return;
-
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-    const beaconUrl = `${API_BASE}/volunteers/me/beacon-offline`;
-
-    const sendOfflineBeacon = () => {
-      // navigator.sendBeacon is the ONLY reliable way to send data during page unload
-      const blob = new Blob(
-        [JSON.stringify({ userId })],
-        { type: 'application/json' }
-      );
-      navigator.sendBeacon(beaconUrl, blob);
-      console.log('[BEACON] Sent offline signal for user:', userId);
-    };
-
-    // Fires when tab/window is being closed or navigated away
-    const handleBeforeUnload = () => {
-      if (availability) {
-        sendOfflineBeacon();
-      }
-    };
-
-    // Fires when user switches tabs or minimizes (backup for mobile browsers)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && availability) {
-        sendOfflineBeacon();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [userId, availability]);
-
-  return {
-    loading,
-    error,
-    tasks,
-    stats,
-    availability,
-    busyTaskId,
-    distanceCoveredKm,
-    activeTasks,
-    toggleAvailability,
-    checkInTask,
-    completeTask,
-    toast,
-    volunteerCoords,
+  return { 
+    loading, 
+    error, 
+    tasks, 
+    stats, 
+    availability, 
+    busyTaskId, 
+    distanceCoveredKm, 
+    activeTasks, 
+    toggleAvailability, 
+    checkInTask, 
+    completeTask, 
+    toast, 
+    volunteerCoords 
   };
 };

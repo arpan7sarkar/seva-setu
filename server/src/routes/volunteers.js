@@ -75,15 +75,56 @@ router.patch('/me/location', auth, async (req, res) => {
 router.get('/me/stats', auth, async (req, res) => {
   try {
     const stats = await prisma.$queryRaw`
-      SELECT skills, 
-             is_available as "isAvailable", 
-             tasks_completed as "tasksCompleted", 
-             completion_rate as "completionRate"
-      FROM volunteers
-      WHERE user_id = ${req.user.id}::uuid
+      WITH volunteer_data AS (
+        SELECT location, skills, is_available, completion_rate
+        FROM volunteers
+        WHERE user_id = ${req.user.id}::uuid
+      ),
+      completed_assignments AS (
+        SELECT 
+          t.id,
+          t.check_in_lat,
+          t.check_in_lng,
+          n.location as need_location
+        FROM tasks t
+        JOIN needs n ON t.need_id = n.id
+        WHERE t.assigned_volunteer_id = ${req.user.id}::uuid 
+          AND (t.status = 'completed' OR t.completed_at IS NOT NULL)
+      ),
+      resolved_reports AS (
+        SELECT id FROM needs
+        WHERE reported_by = ${req.user.id}::uuid
+          AND status = 'completed'
+      )
+      SELECT 
+        vd.skills, 
+        vd.is_available as "isAvailable", 
+        (SELECT COUNT(*)::int FROM completed_assignments) as "tasksCompleted",
+        (SELECT COUNT(*)::int FROM resolved_reports) as "reportsResolved",
+        ((SELECT COUNT(*)::int FROM completed_assignments) + (SELECT COUNT(*)::int FROM resolved_reports)) as "totalImpact",
+        vd.completion_rate as "completionRate",
+        COALESCE(
+          (
+            SELECT SUM(
+              ST_Distance(
+                COALESCE(
+                  ST_SetSRID(ST_MakePoint(ca.check_in_lng, ca.check_in_lat), 4326)::geography,
+                  vd.location::geography
+                ),
+                ca.need_location::geography
+              ) / 1000.0
+            )
+            FROM completed_assignments ca
+          ),
+          0
+        )::float as "totalDistanceCovered"
+      FROM volunteer_data vd
       LIMIT 1
     `;
-    res.json(stats[0]);
+    res.json(stats[0] || { 
+      skills: [], isAvailable: true, tasksCompleted: 0, reportsResolved: 0, 
+      totalImpact: 0, completionRate: 0, totalDistanceCovered: 0 
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
