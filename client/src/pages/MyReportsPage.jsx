@@ -6,20 +6,31 @@ import { FileText } from 'lucide-react';
 const MyReportsPage = () => {
   return (
     <MainLayout>
-      <div className="py-12 min-h-[70vh] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="container-narrow px-4">
-          <div className="mb-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mx-auto mb-6">
-              <FileText className="w-8 h-8 text-sky-400" />
+      <div style={{ background: '#f8fafc', minHeight: '70vh', paddingBlock: 'clamp(2rem, 3vw, 3.5rem)' }}>
+        <div className="container-narrow">
+
+          {/* Header */}
+          <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: 16,
+              background: 'rgba(45, 97, 72, 0.06)',
+              border: '1px solid rgba(45, 97, 72, 0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1.25rem',
+            }}>
+              <FileText style={{ width: 30, height: 30, color: '#2d6148' }} />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400">
+            <h1 style={{
+              fontSize: 'clamp(1.6rem, 3vw, 2.25rem)', fontWeight: 900,
+              color: '#0f171d', letterSpacing: '-0.02em', marginBottom: '0.6rem',
+            }}>
               My Reports
             </h1>
-            <p className="text-lg text-slate-400 max-w-lg mx-auto">
+            <p style={{ fontSize: '1rem', color: '#475569', maxWidth: '34rem', margin: '0 auto', lineHeight: 1.6 }}>
               Track the live status of the community needs you have reported.
             </p>
           </div>
-          
+
           <ReporterStatusList />
         </div>
       </div>

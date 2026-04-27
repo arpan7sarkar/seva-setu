@@ -173,14 +173,13 @@ const VolunteerPage = () => {
                   </div>
                 </div>
 
-                {/* Hide details for completed tasks */}
                 {task.task_status !== 'completed' && (
-                  <div className="volunteer-task-meta flex flex-wrap gap-2 text-xs text-slate-400 mt-2 mb-4">
-                    <span className="capitalize px-2 py-1 bg-slate-800 rounded">{task.need_type}</span>
-                    <span className="px-2 py-1 bg-slate-800 rounded">{task.ward || 'Zone'}, {task.district || 'City'}</span>
-                    <span className="px-2 py-1 bg-slate-800 rounded">Urgency: {Number(task.urgency_score || 0).toFixed(2)}</span>
+                  <div className="volunteer-task-meta">
+                    <span className="task-meta-tag capitalize">{task.need_type}</span>
+                    <span className="task-meta-tag">{task.ward || 'Zone'}, {task.district || 'City'}</span>
+                    <span className="task-meta-tag">Urgency: {Number(task.urgency_score || 0).toFixed(2)}</span>
                     {volunteerCoords && typeof task.lat === 'number' && typeof task.lng === 'number' && (
-                      <span className="px-2 py-1 bg-sky-500/20 text-sky-400 font-bold rounded flex items-center gap-1">
+                      <span className="task-meta-tag-distance">
                         <Navigation className="w-3 h-3" />
                         {haversineKm(volunteerCoords, { lat: task.lat, lng: task.lng }).toFixed(2)} km away
                       </span>
@@ -192,14 +191,14 @@ const VolunteerPage = () => {
                 {task.task_status === 'in_progress' && (
                   <div className="mt-3">
                     {(task.contact_number || task.contactNumber) ? (
-                      <div className="bg-sky-500/10 border border-sky-500/20 p-3 rounded-xl flex items-center justify-between gap-3 mb-3">
-                        <div className="flex flex-col">
-                          <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">Reporter Contact</p>
-                          <p className="text-sm font-semibold text-white">{task.contact_number || task.contactNumber}</p>
+                      <div className="volunteer-contact-card">
+                        <div>
+                          <p className="volunteer-contact-label">Reporter Contact</p>
+                          <p className="volunteer-contact-number">{task.contact_number || task.contactNumber}</p>
                         </div>
-                        <a 
-                          href={`tel:${(task.contact_number || task.contactNumber).replace(/\D/g, '')}`} 
-                          className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-lg transition-colors"
+                        <a
+                          href={`tel:${(task.contact_number || task.contactNumber).replace(/\D/g, '')}`}
+                          className="volunteer-call-btn"
                         >
                           Call
                         </a>
@@ -213,10 +212,10 @@ const VolunteerPage = () => {
                         taskCoords={{ lat: Number(task.lat), lng: Number(task.lng) }} 
                       />
                     ) : (
-                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
-                        <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
-                        <p className="text-sm text-slate-400 font-medium">Initializing Route Navigation...</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest">Waiting for GPS Coordinates</p>
+                      <div className="volunteer-map-loading">
+                        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#2d6148' }} />
+                        <p style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }}>Initializing Route Navigation...</p>
+                        <p style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Waiting for GPS Coordinates</p>
                       </div>
                     )}
                   </div>
@@ -265,7 +264,11 @@ const VolunteerPage = () => {
                             textTransform: 'uppercase',
                             color: selectedFiles[task.task_id].hasGps ? '#34d399' : '#f87171',
                           }}>
-                            {selectedFiles[task.task_id].hasGps ? '📍 GPS VERIFIED' : '⚠️ NO GPS'}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              {selectedFiles[task.task_id].hasGps
+                                ? <><MapPin style={{ width: 11, height: 11 }} /> GPS VERIFIED</>
+                                : <><AlertCircle style={{ width: 11, height: 11 }} /> NO GPS</>}
+                            </span>
                           </div>
 
                           {/* X Close — Top Right */}
@@ -306,76 +309,44 @@ const VolunteerPage = () => {
                         </div>
                       )}
 
-                      {/* AI Analysis Results — shown after verification attempt */}
                       {verificationErrors[task.task_id] && (
-                        <div style={{
-                          background: 'rgba(239,68,68,0.08)',
-                          border: '1px solid rgba(239,68,68,0.3)',
-                          borderRadius: '12px',
-                          padding: '16px',
-                          marginTop: '8px',
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                            <AlertCircle style={{ width: 16, height: 16, color: '#f87171' }} />
-                            <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              Verification Failed
-                            </span>
+                        <div className="volunteer-verify-error">
+                          <div className="volunteer-verify-error-title">
+                            <AlertCircle style={{ width: 16, height: 16 }} />
+                            Verification Failed
                           </div>
 
-                          {/* Status Summary Badges */}
                           {verificationErrors[task.task_id].summary && (
                             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                               <span style={{
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                                fontSize: '10px',
-                                fontWeight: 'bold',
-                                fontFamily: 'monospace',
-                                textTransform: 'uppercase',
+                                padding: '4px 10px', borderRadius: '6px', fontSize: '10px',
+                                fontWeight: 'bold', fontFamily: 'monospace', textTransform: 'uppercase',
                                 letterSpacing: '0.08em',
-                                background: verificationErrors[task.task_id].summary.geoTag === 'PASSED' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
-                                color: verificationErrors[task.task_id].summary.geoTag === 'PASSED' ? '#34d399' : '#f87171',
-                                border: verificationErrors[task.task_id].summary.geoTag === 'PASSED' ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(239,68,68,0.4)',
+                                background: verificationErrors[task.task_id].summary.geoTag === 'PASSED' ? 'rgba(5,150,105,0.1)' : 'rgba(195,93,81,0.1)',
+                                color: verificationErrors[task.task_id].summary.geoTag === 'PASSED' ? '#059669' : '#c35d51',
+                                border: verificationErrors[task.task_id].summary.geoTag === 'PASSED' ? '1px solid rgba(5,150,105,0.25)' : '1px solid rgba(195,93,81,0.25)',
                               }}>
                                 GEO-TAG: {verificationErrors[task.task_id].summary.geoTag}
                               </span>
                               <span style={{
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                                fontSize: '10px',
-                                fontWeight: 'bold',
-                                fontFamily: 'monospace',
-                                textTransform: 'uppercase',
+                                padding: '4px 10px', borderRadius: '6px', fontSize: '10px',
+                                fontWeight: 'bold', fontFamily: 'monospace', textTransform: 'uppercase',
                                 letterSpacing: '0.08em',
-                                background: verificationErrors[task.task_id].summary.aiContent === 'PASSED' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
-                                color: verificationErrors[task.task_id].summary.aiContent === 'PASSED' ? '#34d399' : '#f87171',
-                                border: verificationErrors[task.task_id].summary.aiContent === 'PASSED' ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(239,68,68,0.4)',
+                                background: verificationErrors[task.task_id].summary.aiContent === 'PASSED' ? 'rgba(5,150,105,0.1)' : 'rgba(195,93,81,0.1)',
+                                color: verificationErrors[task.task_id].summary.aiContent === 'PASSED' ? '#059669' : '#c35d51',
+                                border: verificationErrors[task.task_id].summary.aiContent === 'PASSED' ? '1px solid rgba(5,150,105,0.25)' : '1px solid rgba(195,93,81,0.25)',
                               }}>
                                 AI CONTENT: {verificationErrors[task.task_id].summary.aiContent}
                               </span>
                             </div>
                           )}
 
-                          {/* Error Details */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {(verificationErrors[task.task_id].errors || []).map((err, i) => (
-                              <div key={i} style={{
-                                fontSize: '12px',
-                                color: '#e2e8f0',
-                                lineHeight: '1.5',
-                                padding: '8px 12px',
-                                background: 'rgba(0,0,0,0.2)',
-                                borderRadius: '8px',
-                                borderLeft: '3px solid #f87171',
-                              }}>
-                                {err}
-                              </div>
+                              <div key={i} className="volunteer-verify-error-item">{err}</div>
                             ))}
                           </div>
-
-                          <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '12px', fontStyle: 'italic' }}>
-                            Retake the photo using the Live Camera at the incident location.
-                          </p>
+                          <p className="volunteer-verify-hint">Retake the photo using the Live Camera at the incident location.</p>
                         </div>
                       )}
 

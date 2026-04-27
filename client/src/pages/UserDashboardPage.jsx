@@ -100,8 +100,8 @@ const UserDashboardPage = () => {
         {/* ── Quick Actions ──────────────────────────────────── */}
         <section className="user-dashboard-actions-grid">
           <Link to="/field" className="user-dashboard-action-card card">
-            <div className="user-dashboard-action-icon" style={{ background: 'rgba(56, 189, 248, 0.1)', borderColor: 'rgba(56, 189, 248, 0.2)' }}>
-              <Plus className="w-6 h-6" style={{ color: '#38bdf8' }} />
+            <div className="user-dashboard-action-icon" style={{ background: 'rgba(45, 97, 72, 0.08)', borderColor: 'rgba(45, 97, 72, 0.15)' }}>
+              <Plus className="w-6 h-6" style={{ color: '#2d6148' }} />
             </div>
             <div>
               <h3 className="user-dashboard-action-title">Report New Incident</h3>
@@ -111,8 +111,8 @@ const UserDashboardPage = () => {
           </Link>
 
           <Link to="/my-reports" className="user-dashboard-action-card card">
-            <div className="user-dashboard-action-icon" style={{ background: 'rgba(167, 139, 250, 0.1)', borderColor: 'rgba(167, 139, 250, 0.2)' }}>
-              <FileText className="w-6 h-6" style={{ color: '#a78bfa' }} />
+            <div className="user-dashboard-action-icon" style={{ background: 'rgba(71, 85, 105, 0.06)', borderColor: 'rgba(71, 85, 105, 0.12)' }}>
+              <FileText className="w-6 h-6" style={{ color: '#475569' }} />
             </div>
             <div>
               <h3 className="user-dashboard-action-title">My Reports</h3>
@@ -126,7 +126,7 @@ const UserDashboardPage = () => {
         <section className="user-dashboard-volunteer-section card">
           <div className="user-dashboard-volunteer-header">
             <div className="user-dashboard-volunteer-icon-wrap">
-              <UserCheck className="w-7 h-7" style={{ color: '#34d399' }} />
+              <UserCheck className="w-7 h-7" style={{ color: '#2d6148' }} />
             </div>
             <div>
               <h2 className="user-dashboard-volunteer-title">Become a Volunteer</h2>

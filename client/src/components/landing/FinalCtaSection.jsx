@@ -1,26 +1,36 @@
+import { Heart, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 
-const FinalCtaSection = () => (
-  <section className="landing-section">
-    <div className="container-lg">
-      <div className="landing-cta-shell">
-        <h2>Move from fragmented updates to coordinated action.</h2>
-        <p>
-          Bring your NGO operations, field teams, and volunteer dispatch into one clean command flow.
-        </p>
-        <div className="landing-hero-actions">
-          <Link to="/register" className="btn-primary">
-            Join SevaSetu
-            <ArrowRight style={{ width: 16, height: 16 }} />
-          </Link>
-          <Link to="/dashboard" className="btn-ghost">
-            View Dashboard
-          </Link>
+const FinalCtaSection = () => {
+  return (
+    <section className="landing-section final-cta-revamp">
+      <div className="container-lg">
+        <div className="cta-content centered">
+          <div className="cta-icon-wrapper">
+            <Heart className="heart-icon" size={48} />
+          </div>
+          <h2 className="landing-heading">Empower your mission. Coordinate for good.</h2>
+          <p className="landing-subcopy">
+            SevaSetu is a <strong>free, open-access platform</strong> dedicated to helping NGOs and volunteers 
+            reach those in need faster. Join our network of relief teams today.
+          </p>
+          
+          <div className="cta-actions">
+            <Link to="/register" className="btn-primary-large">
+              Join the Network
+              <Globe size={20} />
+            </Link>
+          </div>
+
+          <div className="cta-checkmarks">
+            <div className="checkmark-item"><Heart size={18} fill="currentColor" /> 100% Free for NGOs</div>
+            <div className="checkmark-item"><Heart size={18} fill="currentColor" /> Community Driven</div>
+            <div className="checkmark-item"><Heart size={18} fill="currentColor" /> Instant Mission Setup</div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default FinalCtaSection;

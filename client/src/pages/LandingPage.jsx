@@ -1,19 +1,24 @@
 import MainLayout from '../layouts/MainLayout';
 import HeroSection from '../components/landing/HeroSection';
 import StatsStrip from '../components/landing/StatsStrip';
-import CapabilitiesSection from '../components/landing/CapabilitiesSection';
+import ProblemSection from '../components/landing/ProblemSection';
 import WorkflowSection from '../components/landing/WorkflowSection';
+import RolesSection from '../components/landing/RolesSection';
+import ImpactSection from '../components/landing/ImpactSection';
+import TrustSection from '../components/landing/TrustSection';
 import FinalCtaSection from '../components/landing/FinalCtaSection';
 
 const LandingPage = () => (
   <MainLayout>
     <HeroSection />
     <StatsStrip />
-    <CapabilitiesSection />
+    <ProblemSection />
     <WorkflowSection />
+    <RolesSection />
+    <TrustSection />
+    <ImpactSection />
     <FinalCtaSection />
   </MainLayout>
 );
 
 export default LandingPage;
-
