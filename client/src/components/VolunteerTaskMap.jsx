@@ -69,8 +69,8 @@ const VolunteerTaskMap = ({ volunteerCoords, taskCoords }) => {
     if (smoothedDist.current === null) {
       smoothedDist.current = raw;
     } else {
-      // Ignore impossible jumps > 5km
-      if (Math.abs(raw - smoothedDist.current) > 5) return;
+      // Ignore impossible jumps > 100km (likely a coordinate swap or major glitch)
+      if (Math.abs(raw - smoothedDist.current) > 100) return;
       // Weighted average: 80% old, 20% new
       smoothedDist.current = (smoothedDist.current * 0.8) + (raw * 0.2);
     }

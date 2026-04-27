@@ -32,36 +32,36 @@ const BroadcastAlert = ({ broadcast, onAccept, onReject, isBusy }) => {
   if (isExpired) return null;
 
   return (
-    <article className="card bg-[#1e1416] border border-accent-rose/30 shadow-lg shadow-black/20 mb-6">
+    <article className="card bg-white border-2 border-accent-rose shadow-xl mb-6">
       <div className="flex gap-3 mb-4">
-        <div className="bg-accent-rose/20 p-2 rounded-lg h-fit">
+        <div className="bg-accent-rose/10 p-2 rounded-lg h-fit">
           <AlertTriangle className="w-6 h-6 text-accent-rose animate-pulse" />
         </div>
         <div className="flex-1">
           <div className="flex justify-between items-start">
-            <h3 className="font-bold text-lg text-white">Emergency Dispatch</h3>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-rose/20 border border-accent-rose/30 text-accent-rose text-xs font-bold font-mono">
+            <h3 className="font-bold text-lg text-text-primary">Emergency Dispatch</h3>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-rose/10 border border-accent-rose/20 text-accent-rose text-xs font-bold font-mono">
               <Clock className="w-3.5 h-3.5" />
               {timeLeft}
             </div>
           </div>
-          <p className="text-text-primary font-medium mt-1">{broadcast.title}</p>
+          <p className="text-text-secondary font-medium mt-1">{broadcast.title}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-5">
-        <div className="bg-surface-secondary/50 rounded-lg p-2.5 flex items-center gap-2">
+        <div className="bg-surface-secondary rounded-lg p-2.5 flex items-center gap-2">
           <MapPin className="w-4 h-4 text-text-muted" />
           <div className="text-sm">
             <span className="block text-text-muted text-[10px] uppercase font-bold tracking-wider">Distance</span>
-            <span className="text-white font-medium">{broadcast.distance_km?.toFixed(1) || '?'} km away</span>
+            <span className="text-text-primary font-bold">{broadcast.distance_km?.toFixed(2) || '?'} km away</span>
           </div>
         </div>
-        <div className="bg-surface-secondary/50 rounded-lg p-2.5 flex flex-col justify-center">
+        <div className="bg-surface-secondary rounded-lg p-2.5 flex flex-col justify-center">
           <span className="block text-text-muted text-[10px] uppercase font-bold tracking-wider">Type / Urgency</span>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="capitalize text-white text-sm font-medium">{broadcast.need_type}</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/10 text-white">
+            <span className="capitalize text-text-primary text-sm font-medium">{broadcast.need_type}</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface-tertiary text-text-primary">
               {Number(broadcast.urgency_score || 0).toFixed(1)}
             </span>
           </div>

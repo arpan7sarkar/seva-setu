@@ -119,7 +119,13 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     // ═══════════════════════════════════════════════════════════
     // FINAL VERDICT
     // ═══════════════════════════════════════════════════════════
-    isVerified = geoTagPassed && aiPassed;
+    // COORDINATOR OVERRIDE: If a coordinator is logging this, we trust it more.
+    if (req.user.role === 'coordinator') {
+      isVerified = true;
+      console.log(`[VERIFY] Coordinator Override: Automatically verified.`);
+    } else {
+      isVerified = geoTagPassed && aiPassed;
+    }
 
     const finalStatus = isVerified ? 'open' : 'rejected';
     const rejectionReason = !isVerified ? errors.join(' | ') : null;
@@ -316,6 +322,16 @@ router.patch('/:id/status', auth, async (req, res) => {
       data: updateData,
       select: { id: true }, // Avoid fetching geometry column
     });
+
+    // --- AUTOMATED DISPATCH ---
+    // If the status is now 'open', trigger the broadcast (mass dispatch)
+    if (status === 'open' || status === 'accepted') {
+      const { triggerBroadcast } = require('../services/matchingService');
+      triggerBroadcast(req.params.id, 6).catch(err => {
+        console.error('[BROADCAST] Manual trigger failed:', err.message);
+      });
+    }
+
     res.json({ message: 'Status updated' });
   } catch (err) {
     console.error(err);

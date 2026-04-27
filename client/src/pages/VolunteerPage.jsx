@@ -112,6 +112,11 @@ const VolunteerPage = () => {
         <section className="volunteer-hero card">
           <p className="landing-eyebrow">Volunteer Workspace v2.1</p>
           <h1 className="volunteer-title">Mobile mission console for field execution.</h1>
+          <div className="flex gap-4 mt-2 text-[10px] font-mono text-text-muted opacity-50">
+            <span>LAT: {volunteerCoords?.lat?.toFixed(5) || 'N/A'}</span>
+            <span>LNG: {volunteerCoords?.lng?.toFixed(5) || 'N/A'}</span>
+            <span>ACC: {distanceCoveredKm.toFixed(2)}km</span>
+          </div>
           <p className="volunteer-subtitle">
             Stay available, check in at incident sites, and close tasks with live status sync.
           </p>

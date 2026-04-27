@@ -120,8 +120,8 @@ router.post('/webhook', async (req, res) => {
         // WhatsApp title gets auto-generated from description
         const autoTitle = state.description ? state.description.substring(0, 40) + '...' : 'Urgent WhatsApp Report';
 
-        await prisma.$executeRaw`
-          INSERT INTO needs (title, description, ward, district, need_type, people_affected, urgency_score, location, is_disaster_zone, status, contact_number)
+        const result = await prisma.$queryRaw`
+          INSERT INTO needs (title, description, ward, district, need_type, people_affected, urgency_score, location, is_disaster_zone, status, contact_number, is_verified)
           VALUES (
             ${'WA: ' + autoTitle}, 
             ${state.description || ''},
@@ -133,9 +133,18 @@ router.post('/webhook', async (req, res) => {
             ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 
             true,
             'open'::"NeedStatus",
-            ${state.contactNumber || null} /* Auto-collection commented out for now: ${fromNumber} */
-          )
+            ${state.contactNumber || null},
+            true
+          ) RETURNING id
         `;
+
+        const needId = result[0]?.id;
+
+        // --- AUTOMATED DISPATCH ---
+        if (needId) {
+          const { triggerBroadcast } = require('../services/matchingService');
+          triggerBroadcast(needId, 6).catch(err => console.error('[BROADCAST] WA Trigger failed:', err));
+        }
 
         await prisma.botSession.update({
           where: { phoneNumber: fromNumber },
