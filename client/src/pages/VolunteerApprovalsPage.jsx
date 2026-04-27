@@ -160,7 +160,7 @@ const VolunteerApprovalsPage = () => {
                         <p style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text-primary)' }}>
                           {req.fullName}
                         </p>
-                        <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                        <p style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>
                           {req.user?.email} • Applied {new Date(req.createdAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -169,7 +169,7 @@ const VolunteerApprovalsPage = () => {
                     {/* Contact */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
                       <Phone className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{req.contactDetails}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-primary)' }}>{req.contactDetails}</span>
                     </div>
 
                     {/* Proof of Work */}
@@ -186,7 +186,7 @@ const VolunteerApprovalsPage = () => {
                         <FileText className="w-3 h-3" />
                         Proof of Work / Capability
                       </p>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                         {req.proofOfWork}
                       </p>
                     </div>
@@ -200,7 +200,16 @@ const VolunteerApprovalsPage = () => {
                         className="btn-success"
                         disabled={processingId === req.id}
                         onClick={() => handleApprove(req.id)}
-                        style={{ fontSize: '0.8rem', padding: '0.6rem 1rem', justifyContent: 'center' }}
+                        style={{ 
+                          fontSize: '0.8rem', 
+                          padding: '0.6rem 1rem', 
+                          justifyContent: 'center',
+                          background: '#2d6148',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}
                       >
                         {processingId === req.id ? (
                           <Loader2 className="w-4 h-4 icon-spin" />

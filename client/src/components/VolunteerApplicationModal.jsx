@@ -67,7 +67,7 @@ const VolunteerApplicationModal = ({ onClose, onSubmitted }) => {
             onClick={onClose}
             style={{
               width: '32px', height: '32px', borderRadius: '50%',
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(15, 23, 29, 0.04)', border: '1px solid rgba(15, 23, 29, 0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', color: 'var(--color-text-muted)',
             }}
