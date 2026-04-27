@@ -4,8 +4,8 @@
   "description": "Real-time Volunteer Coordination & Community Needs Intelligence Platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0f1c",
-  "theme_color": "#38bdf8",
+  "background_color": "#ffffff",
+  "theme_color": "#2d6148",
   "orientation": "portrait",
   "icons": [
     {
@@ -13,12 +13,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "categories": ["utilities", "productivity", "social"],
