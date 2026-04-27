@@ -41,3 +41,20 @@ export const completeTaskById = async (taskId, imageFile, browserCoords = null) 
   });
   return data;
 };
+
+// ── Broadcast Dispatch ──────────────────────────────────────────────
+
+export const fetchMyBroadcasts = async () => {
+  const { data } = await api.get('/tasks/my-broadcasts');
+  return data;
+};
+
+export const acceptBroadcast = async (needId) => {
+  const { data } = await api.post('/tasks/accept-broadcast', { need_id: needId });
+  return data;
+};
+
+export const rejectBroadcast = async (needId) => {
+  const { data } = await api.post('/tasks/reject-broadcast', { need_id: needId });
+  return data;
+};

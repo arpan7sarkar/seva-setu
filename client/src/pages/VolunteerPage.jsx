@@ -18,6 +18,7 @@ import { useVolunteerApp, haversineKm } from '../hooks/useVolunteerApp';
 import { volunteerStatusClass, volunteerStatusLabel } from '../utils/volunteer';
 import CameraWatermark from '../components/CameraWatermark';
 import VolunteerTaskMap from '../components/VolunteerTaskMap';
+import BroadcastAlert from '../components/BroadcastAlert';
 
 const VolunteerPage = () => {
   const [activeCameraTask, setActiveCameraTask] = useState(null);
@@ -35,6 +36,10 @@ const VolunteerPage = () => {
     completeTask,
     toast,
     volunteerCoords,
+    broadcasts,
+    broadcastBusy,
+    acceptBroadcastTask,
+    rejectBroadcastTask,
   } = useVolunteerApp();
 
   const [selectedFiles, setSelectedFiles] = useState({}); // { taskId: { file, preview } }
@@ -107,10 +112,29 @@ const VolunteerPage = () => {
         <section className="volunteer-hero card">
           <p className="landing-eyebrow">Volunteer Workspace v2.1</p>
           <h1 className="volunteer-title">Mobile mission console for field execution.</h1>
+          <div className="flex gap-4 mt-2 text-[10px] font-mono text-text-muted opacity-50">
+            <span>LAT: {volunteerCoords?.lat?.toFixed(5) || 'N/A'}</span>
+            <span>LNG: {volunteerCoords?.lng?.toFixed(5) || 'N/A'}</span>
+            <span>ACC: {distanceCoveredKm.toFixed(2)}km</span>
+          </div>
           <p className="volunteer-subtitle">
             Stay available, check in at incident sites, and close tasks with live status sync.
           </p>
         </section>
+
+        {broadcasts.length > 0 && (
+          <section className="volunteer-broadcasts">
+            {broadcasts.map(broadcast => (
+              <BroadcastAlert
+                key={broadcast.broadcast_id}
+                broadcast={broadcast}
+                onAccept={acceptBroadcastTask}
+                onReject={rejectBroadcastTask}
+                isBusy={broadcastBusy}
+              />
+            ))}
+          </section>
+        )}
 
         <section className="volunteer-stats-grid">
           <article className="volunteer-stat card">

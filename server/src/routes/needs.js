@@ -119,7 +119,13 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     // ═══════════════════════════════════════════════════════════
     // FINAL VERDICT
     // ═══════════════════════════════════════════════════════════
-    isVerified = geoTagPassed && aiPassed;
+    // COORDINATOR OVERRIDE: If a coordinator is logging this, we trust it more.
+    if (req.user.role === 'coordinator') {
+      isVerified = true;
+      console.log(`[VERIFY] Coordinator Override: Automatically verified.`);
+    } else {
+      isVerified = geoTagPassed && aiPassed;
+    }
 
     const finalStatus = isVerified ? 'open' : 'rejected';
     const rejectionReason = !isVerified ? errors.join(' | ') : null;
@@ -176,6 +182,16 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       WHERE id = ${needId}::uuid
       LIMIT 1
     `;
+
+    // --- 4. Automated Dispatch: Broadcast to nearby volunteers ---
+    // Fire-and-forget so the API response is not delayed
+    if (isVerified) {
+      const { triggerBroadcast } = require('../services/matchingService');
+      triggerBroadcast(needId, 6).catch(err => {
+        console.error('[BROADCAST] Failed to trigger broadcast:', err.message);
+      });
+    }
+
     res.status(201).json(fullNeeds[0]);
   } catch (err) {
     console.error(err);
@@ -221,11 +237,12 @@ router.get('/', auth, async (req, res) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const needs = await prisma.$queryRawUnsafe(
-      `SELECT id, title, description, need_type, people_affected, urgency_score, status, rejection_reason, ward, district, is_disaster_zone, created_at, updated_at,
-              ST_X(location::geometry) as lng, ST_Y(location::geometry) as lat
-       FROM needs
+      `SELECT n.id, n.title, n.description, n.need_type, n.people_affected, n.urgency_score, n.status, n.rejection_reason, n.ward, n.district, n.is_disaster_zone, n.is_verified, n.verification_confidence, n.image_url, n.created_at, n.updated_at,
+              ST_X(n.location::geometry) as lng, ST_Y(n.location::geometry) as lat,
+              (SELECT COUNT(*)::int FROM broadcast_requests br WHERE br.need_id = n.id AND br.status = 'pending' AND br.expires_at > NOW()) as pending_broadcasts
+       FROM needs n
        ${whereClause}
-       ORDER BY urgency_score DESC`,
+       ORDER BY n.urgency_score DESC`,
       ...params
     );
 
@@ -305,6 +322,16 @@ router.patch('/:id/status', auth, async (req, res) => {
       data: updateData,
       select: { id: true }, // Avoid fetching geometry column
     });
+
+    // --- AUTOMATED DISPATCH ---
+    // If the status is now 'open', trigger the broadcast (mass dispatch)
+    if (status === 'open' || status === 'accepted') {
+      const { triggerBroadcast } = require('../services/matchingService');
+      triggerBroadcast(req.params.id, 6).catch(err => {
+        console.error('[BROADCAST] Manual trigger failed:', err.message);
+      });
+    }
+
     res.json({ message: 'Status updated' });
   } catch (err) {
     console.error(err);

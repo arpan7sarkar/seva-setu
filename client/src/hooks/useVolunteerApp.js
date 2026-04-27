@@ -7,6 +7,9 @@ import {
   fetchMyVolunteerStats,
   updateAvailability,
   updateMyLocation,
+  fetchMyBroadcasts,
+  acceptBroadcast,
+  rejectBroadcast,
 } from '../services/volunteer';
 import { useAuth } from './useAuth';
 
@@ -36,6 +39,8 @@ export const useVolunteerApp = () => {
   const [busyTaskId, setBusyTaskId] = useState('');
   const [toast, setToast] = useState(null);
   const [volunteerCoords, setVolunteerCoords] = useState(null);
+  const [broadcasts, setBroadcasts] = useState([]);
+  const [broadcastBusy, setBroadcastBusy] = useState('');
 
   const gpsLocked = useRef(false);
   const initialLoadDone = useRef(false);
@@ -49,9 +54,14 @@ export const useVolunteerApp = () => {
   const loadData = useCallback(async () => {
     if (!initialLoadDone.current) setLoading(true);
     try {
-      const [tasksData, statsData] = await Promise.all([fetchMyTasks(), fetchMyVolunteerStats()]);
+      const [tasksData, statsData, broadcastsData] = await Promise.all([
+        fetchMyTasks(),
+        fetchMyVolunteerStats(),
+        fetchMyBroadcasts().catch(() => []),
+      ]);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
       setStats(statsData || null);
+      setBroadcasts(Array.isArray(broadcastsData) ? broadcastsData : []);
       
       // LOGIC: Only use server coords if GPS hasn't locked AND we have absolutely no state yet
       if (!gpsLocked.current && !initialLoadDone.current && tasksData?.[0]) {
@@ -175,8 +185,39 @@ export const useVolunteerApp = () => {
     return total;
   }, [stats, tasks]);
 
-  const activeTasks = useMemo(() => 
-    tasks.filter(t => t.task_status !== 'completed'),
+  const acceptBroadcastTask = useCallback(async (needId) => {
+    try {
+      setBroadcastBusy(needId);
+      const result = await acceptBroadcast(needId);
+      showToast(result.message || 'Mission accepted!', 'success');
+      // Optimistically remove the accepted broadcast and reload
+      setBroadcasts(prev => prev.filter(b => b.need_id !== needId));
+      await loadData();
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to accept mission.';
+      showToast(msg, 'error');
+    } finally {
+      setBroadcastBusy('');
+    }
+  }, [loadData, showToast]);
+
+  const rejectBroadcastTask = useCallback(async (needId) => {
+    try {
+      setBroadcastBusy(needId);
+      await rejectBroadcast(needId);
+      // Optimistically remove from UI
+      setBroadcasts(prev => prev.filter(b => b.need_id !== needId));
+      showToast('Broadcast dismissed.', 'success');
+    } catch (err) {
+      showToast('Failed to dismiss broadcast.', 'error');
+    } finally {
+      setBroadcastBusy('');
+    }
+  }, [showToast]);
+
+  // --- 3. Memos (Derived Data) ---
+  const activeTasks = useMemo(
+    () => tasks.filter((t) => t.task_status === 'assigned' || t.task_status === 'in_progress'),
     [tasks]
   );
 
@@ -193,19 +234,63 @@ export const useVolunteerApp = () => {
     return () => clearInterval(interval);
   }, [availability, activeTasks.length, pushCurrentLocation]);
 
-  return { 
-    loading, 
-    error, 
-    tasks, 
-    stats, 
-    availability, 
-    busyTaskId, 
-    distanceCoveredKm, 
-    activeTasks, 
-    toggleAvailability, 
-    checkInTask, 
-    completeTask, 
-    toast, 
-    volunteerCoords 
+  // --- 5. Browser Close Detection (Beacon "Go Offline" Signal) ---
+  useEffect(() => {
+    if (!userId) return;
+
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    const beaconUrl = `${API_BASE}/volunteers/me/beacon-offline`;
+
+    const sendOfflineBeacon = () => {
+      // navigator.sendBeacon is the ONLY reliable way to send data during page unload
+      const blob = new Blob(
+        [JSON.stringify({ userId })],
+        { type: 'application/json' }
+      );
+      navigator.sendBeacon(beaconUrl, blob);
+      console.log('[BEACON] Sent offline signal for user:', userId);
+    };
+
+    // Fires when tab/window is being closed or navigated away
+    const handleBeforeUnload = () => {
+      if (availability) {
+        sendOfflineBeacon();
+      }
+    };
+
+    // Fires when user switches tabs or minimizes (backup for mobile browsers)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && availability) {
+        sendOfflineBeacon();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [userId, availability]);
+
+  return {
+    loading,
+    error,
+    tasks,
+    stats,
+    availability,
+    busyTaskId,
+    distanceCoveredKm,
+    activeTasks,
+    toggleAvailability,
+    checkInTask,
+    completeTask,
+    toast,
+    volunteerCoords,
+    broadcasts,
+    broadcastBusy,
+    acceptBroadcastTask,
+    rejectBroadcastTask,
   };
 };

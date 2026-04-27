@@ -25,6 +25,18 @@ const MatchModal = ({
           </p>
         </div>
 
+        {Number(need.pending_broadcasts) > 0 && (
+          <div className="mb-4 p-3 rounded-lg bg-accent-rose/10 border border-accent-rose/30 flex gap-3 items-start">
+            <svg className="w-5 h-5 text-accent-rose shrink-0 mt-0.5" xmlns="http://www.w3.org/0000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div>
+              <p className="text-sm font-bold text-accent-rose uppercase tracking-wider">Automated Broadcast Active</p>
+              <p className="text-xs text-text-secondary mt-1">
+                {Number(need.pending_broadcasts)} volunteers have been notified. Manually assigning a volunteer will override this broadcast and cancel it for everyone else.
+              </p>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <p className="text-sm text-text-secondary">Loading ranked volunteers...</p>
         ) : (

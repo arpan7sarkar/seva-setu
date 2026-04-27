@@ -394,4 +394,220 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════════════════════════════
+// BROADCAST DISPATCH ENDPOINTS
+// ══════════════════════════════════════════════════════════════════════
+
+/**
+ * @route   GET /api/tasks/my-broadcasts
+ * @desc    Get pending broadcast requests for the logged-in volunteer
+ * @access  Private (Volunteer)
+ */
+router.get('/my-broadcasts', auth, async (req, res) => {
+  try {
+    const broadcasts = await prisma.$queryRaw`
+      SELECT
+        br.id AS broadcast_id,
+        br.need_id,
+        br.status AS broadcast_status,
+        br.distance_km,
+        br.created_at,
+        br.expires_at,
+        n.title,
+        n.need_type,
+        n.urgency_score,
+        n.ward,
+        n.district,
+        n.people_affected,
+        n.status AS need_status,
+        ST_X(n.location::geometry) as lng,
+        ST_Y(n.location::geometry) as lat
+      FROM broadcast_requests br
+      JOIN needs n ON br.need_id = n.id
+      WHERE br.volunteer_id = ${req.user.id}::uuid
+        AND br.status = 'pending'
+        AND br.expires_at > NOW()
+        AND n.status = 'open'
+      ORDER BY br.created_at DESC
+    `;
+
+    res.json(broadcasts);
+  } catch (err) {
+    console.error('[BROADCAST] Error fetching broadcasts:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @route   POST /api/tasks/accept-broadcast
+ * @desc    Volunteer accepts a broadcast — creates task, locks need, expires other broadcasts
+ * @access  Private (Volunteer)
+ * 
+ * CONCURRENCY: Uses a Prisma transaction to prevent double-assignment.
+ */
+router.post('/accept-broadcast', auth, async (req, res) => {
+  const { need_id } = req.body;
+
+  if (!need_id) {
+    return res.status(400).json({ message: 'need_id is required' });
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Check that the need is still open
+      const need = await tx.need.findUnique({
+        where: { id: need_id },
+        select: { id: true, status: true, title: true },
+      });
+
+      if (!need) throw new Error('NEED_NOT_FOUND');
+      if (need.status !== 'open') throw new Error('ALREADY_ASSIGNED');
+
+      // 2. Check that this volunteer has a valid, non-expired broadcast
+      const broadcast = await tx.broadcastRequest.findFirst({
+        where: {
+          needId: need_id,
+          volunteerId: req.user.id,
+          status: 'pending',
+        },
+      });
+
+      if (!broadcast) throw new Error('NO_BROADCAST');
+      if (new Date() > new Date(broadcast.expiresAt)) throw new Error('BROADCAST_EXPIRED');
+
+      // 3. Create the task assignment
+      const task = await tx.task.create({
+        data: {
+          needId: need_id,
+          assignedVolunteerId: req.user.id,
+          notes: `Auto-assigned via broadcast dispatch`,
+          status: 'assigned',
+          assignedAt: new Date(),
+        },
+      });
+
+      // 4. Update need status to assigned
+      await tx.need.update({
+        where: { id: need_id },
+        data: { status: 'assigned', updatedAt: new Date() },
+        select: { id: true },
+      });
+
+      // 5. Mark this broadcast as accepted
+      await tx.broadcastRequest.update({
+        where: { id: broadcast.id },
+        data: { status: 'accepted' },
+      });
+
+      // 6. Expire all other pending broadcasts for this need
+      await tx.broadcastRequest.updateMany({
+        where: {
+          needId: need_id,
+          status: 'pending',
+          id: { not: broadcast.id },
+        },
+        data: { status: 'expired' },
+      });
+
+      return { taskId: task.id, needTitle: need.title };
+    });
+
+    console.log(`[BROADCAST] ✅ Volunteer ${req.user.id} accepted need ${need_id} → Task ${result.taskId}`);
+    res.status(201).json({
+      message: `Mission accepted: "${result.needTitle}"`,
+      taskId: result.taskId,
+    });
+  } catch (err) {
+    const knownErrors = {
+      'NEED_NOT_FOUND': { status: 404, message: 'This need no longer exists.' },
+      'ALREADY_ASSIGNED': { status: 409, message: 'This mission has already been accepted by another volunteer.' },
+      'NO_BROADCAST': { status: 404, message: 'No valid broadcast request found for this need.' },
+      'BROADCAST_EXPIRED': { status: 410, message: 'The 30-minute broadcast window has expired.' },
+    };
+
+    const known = knownErrors[err.message];
+    if (known) {
+      return res.status(known.status).json({ message: known.message });
+    }
+
+    console.error('[BROADCAST] Accept error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @route   POST /api/tasks/reject-broadcast
+ * @desc    Volunteer rejects a broadcast request (hides it from their view)
+ * @access  Private (Volunteer)
+ */
+router.post('/reject-broadcast', auth, async (req, res) => {
+  const { need_id } = req.body;
+
+  if (!need_id) {
+    return res.status(400).json({ message: 'need_id is required' });
+  }
+
+  try {
+    const updated = await prisma.broadcastRequest.updateMany({
+      where: {
+        needId: need_id,
+        volunteerId: req.user.id,
+        status: 'pending',
+      },
+      data: { status: 'rejected' },
+    });
+
+    if (updated.count === 0) {
+      return res.status(404).json({ message: 'No pending broadcast found for this need.' });
+    }
+
+    res.json({ message: 'Broadcast rejected' });
+  } catch (err) {
+    console.error('[BROADCAST] Reject error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @route   GET /api/tasks/broadcast-status/:needId
+ * @desc    Get broadcast status for a specific need (for coordinator dashboard)
+ * @access  Private (Coordinator)
+ */
+router.get('/broadcast-status/:needId', auth, async (req, res) => {
+  if (req.user.role !== 'coordinator') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  try {
+    const broadcasts = await prisma.$queryRaw`
+      SELECT
+        br.id,
+        br.status,
+        br.distance_km,
+        br.created_at,
+        br.expires_at,
+        u.name AS volunteer_name
+      FROM broadcast_requests br
+      JOIN users u ON br.volunteer_id = u.id
+      WHERE br.need_id = ${req.params.needId}::uuid
+      ORDER BY br.created_at DESC
+    `;
+
+    const summary = {
+      total: broadcasts.length,
+      pending: broadcasts.filter(b => b.status === 'pending').length,
+      accepted: broadcasts.filter(b => b.status === 'accepted').length,
+      rejected: broadcasts.filter(b => b.status === 'rejected').length,
+      expired: broadcasts.filter(b => b.status === 'expired').length,
+      expiresAt: broadcasts[0]?.expires_at || null,
+      volunteers: broadcasts,
+    };
+
+    res.json(summary);
+  } catch (err) {
+    console.error('[BROADCAST] Status error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

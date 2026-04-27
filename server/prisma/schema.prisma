@@ -85,6 +85,7 @@ model User {
   assignedTasks      Task[]              @relation("AssignedTasks")
   volunteerRequests  VolunteerRequest[]  @relation("UserVolunteerRequests")
   reviewedRequests   VolunteerRequest[]  @relation("ReviewedByCoordinator")
+  broadcastRequests  BroadcastRequest[]  @relation("BroadcastRequests")
 
   @@map("users")
 }
@@ -135,6 +136,7 @@ model Need {
 
   reporter User?  @relation("ReportedNeeds", fields: [reportedBy], references: [id], onDelete: SetNull)
   tasks    Task[]
+  broadcastRequests BroadcastRequest[]
 
   @@map("needs")
 }
@@ -158,6 +160,24 @@ model Task {
 
   @@index([assignedVolunteerId])
   @@map("tasks")
+}
+
+model BroadcastRequest {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  needId      String   @map("need_id") @db.Uuid
+  volunteerId String   @map("volunteer_id") @db.Uuid
+  status      String   @default("pending") // pending, accepted, rejected, expired
+  distanceKm  Float?   @map("distance_km")
+  createdAt   DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime @map("expires_at")
+
+  need      Need @relation(fields: [needId], references: [id], onDelete: Cascade)
+  volunteer User @relation("BroadcastRequests", fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([needId, volunteerId])
+  @@index([volunteerId, status])
+  @@index([needId, status])
+  @@map("broadcast_requests")
 }
 
 model CoordinatorEmail {

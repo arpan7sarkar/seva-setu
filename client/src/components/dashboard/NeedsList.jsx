@@ -141,7 +141,15 @@ const NeedsList = ({
                 </td>
                 <td>{need.people_affected || 0}</td>
                 <td>
-                  <StatusPill status={need.status} />
+                  <div className="flex flex-col gap-1.5 items-start">
+                    <StatusPill status={need.status} />
+                    {Number(need.pending_broadcasts) > 0 && (
+                      <span className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-accent-rose/10 text-accent-rose border border-accent-rose/20 animate-pulse">
+                        <svg xmlns="http://www.w3.org/0000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        {Number(need.pending_broadcasts)} Notified
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td>{formatElapsed(need.created_at)}</td>
                 <td>

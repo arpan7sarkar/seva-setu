@@ -76,6 +76,104 @@ const findMatches = async (needId) => {
     .slice(0, 5);
 };
 
+/**
+ * Find all available volunteers within a given radius for broadcast dispatch.
+ * Unlike findMatches (which ranks top 5), this returns ALL candidates for mass notification.
+ * @param {string} needId - The ID of the community need
+ * @param {number} radiusKm - Search radius in km (default 6, max 15)
+ * @returns {Array} List of volunteer candidates with distance
+ */
+const findBroadcastCandidates = async (needId, radiusKm = 6) => {
+  const cappedRadius = Math.min(Math.max(radiusKm, 1), 15);
+  const radiusMeters = cappedRadius * 1000;
+
+  // 1. Get need location
+  const needRows = await prisma.$queryRaw`
+    SELECT id, title, need_type,
+           ST_X(location::geometry) as lng,
+           ST_Y(location::geometry) as lat
+    FROM needs
+    WHERE id = ${needId}::uuid
+  `;
+
+  if (!needRows || needRows.length === 0) throw new Error('Need not found');
+  const need = needRows[0];
+  const { lat, lng } = need;
+
+  if (!lat || !lng) throw new Error('Need has no location data');
+
+  // 2. Find all available volunteers within radius
+  const candidates = await prisma.$queryRaw`
+    SELECT
+      u.id,
+      u.name,
+      v.skills,
+      ST_Distance(
+        v.location::geography,
+        ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography
+      ) / 1000 AS distance_km
+    FROM volunteers v
+    JOIN users u ON v.user_id = u.id
+    WHERE v.is_available = true
+      AND v.location IS NOT NULL
+      AND ST_DWithin(
+        v.location::geography,
+        ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography,
+        ${radiusMeters}::float
+      )
+    ORDER BY v.location <-> ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)
+  `;
+
+  return candidates.map(c => ({
+    ...c,
+    distance_km: Number(c.distance_km) || 0,
+  }));
+};
+
+/**
+ * Trigger a broadcast for a newly created/verified need.
+ * Creates BroadcastRequest records for all nearby volunteers with a 30-minute window.
+ * @param {string} needId - The need to broadcast
+ * @param {number} radiusKm - Search radius (default 6)
+ * @returns {{ count: number, expiresAt: Date }} Number of volunteers notified and expiration
+ */
+const triggerBroadcast = async (needId, radiusKm = 6) => {
+  const candidates = await findBroadcastCandidates(needId, radiusKm);
+
+  if (candidates.length === 0) {
+    console.log(`[BROADCAST] No volunteers found within ${radiusKm}km for need ${needId}`);
+    return { count: 0, expiresAt: null };
+  }
+
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+  // Bulk create broadcast requests (skip duplicates via upsert-like logic)
+  const created = await Promise.allSettled(
+    candidates.map(candidate =>
+      prisma.broadcastRequest.create({
+        data: {
+          needId,
+          volunteerId: candidate.id,
+          status: 'pending',
+          distanceKm: candidate.distance_km,
+          expiresAt,
+        },
+      }).catch(err => {
+        // Silently skip if duplicate (unique constraint on needId+volunteerId)
+        if (err.code === 'P2002') return null;
+        throw err;
+      })
+    )
+  );
+
+  const successCount = created.filter(r => r.status === 'fulfilled' && r.value !== null).length;
+  console.log(`[BROADCAST] 📡 Notified ${successCount} volunteers for need ${needId} (expires: ${expiresAt.toISOString()})`);
+
+  return { count: successCount, expiresAt };
+};
+
 module.exports = {
   findMatches,
+  findBroadcastCandidates,
+  triggerBroadcast,
 };
