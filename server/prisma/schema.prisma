@@ -129,6 +129,8 @@ model Need {
   status                 NeedStatus @default(pending)
   rejectionReason        String?    @map("rejection_reason")
   isDisasterZone         Boolean    @default(false) @map("is_disaster_zone")
+  dispatchReminded       Boolean    @default(false) @map("dispatch_reminded")
+  isEscalated            Boolean    @default(false) @map("is_escalated")
   reportedBy             String?    @map("reported_by") @db.Uuid
   createdAt              DateTime   @default(now()) @map("created_at")
   updatedAt              DateTime   @default(now()) @updatedAt @map("updated_at")

@@ -5,6 +5,58 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 /**
+ * @route   POST /api/tasks/accept
+ * @desc    Volunteer accepts an open need (First-Come, First-Serve)
+ * @access  Private (Volunteer)
+ */
+router.post('/accept', auth, async (req, res) => {
+  const { need_id } = req.body;
+  const volunteer_id = req.user.id;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Fetch Need with row lock (prevent race conditions)
+      // Note: Prisma raw queries don't easily return structured row locks in a way that maps
+      // to the tx context cleanly, so we use findFirst and check status. If another tx
+      // updates it, the status check will fail. For stronger locking we could use FOR UPDATE.
+      const need = await tx.$queryRaw`SELECT status FROM needs WHERE id = ${need_id}::uuid FOR UPDATE`;
+      
+      if (!need || need.length === 0) {
+        throw new Error('Need not found');
+      }
+
+      if (need[0].status !== 'pending' && need[0].status !== 'open') {
+        throw new Error('Task already accepted by another volunteer');
+      }
+
+      // 2. Assign to volunteer
+      const task = await tx.task.create({
+        data: {
+          needId: need_id,
+          assignedVolunteerId: volunteer_id,
+          status: 'assigned',
+          assignedAt: new Date(),
+        },
+      });
+
+      // 3. Update need status
+      await tx.need.update({
+        where: { id: need_id },
+        data: { status: 'assigned', updatedAt: new Date() },
+        select: { id: true }
+      });
+
+      return task;
+    });
+
+    res.json({ message: 'Task accepted successfully!', task: result });
+  } catch (err) {
+    console.error('[Accept Task]', err.message);
+    res.status(400).json({ message: err.message || 'Server error' });
+  }
+});
+
+/**
  * @route   POST /api/tasks
  * @desc    Assign a volunteer to a need
  * @access  Private (Coordinator)

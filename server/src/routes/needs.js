@@ -176,6 +176,14 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       WHERE id = ${needId}::uuid
       LIMIT 1
     `;
+
+    // Trigger auto-dispatch broadcast
+    if (finalStatus === 'open' || finalStatus === 'pending') {
+      const { broadcastToNearbyVolunteers } = require('../services/dispatchService');
+      // Fire-and-forget broadcast (doesn't await so we don't block the response)
+      broadcastToNearbyVolunteers(needId).catch(err => console.error('[Broadcast Error]', err));
+    }
+
     res.status(201).json(fullNeeds[0]);
   } catch (err) {
     console.error(err);

@@ -59,6 +59,10 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
+// ── Initialize Background Jobs ───────────────────────────────────────
+require('./jobs/dispatchCron');
+
+
 // ── Start Server ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`🌉 SevaSetu server running on http://localhost:${PORT}`);
