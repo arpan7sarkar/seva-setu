@@ -7,7 +7,7 @@
 const express = require('express');
 const { GoogleGenAI } = require('@google/genai');
 const auth = require('../middleware/auth');
-const { getSystemPrompt } = require('../services/chatService');
+const { getSystemPrompt, isJailbreakAttempt } = require('../services/chatService');
 
 const router = express.Router();
 
@@ -31,6 +31,20 @@ router.post('/', auth, async (req, res) => {
 
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Message is required.' });
+  }
+
+  // ── Guard: message length cap (prevent prompt injection via huge inputs)
+  if (message.length > 2000) {
+    return res.status(400).json({ error: 'Message is too long. Please keep it under 2000 characters.' });
+  }
+
+  // ── Guard: pre-flight jailbreak detection (before calling Gemini)
+  if (isJailbreakAttempt(message)) {
+    console.warn(`[SevaBot] Jailbreak attempt blocked from user ${req.user?.id} (${req.user?.role}): "${message.substring(0, 80)}..."`);
+    return res.json({
+      reply: "I'm SevaBot, here to help with SevaSetu platform questions and disaster relief assistance. I'm not able to help with that — is there something I can assist you with on the platform?",
+      role: req.user.role
+    });
   }
 
   try {
