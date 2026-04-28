@@ -5,6 +5,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Logo from './components/Logo';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import ChatWidget from './components/ChatWidget';
+
 // Lazy load all pages for performance and consistent bundle chunking
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -121,6 +123,7 @@ function App() {
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          <ChatWidget />
         </Suspense>
       </Router>
     </ErrorBoundary>
