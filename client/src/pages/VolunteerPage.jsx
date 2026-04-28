@@ -12,6 +12,7 @@ import {
   ToggleRight,
   X,
   Navigation,
+  Upload,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { useVolunteerApp, haversineKm } from '../hooks/useVolunteerApp';
@@ -44,6 +45,7 @@ const VolunteerPage = () => {
 
   const [selectedFiles, setSelectedFiles] = useState({}); // { taskId: { file, preview } }
   const [verificationErrors, setVerificationErrors] = useState({}); // { taskId: message }
+  const galleryInputRefs = useRef({}); // { taskId: HTMLInputElement }
 
   const handleFileChange = async (taskId, file, hasGps) => {
     if (!file) return;
@@ -414,19 +416,61 @@ const VolunteerPage = () => {
                       {/* PRIMARY ACTION BUTTONS */}
                       <div className="mt-4 pb-2" style={{ width: '100%' }}>
                         {!selectedFiles[task.task_id] ? (
-                          <button
-                            type="button"
-                            className="btn-primary w-full"
-                            style={{ minHeight: '50px' }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setActiveCameraTask(task.task_id);
-                            }}
-                            disabled={busyTaskId === task.task_id}
-                          >
-                            <ShieldCheck className="w-4 h-4" />
-                            Capture Proof
-                          </button>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {/* Option 1: Live Camera */}
+                            <button
+                              type="button"
+                              className="btn-primary w-full"
+                              style={{ minHeight: '50px' }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setActiveCameraTask(task.task_id);
+                              }}
+                              disabled={busyTaskId === task.task_id}
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                              Capture Proof
+                            </button>
+
+                            {/* Divider */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0.15rem 0' }}>
+                              <div style={{ flex: 1, height: 1, background: 'rgba(15, 23, 29, 0.08)' }} />
+                              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>or</span>
+                              <div style={{ flex: 1, height: 1, background: 'rgba(15, 23, 29, 0.08)' }} />
+                            </div>
+
+                            {/* Option 2: Gallery Upload */}
+                            <input
+                              ref={el => { galleryInputRefs.current[task.task_id] = el; }}
+                              type="file"
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  handleFileChange(task.task_id, e.target.files[0]);
+                                }
+                                e.target.value = '';
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                galleryInputRefs.current[task.task_id]?.click();
+                              }}
+                              disabled={busyTaskId === task.task_id}
+                              style={{
+                                width: '100%', minHeight: '50px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                                padding: '0.75rem 1rem', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
+                                border: '2px dashed rgba(71, 85, 105, 0.2)', background: 'rgba(71, 85, 105, 0.02)',
+                                color: '#475569', fontWeight: 700, fontSize: '0.875rem',
+                              }}
+                            >
+                              <Upload style={{ width: 16, height: 16 }} />
+                              Upload from Gallery
+                            </button>
+                          </div>
                         ) : (
                           <button
                             type="button"
