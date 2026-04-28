@@ -16,17 +16,52 @@ const authRoutes = require('./routes/auth');
 const needsRoutes = require('./routes/needs');
 
 // ── Middleware ────────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5133',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL, // Render frontend URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173', 
-    'http://localhost:5133', 
-    'http://127.0.0.1:5173', 
-    'http://localhost:3000'
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(o => origin.startsWith(o)) || 
+                      process.env.NODE_ENV === 'development';
+                      
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
 app.use('/uploads', express.static(require('path').join(__dirname, '../uploads')));
+
+// ── Root Route for Deployment Testing ───────────────────────────────
+app.get('/', async (req, res) => {
+  let dbStatus = 'checking...';
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbStatus = 'connected';
+  } catch (err) {
+    dbStatus = 'failed: ' + err.message;
+  }
+
+  res.json({
+    message: '🌉 SevaSetu API is live!',
+    db: dbStatus,
+    env: process.env.NODE_ENV || 'production',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
 
 // ── Use Routes ───────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);

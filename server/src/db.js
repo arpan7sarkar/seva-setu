@@ -5,15 +5,18 @@
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  log: ['info', 'warn', 'error'],
 });
 
 // Immediate connection check on startup
+console.log('--- Initializing Database Connection ---');
 prisma.$connect()
-  .then(() => console.log('Successfully connected to Neon Database'))
+  .then(() => {
+    console.log('✅ SUCCESS: Connected to Database');
+  })
   .catch((err) => {
-    console.error('FAILED to connect to Neon Database on startup:', err.message);
-    console.error('Action Required: Check your internet connection or DATABASE_URL in .env');
+    console.error('❌ FATAL: Database connection failed!');
+    console.error('Error Details:', err.message);
   });
 
 module.exports = prisma;
