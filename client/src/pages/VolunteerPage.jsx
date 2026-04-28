@@ -113,9 +113,9 @@ const VolunteerPage = () => {
           <p className="landing-eyebrow">Volunteer Workspace v2.1</p>
           <h1 className="volunteer-title">Mobile mission console for field execution.</h1>
           <div className="flex gap-4 mt-2 text-[10px] font-mono text-text-muted opacity-50">
-            <span>LAT: {volunteerCoords?.lat?.toFixed(5) || 'N/A'}</span>
+            {/* <span>LAT: {volunteerCoords?.lat?.toFixed(5) || 'N/A'}</span>
             <span>LNG: {volunteerCoords?.lng?.toFixed(5) || 'N/A'}</span>
-            <span>ACC: {distanceCoveredKm.toFixed(2)}km</span>
+            <span>ACC: {distanceCoveredKm.toFixed(2)}km</span> */}
           </div>
           <p className="volunteer-subtitle">
             Stay available, check in at incident sites, and close tasks with live status sync.
@@ -180,10 +180,40 @@ const VolunteerPage = () => {
 
         {!loading && !error ? (
           <section className="volunteer-task-list">
-            {tasks.map((task) => (
+            {tasks.map((task) => {
+              const formatAssignedTime = (dateString) => {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                const diffDaysCal = Math.floor((today - taskDate) / (1000 * 60 * 60 * 24));
+                
+                if (diffDaysCal === 0) {
+                  if (diffHours === 0) {
+                    const diffMins = Math.floor(diffTime / (1000 * 60));
+                    return diffMins <= 1 ? 'Just now' : `${diffMins} mins ago`;
+                  }
+                  return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+                } else if (diffDaysCal === 1) {
+                  return 'Yesterday';
+                } else {
+                  return date.toLocaleDateString();
+                }
+              };
+
+              return (
               <article key={task.task_id} className="card volunteer-task-card">
                 <div className="volunteer-task-header">
-                  <p className="font-semibold text-text-primary">{task.title}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <p className="font-semibold text-text-primary">{task.title}</p>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', background: 'var(--color-surface-secondary)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                      • {formatAssignedTime(task.assigned_at)}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     {task.is_completion_verified && (
                       <span className="badge-verified flex items-center gap-1">
@@ -444,7 +474,8 @@ const VolunteerPage = () => {
                   ) : null}
                 </div>
               </article>
-            ))}
+            );
+          })}
 
             {tasks.length === 0 ? (
               <article className="card volunteer-empty">

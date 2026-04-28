@@ -31,7 +31,7 @@ export const useCoordinatorDashboard = () => {
 
   useEffect(() => {
     if (!toast) return undefined;
-    const timer = setTimeout(() => setToast(null), 2500);
+    const timer = setTimeout(() => setToast(null), 4800); // slightly less than 5s so React unmounts right as animation ends
     return () => clearTimeout(timer);
   }, [toast]);
 
@@ -110,7 +110,7 @@ export const useCoordinatorDashboard = () => {
     const openNeeds = needs.filter((n) => n.status === 'open').length;
     const activeVolunteers = volunteers.filter((v) => v.is_available).length;
     const totalUsers = systemStats.totalUsers || 0;
-    const completedToday = needs.filter((n) => n.status === 'completed').length;
+    const completedToday = systemStats.completedToday || 0;
 
     return { openNeeds, activeVolunteers, totalUsers, completedToday };
   }, [needs, volunteers, systemStats]);

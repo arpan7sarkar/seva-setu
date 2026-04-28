@@ -48,7 +48,11 @@ export const useVolunteerApp = () => {
   const lastUpdatePos = useRef(null);
 
   const showToast = useCallback((message, type = 'success') => {
-    setToast({ message, type, id: Date.now() });
+    const id = Date.now();
+    setToast({ message, type, id });
+    setTimeout(() => {
+      setToast(prev => (prev?.id === id ? null : prev));
+    }, 4800);
   }, []);
 
   const loadData = useCallback(async () => {
@@ -95,9 +99,9 @@ export const useVolunteerApp = () => {
           const { latitude, longitude, heading, accuracy } = pos.coords;
           console.log(`[GPS-LOG] Raw coords: lat=${latitude}, lng=${longitude}, accuracy=${accuracy}m`);
 
-          // Filter out low-accuracy (often IP-based) coordinates
-          if (accuracy && accuracy > 1000) {
-            console.warn(`[GPS] Accuracy extremely low: ${accuracy}m. Skipping.`);
+          // Filter out low-accuracy coordinates (prevents flickering from IP/cell tower jumps)
+          if (accuracy > 100) {
+            console.warn(`[GPS] Accuracy extremely low: ${accuracy}m. Waiting for better signal...`);
             return resolve(null);
           }
 
@@ -229,10 +233,35 @@ export const useVolunteerApp = () => {
 
   useEffect(() => {
     if (!availability && activeTasks.length === 0) return;
-    pushCurrentLocation();
-    const interval = setInterval(pushCurrentLocation, 5000);
-    return () => clearInterval(interval);
-  }, [availability, activeTasks.length, pushCurrentLocation]);
+
+    // Use watchPosition instead of polling to prevent flickering and use OS-level GPS stabilization
+    const watchId = navigator.geolocation.watchPosition(
+      async (pos) => {
+        const { latitude, longitude, heading, accuracy } = pos.coords;
+        console.log(`[GPS-WATCH] Raw coords: lat=${latitude}, lng=${longitude}, accuracy=${accuracy}m`);
+
+        // Strict filter: Ignore coordinates with low accuracy to prevent map flickering
+        if (accuracy > 100) return;
+
+        const newCoords = { lat: latitude, lng: longitude, heading, accuracy };
+
+        // JITTER FILTER: Ignore shifts smaller than 10 meters
+        if (lastUpdatePos.current) {
+          const drift = haversineKm(newCoords, lastUpdatePos.current);
+          if (drift < 0.010) return;
+        }
+
+        lastUpdatePos.current = newCoords;
+        gpsLocked.current = true;
+        setVolunteerCoords(newCoords);
+        await updateMyLocation(newCoords).catch((e) => console.error('[GPS] Update failed:', e));
+      },
+      (err) => console.warn('[GPS] Watch error:', err.message),
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [availability, activeTasks.length]);
 
   // --- 5. Browser Close Detection (Beacon "Go Offline" Signal) ---
   useEffect(() => {

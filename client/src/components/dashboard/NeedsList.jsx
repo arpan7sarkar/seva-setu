@@ -86,17 +86,7 @@ const NeedsList = ({
               >
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
-                      {need.image_url ? (
-                        <img 
-                          src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${need.image_url}`} 
-                          alt="Evidence"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">No Pix</div>
-                      )}
-                    </div>
+
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

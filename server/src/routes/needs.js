@@ -385,15 +385,14 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(400).json({ message: 'Only completed or rejected issues can be deleted.' });
     }
 
-    // Delete related tasks first, then the need itself
-    // Use select: { id: true } to avoid fetching geometry column
-    await prisma.task.deleteMany({ where: { needId: req.params.id } });
-    await prisma.need.delete({
+    // Soft delete by marking as archived to preserve historical stats
+    await prisma.need.update({
       where: { id: req.params.id },
+      data: { status: 'archived', updatedAt: new Date() },
       select: { id: true },
     });
 
-    res.json({ message: 'Need deleted successfully' });
+    res.json({ message: 'Need archived successfully' });
   } catch (err) {
     console.error('[DELETE /needs/:id]', err);
     res.status(500).json({ message: 'Server error', details: err.message });

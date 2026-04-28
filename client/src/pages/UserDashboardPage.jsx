@@ -171,7 +171,7 @@ const UserDashboardPage = () => {
               {applicationStatus === 'approved' && (
                 <button
                   type="button"
-                  className="btn-success"
+                  className="bg-accent-moss hover:bg-accent-moss-dark text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-accent-moss/20"
                   style={{ marginTop: '1rem' }}
                   onClick={() => {
                     localStorage.removeItem('dbRole');
