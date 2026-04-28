@@ -9,12 +9,17 @@ try {
 const prisma = require('../db');
 const { calculateScore } = require('../services/scoringService');
 
-const { MessagingResponse } = twilio.twiml;
+// Safe destructuring
+const MessagingResponse = twilio?.twiml?.MessagingResponse;
 
 // Middleware to parse Twilio's webhook body
 router.use(express.urlencoded({ extended: true }));
 
 router.post('/webhook', async (req, res) => {
+  if (!MessagingResponse) {
+    console.error('WhatsApp Webhook received but MessagingResponse is not loaded.');
+    return res.status(503).send('Messaging service temporarily unavailable');
+  }
   const twiml = new MessagingResponse();
   const incomingMsg = req.body.Body?.trim() || '';
   const fromNumber = req.body.From;
