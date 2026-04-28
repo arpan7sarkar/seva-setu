@@ -100,6 +100,31 @@ export default function ChatWidget() {
             </div>
           </div>
 
+          {/* Quick Suggestions */}
+          {messages.length === 1 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '12px 16px 0 16px' }}>
+              {[
+                'Check my report status',
+                'How do I report an incident?',
+                'What should I do in a flood?',
+                'How many open needs today?'
+              ].map(suggestion => (
+                <button
+                  key={suggestion}
+                  onClick={() => { setInput(suggestion); }}
+                  style={{
+                    background: '#f0faf5', border: '1px solid #2d6148',
+                    color: '#2d6148', borderRadius: '20px',
+                    padding: '6px 12px', fontSize: '12px',
+                    cursor: 'pointer', whiteSpace: 'nowrap'
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Messages */}
           <div style={{
             flex: 1, overflowY: 'auto', padding: '16px',
