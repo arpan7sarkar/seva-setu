@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const twilio = require('twilio');
+let twilio;
+try {
+  twilio = require('twilio');
+} catch (err) {
+  console.error('CRITICAL: Twilio module failed to load. WhatsApp features will be disabled.', err.message);
+}
 const prisma = require('../db');
 const { calculateScore } = require('../services/scoringService');
 
