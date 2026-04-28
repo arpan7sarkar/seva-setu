@@ -41,6 +41,7 @@ const DashboardPage = () => {
   } = useCoordinatorDashboard();
 
   console.log("DEBUG DASHBOARD: deleteNeed type is", typeof deleteNeed);
+  console.log("DEBUG API: Connecting to", import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api');
 
   return (
     <MainLayout>
