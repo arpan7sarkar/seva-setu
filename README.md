@@ -1,4 +1,4 @@
-# 🌉 SevaSetu: AI-Driven Disaster Response & Humanitarian Logistics
+# SevaSetu: AI-Driven Disaster Response & Humanitarian Logistics
 
 > **Our Mission:** To eliminate "Information Chaos" in disaster management. SevaSetu is a high-integrity platform that leverages Geo-Spatial Mathematics, Computer Vision, and Real-Time Orchestration to connect distress signals with verified relief with absolute transparency.
 
