@@ -15,32 +15,33 @@ const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/auth');
 const needsRoutes = require('./routes/needs');
 
-// ── Middleware ────────────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:5133',
-  'http://127.0.0.1:5173',
   'http://localhost:3000',
-  process.env.FRONTEND_URL, // Render frontend URL
+  'https://seva-setu-ai.vercel.app', // Your production frontend
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.some(o => origin.startsWith(o)) || 
-                      process.env.NODE_ENV === 'development';
-                      
-    if (isAllowed) {
+    // Allow any origin during this debugging phase, or if it's in our list
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o)) || true) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// ── Request Logger ──────────────────────────────────────────────────
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+  next();
+});
+
 app.use(express.json());
 app.use('/uploads', express.static(require('path').join(__dirname, '../uploads')));
 
@@ -80,15 +81,26 @@ app.get('/api/health', async (req, res) => {
     res.json({
       status: 'ok',
       timestamp: result[0].server_time,
-      environment: process.env.NODE_ENV || 'development',
+      environment: process.env.NODE_ENV || 'production',
     });
   } catch (err) {
+    console.error('[HEALTH] DB check failed:', err.message);
     res.status(500).json({
       status: 'error',
       message: 'Database connection failed',
       error: err.message,
     });
   }
+});
+
+// ── Global Error Handler ─────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('[SERVER-ERROR] Uncaught exception:', err);
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: err.message, // Temporarily expose to debug production
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // ── Graceful Shutdown ────────────────────────────────────────────────
@@ -105,11 +117,15 @@ process.on('SIGTERM', async () => {
 const { startReBroadcastJob } = require('./jobs/reBroadcast');
 
 // ── Start Cron Jobs ──────────────────────────────────────────────────
-startReBroadcastJob();
+try {
+  startReBroadcastJob();
+} catch (cronErr) {
+  console.error('[CRON] Failed to start re-broadcast job:', cronErr);
+}
 
 // ── Start Server ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🌉 SevaSetu server running on http://localhost:${PORT}`);
+  console.log(`🌉 SevaSetu server running on port ${PORT}`);
   console.log(`   Health check: http://localhost:${PORT}/api/health`);
 });
 
