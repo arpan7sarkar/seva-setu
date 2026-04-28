@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   MapPin, Send, Users, AlertTriangle,
   CheckCircle2, Crosshair, Loader2, Clock3, Camera, X,
-  Navigation, ShieldCheck, Heart, Utensils, Home, Anchor, Package
+  Navigation, ShieldCheck, Heart, Utensils, Home, Anchor, Package, Upload
 } from 'lucide-react';
 import { useFieldForm } from '../hooks/useFieldForm';
 import MainLayout from '../layouts/MainLayout';
@@ -10,6 +10,7 @@ import CameraWatermark from '../components/CameraWatermark';
 
 const FieldForm = () => {
   const [showCamera, setShowCamera] = useState(false);
+  const galleryInputRef = useRef(null);
   const {
     formData, loading, locLoading, success, successMessage,
     error, isOnline, queuedCount, syncingQueue, urgencyPreview,
@@ -301,7 +302,7 @@ const FieldForm = () => {
                     <span style={{ width: 4, height: 14, background: '#2d6148', borderRadius: 9999, display: 'inline-block' }} />
                     Visual Evidence
                   </h2>
-                  <p style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.2rem' }}>Live Capture Only</p>
+                  <p style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.2rem' }}>Live Capture or Gallery Upload</p>
                 </div>
 
                 {formData.imageFile ? (
@@ -321,22 +322,62 @@ const FieldForm = () => {
                     </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowCamera(true)}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
-                      padding: '1.5rem', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
-                      border: '2px dashed rgba(45, 97, 72, 0.3)', background: 'rgba(45, 97, 72, 0.03)',
-                      color: '#2d6148', flex: 1,
-                    }}
-                  >
-                    <Camera style={{ width: 22, height: 22 }} />
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Live GPS Camera</div>
-                      <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.7 }}>Mandatory · Anti-Fraud</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {/* Option 1: Live Camera */}
+                    <button
+                      type="button"
+                      onClick={() => setShowCamera(true)}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+                        padding: '1.15rem', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
+                        border: '2px dashed rgba(45, 97, 72, 0.3)', background: 'rgba(45, 97, 72, 0.03)',
+                        color: '#2d6148',
+                      }}
+                    >
+                      <Camera style={{ width: 22, height: 22 }} />
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Live GPS Camera</div>
+                        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.7 }}>Recommended · Anti-Fraud</div>
+                      </div>
+                    </button>
+
+                    {/* Divider */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(15, 23, 29, 0.08)' }} />
+                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>or</span>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(15, 23, 29, 0.08)' }} />
                     </div>
-                  </button>
+
+                    {/* Option 2: Gallery Upload */}
+                    <input
+                      ref={galleryInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          updateField('imageFile', e.target.files[0]);
+                        }
+                        e.target.value = ''; // reset so same file can be re-selected
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+                        padding: '1.15rem', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
+                        border: '2px dashed rgba(71, 85, 105, 0.2)', background: 'rgba(71, 85, 105, 0.02)',
+                        color: '#475569',
+                      }}
+                    >
+                      <Upload style={{ width: 20, height: 20 }} />
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Upload from Gallery</div>
+                        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.7 }}>Choose a file from your device</div>
+                      </div>
+                    </button>
+                  </div>
                 )}
               </div>
 
