@@ -16,7 +16,15 @@ const authRoutes = require('./routes/auth');
 const needsRoutes = require('./routes/needs');
 
 // ── Middleware ────────────────────────────────────────────────────────
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:5133', 
+    'http://127.0.0.1:5173', 
+    'http://localhost:3000'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(require('path').join(__dirname, '../uploads')));
 
@@ -58,6 +66,11 @@ process.on('SIGTERM', async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
+
+const { startReBroadcastJob } = require('./jobs/reBroadcast');
+
+// ── Start Cron Jobs ──────────────────────────────────────────────────
+startReBroadcastJob();
 
 // ── Start Server ─────────────────────────────────────────────────────
 app.listen(PORT, () => {

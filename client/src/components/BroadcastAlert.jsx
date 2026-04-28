@@ -29,62 +29,86 @@ const BroadcastAlert = ({ broadcast, onAccept, onReject, isBusy }) => {
     return () => clearInterval(intervalId);
   }, [broadcast.expires_at]);
 
+  const [loadingAction, setLoadingAction] = useState(null);
+
   if (isExpired) return null;
 
+  const handleAccept = async () => {
+    setLoadingAction('accept');
+    try {
+      await onAccept(broadcast.need_id);
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleReject = async () => {
+    setLoadingAction('reject');
+    try {
+      await onReject(broadcast.need_id);
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   return (
-    <article className="card bg-white border-2 border-accent-rose shadow-xl mb-6">
-      <div className="flex gap-3 mb-4">
-        <div className="bg-accent-rose/10 p-2 rounded-lg h-fit">
-          <AlertTriangle className="w-6 h-6 text-accent-rose animate-pulse" />
+    <article className="card bg-white border-2 border-accent-rose shadow-[0_20px_50px_rgba(244,63,94,0.1)] mb-6 overflow-hidden">
+      <div className="bg-accent-rose-light/50 px-6 py-4 flex items-center justify-between border-b border-accent-rose/10">
+        <div className="flex items-center gap-3">
+          <div className="bg-accent-rose p-1.5 rounded-lg shadow-lg shadow-accent-rose/20">
+            <AlertTriangle className="w-5 h-5 text-white animate-pulse" />
+          </div>
+          <h3 className="font-extrabold text-accent-rose uppercase tracking-tight text-sm">Emergency Dispatch</h3>
         </div>
-        <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <h3 className="font-bold text-lg text-text-primary">Emergency Dispatch</h3>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-rose/10 border border-accent-rose/20 text-accent-rose text-xs font-bold font-mono">
-              <Clock className="w-3.5 h-3.5" />
-              {timeLeft}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-accent-rose/20 text-accent-rose text-xs font-black font-mono shadow-sm">
+          <Clock className="w-3.5 h-3.5" />
+          {timeLeft}
+        </div>
+      </div>
+
+      <div className="px-6 py-5">
+        <p className="text-xl font-bold text-text-primary leading-tight mb-4">{broadcast.title}</p>
+        
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-surface-secondary rounded-2xl p-4 flex items-center gap-3 border border-border">
+            <div className="bg-white p-2 rounded-xl shadow-sm">
+              <MapPin className="w-4 h-4 text-accent-moss" />
+            </div>
+            <div>
+              <span className="block text-text-muted text-[10px] uppercase font-black tracking-widest mb-0.5">Distance</span>
+              <span className="text-text-primary font-extrabold text-lg">{broadcast.distance_km?.toFixed(2) || '?'} km</span>
             </div>
           </div>
-          <p className="text-text-secondary font-medium mt-1">{broadcast.title}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 mb-5">
-        <div className="bg-surface-secondary rounded-lg p-2.5 flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-text-muted" />
-          <div className="text-sm">
-            <span className="block text-text-muted text-[10px] uppercase font-bold tracking-wider">Distance</span>
-            <span className="text-text-primary font-bold">{broadcast.distance_km?.toFixed(2) || '?'} km away</span>
+          <div className="bg-surface-secondary rounded-2xl p-4 border border-border">
+            <span className="block text-text-muted text-[10px] uppercase font-black tracking-widest mb-1.5">Type & Urgency</span>
+            <div className="flex items-center gap-2">
+              <span className="capitalize text-text-primary font-bold">{broadcast.need_type}</span>
+              <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-accent-rose text-white shadow-sm shadow-accent-rose/20">
+                {Number(broadcast.urgency_score || 0).toFixed(1)}
+              </span>
+            </div>
           </div>
         </div>
-        <div className="bg-surface-secondary rounded-lg p-2.5 flex flex-col justify-center">
-          <span className="block text-text-muted text-[10px] uppercase font-bold tracking-wider">Type / Urgency</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="capitalize text-text-primary text-sm font-medium">{broadcast.need_type}</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface-tertiary text-text-primary">
-              {Number(broadcast.urgency_score || 0).toFixed(1)}
-            </span>
-          </div>
-        </div>
-      </div>
 
-      <div className="flex gap-3">
-        <button
-          onClick={() => onAccept(broadcast.need_id)}
-          disabled={isBusy === broadcast.need_id}
-          className="flex-1 btn-success flex justify-center items-center gap-2"
-        >
-          {isBusy === broadcast.need_id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-          Accept Mission
-        </button>
-        <button
-          onClick={() => onReject(broadcast.need_id)}
-          disabled={isBusy === broadcast.need_id}
-          className="flex-1 py-2.5 px-4 rounded-lg font-bold text-sm bg-surface-tertiary hover:bg-surface-secondary text-text-primary transition-colors flex justify-center items-center gap-2"
-        >
-          {isBusy === broadcast.need_id ? <Loader2 className="w-4 h-4 animate-spin text-text-muted" /> : <X className="w-4 h-4 text-text-muted" />}
-          Decline
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleAccept}
+            disabled={isBusy === broadcast.need_id}
+            className="flex-[2] shadow-xl shadow-accent-moss/20 flex justify-center items-center gap-2 py-4 rounded-2xl text-base font-black transition-all transform hover:-translate-y-1 active:scale-95"
+            style={{ backgroundColor: '#2d6148', color: '#ffffff', border: 'none' }}
+          >
+            {loadingAction === 'accept' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-6 h-6" />}
+            Accept Mission
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={isBusy === broadcast.need_id}
+            className="flex-1 py-4 px-6 rounded-2xl font-bold text-sm bg-surface-secondary hover:bg-surface-hover text-text-secondary border border-border transition-all flex justify-center items-center gap-2"
+          >
+            {loadingAction === 'reject' ? <Loader2 className="w-4 h-4 animate-spin text-text-muted" /> : <X className="w-4 h-4" />}
+            Decline
+          </button>
+        </div>
       </div>
     </article>
   );

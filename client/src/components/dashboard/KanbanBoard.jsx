@@ -104,18 +104,8 @@ const KanbanBoard = ({ needs, tasks, onDispatch, onUpdateTask, onDelete }) => {
                         Dispatch
                       </button>
                     )}
-                    {laneKey === 'assigned' && task && (
-                      <button type="button" className="dashboard-pill dashboard-pill-assigned" style={{ fontSize: '0.625rem', padding: '4px 10px', cursor: 'pointer' }} onClick={() => onUpdateTask(task, 'checkin')}>
-                        <PlayCircle size={10} style={{ marginRight: '4px' }} />
-                        Start
-                      </button>
-                    )}
-                    {laneKey === 'in_progress' && task && (
-                      <button type="button" className="dashboard-pill dashboard-pill-progress" style={{ fontSize: '0.625rem', padding: '4px 10px', cursor: 'pointer' }} onClick={() => onUpdateTask(task, 'complete')}>
-                        <CheckCircle2 size={10} style={{ marginRight: '4px' }} />
-                        Complete
-                      </button>
-                    )}
+
+
                     {laneKey === 'completed' && task && (
                       <button type="button" className="btn-ghost" style={{ fontSize: '0.625rem', padding: '4px 10px', height: 'auto', borderRadius: '99px' }} onClick={() => onUpdateTask(task, 'reopen')}>
                         <RotateCcw size={10} style={{ marginRight: '4px' }} />

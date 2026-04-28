@@ -63,11 +63,22 @@ router.get('/stats', auth, async (req, res) => {
       where: { status: 'pending' },
     });
 
+    // Count tasks completed today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const completedToday = await prisma.task.count({
+      where: {
+        status: 'completed',
+        completedAt: { gte: today },
+      },
+    });
+
     res.json({
       totalUsers: totalMembers,
       activeVolunteers: stats.volunteers,
       baseUsers: stats.others,
       pendingVolunteerRequests: pendingRequests,
+      completedToday: completedToday,
     });
   } catch (err) {
     console.error(err);

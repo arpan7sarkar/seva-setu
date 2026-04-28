@@ -275,7 +275,11 @@ router.patch('/:id/complete', auth, upload.single('image'), async (req, res) => 
           status: 'completed',
           completedAt: new Date(),
           completionImageUrl: imageUrl,
-          isCompletionVerified: true // Now always true if we reach here
+          isCompletionVerified: true, // Now always true if we reach here
+          ...(req.body.browserLat && req.body.browserLng && {
+            checkInLat: Number(req.body.browserLat),
+            checkInLng: Number(req.body.browserLng),
+          })
         },
       });
 
@@ -300,7 +304,7 @@ router.patch('/:id/complete', auth, upload.single('image'), async (req, res) => 
           data: { tasksCompleted: newCompleted, completionRate: newRate },
         });
       }
-    });
+    }, { timeout: 20000, maxWait: 10000 });
 
     res.json({ 
       message: 'Verified Completion! Impact bonus awarded.',
@@ -452,22 +456,41 @@ router.post('/accept-broadcast', auth, async (req, res) => {
     return res.status(400).json({ message: 'need_id is required' });
   }
 
+  // ── Step 0: Ensure we have the DB UUID (not the Clerk ID) ───────────
+  let volunteerUuid = req.user.id;
+  if (volunteerUuid.startsWith('user_')) {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: volunteerUuid },
+      select: { id: true }
+    });
+    if (!user) return res.status(404).json({ message: 'User not found in local database' });
+    volunteerUuid = user.id;
+  }
+
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Check that the need is still open
-      const need = await tx.need.findUnique({
-        where: { id: need_id },
-        select: { id: true, status: true, title: true },
+      // 1. ATOMIC LOCK: Try to update the need ONLY IF it is still 'open'
+      // This mathematically guarantees that only ONE transaction can ever win this race.
+      const lockedNeed = await tx.need.updateMany({
+        where: { id: need_id, status: 'open' },
+        data: { status: 'assigned', updatedAt: new Date() },
       });
 
-      if (!need) throw new Error('NEED_NOT_FOUND');
-      if (need.status !== 'open') throw new Error('ALREADY_ASSIGNED');
+      if (lockedNeed.count === 0) {
+        throw new Error('ALREADY_ASSIGNED');
+      }
 
-      // 2. Check that this volunteer has a valid, non-expired broadcast
+      // 2. Fetch the need details for the response
+      const need = await tx.need.findUnique({
+        where: { id: need_id },
+        select: { title: true }
+      });
+
+      // 3. Check that this volunteer has a valid, non-expired broadcast
       const broadcast = await tx.broadcastRequest.findFirst({
         where: {
           needId: need_id,
-          volunteerId: req.user.id,
+          volunteerId: volunteerUuid,
           status: 'pending',
         },
       });
@@ -475,22 +498,15 @@ router.post('/accept-broadcast', auth, async (req, res) => {
       if (!broadcast) throw new Error('NO_BROADCAST');
       if (new Date() > new Date(broadcast.expiresAt)) throw new Error('BROADCAST_EXPIRED');
 
-      // 3. Create the task assignment
+      // 4. Create the task assignment safely
       const task = await tx.task.create({
         data: {
           needId: need_id,
-          assignedVolunteerId: req.user.id,
+          assignedVolunteerId: volunteerUuid,
           notes: `Auto-assigned via broadcast dispatch`,
           status: 'assigned',
           assignedAt: new Date(),
         },
-      });
-
-      // 4. Update need status to assigned
-      await tx.need.update({
-        where: { id: need_id },
-        data: { status: 'assigned', updatedAt: new Date() },
-        select: { id: true },
       });
 
       // 5. Mark this broadcast as accepted
@@ -510,6 +526,9 @@ router.post('/accept-broadcast', auth, async (req, res) => {
       });
 
       return { taskId: task.id, needTitle: need.title };
+    }, {
+      timeout: 20000,
+      maxWait: 10000
     });
 
     console.log(`[BROADCAST] ✅ Volunteer ${req.user.id} accepted need ${need_id} → Task ${result.taskId}`);
@@ -531,7 +550,7 @@ router.post('/accept-broadcast', auth, async (req, res) => {
     }
 
     console.error('[BROADCAST] Accept error:', err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', details: err.message, stack: err.stack });
   }
 });
 
@@ -547,11 +566,21 @@ router.post('/reject-broadcast', auth, async (req, res) => {
     return res.status(400).json({ message: 'need_id is required' });
   }
 
+  // Resolve Clerk ID to DB UUID if necessary
+  let volunteerUuid = req.user.id;
+  if (volunteerUuid.startsWith('user_')) {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: volunteerUuid },
+      select: { id: true }
+    });
+    if (user) volunteerUuid = user.id;
+  }
+
   try {
     const updated = await prisma.broadcastRequest.updateMany({
       where: {
         needId: need_id,
-        volunteerId: req.user.id,
+        volunteerId: volunteerUuid,
         status: 'pending',
       },
       data: { status: 'rejected' },

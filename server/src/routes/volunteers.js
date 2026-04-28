@@ -76,7 +76,7 @@ router.get('/me/stats', auth, async (req, res) => {
   try {
     const stats = await prisma.$queryRaw`
       WITH volunteer_data AS (
-        SELECT location, skills, is_available, completion_rate
+        SELECT location, skills, is_available, completion_rate, tasks_completed
         FROM volunteers
         WHERE user_id = ${req.user.id}::uuid
       ),
@@ -99,9 +99,9 @@ router.get('/me/stats', auth, async (req, res) => {
       SELECT 
         vd.skills, 
         vd.is_available as "isAvailable", 
-        (SELECT COUNT(*)::int FROM completed_assignments) as "tasksCompleted",
+        vd.tasks_completed as "tasksCompleted",
         (SELECT COUNT(*)::int FROM resolved_reports) as "reportsResolved",
-        ((SELECT COUNT(*)::int FROM completed_assignments) + (SELECT COUNT(*)::int FROM resolved_reports)) as "totalImpact",
+        (vd.tasks_completed + (SELECT COUNT(*)::int FROM resolved_reports)) as "totalImpact",
         vd.completion_rate as "completionRate",
         COALESCE(
           (
@@ -154,10 +154,20 @@ router.post('/me/beacon-offline', async (req, res) => {
       return res.status(400).json({ message: 'Missing userId' });
     }
 
+    // Resolve Clerk ID to DB UUID if necessary
+    let dbUserId = userId;
+    if (userId.startsWith('user_')) {
+      const user = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        select: { id: true }
+      });
+      if (user) dbUserId = user.id;
+    }
+
     await prisma.$executeRaw`
-      UPDATE volunteers SET is_available = false, updated_at = now() WHERE user_id = ${userId}::uuid
+      UPDATE volunteers SET is_available = false, updated_at = now() WHERE user_id = ${dbUserId}::uuid
     `;
-    console.log(`[BEACON] Volunteer ${userId} marked OFFLINE (browser closed).`);
+    console.log(`[BEACON] Volunteer ${dbUserId} marked OFFLINE.`);
     res.json({ message: 'Marked offline' });
   } catch (err) {
     console.error('[BEACON] Error:', err.message);
