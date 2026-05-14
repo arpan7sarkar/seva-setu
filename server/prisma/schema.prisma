@@ -87,6 +87,7 @@ model User {
   reviewedRequests   VolunteerRequest[]  @relation("ReviewedByCoordinator")
   broadcastRequests  BroadcastRequest[]  @relation("BroadcastRequests")
 
+  @@index([role])
   @@map("users")
 }
 
@@ -139,6 +140,7 @@ model Need {
   tasks    Task[]
   broadcastRequests BroadcastRequest[]
 
+  @@index([status])
   @@map("needs")
 }
 
@@ -161,6 +163,7 @@ model Task {
   assignedVolunteer User @relation("AssignedTasks", fields: [assignedVolunteerId], references: [id], onDelete: Cascade)
 
   @@index([assignedVolunteerId])
+  @@index([status])
   @@map("tasks")
 }
 
@@ -205,5 +208,6 @@ model VolunteerRequest {
   user      User  @relation("UserVolunteerRequests", fields: [userId], references: [id], onDelete: Cascade)
   reviewer  User? @relation("ReviewedByCoordinator", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
+  @@index([status])
   @@map("volunteer_requests")
 }
