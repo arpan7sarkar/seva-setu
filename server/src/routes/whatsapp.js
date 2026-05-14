@@ -8,6 +8,7 @@ try {
 }
 const prisma = require('../config/db');
 const { calculateScore } = require('../services/scoringService');
+const redisService = require('../services/redisService');
 
 // Safe destructuring
 const MessagingResponse = twilio?.twiml?.MessagingResponse;
@@ -25,21 +26,17 @@ router.post('/webhook', async (req, res) => {
   const fromNumber = req.body.From;
 
   try {
-    let session = await prisma.botSession.findUnique({
-      where: { phoneNumber: fromNumber }
-    });
+    let session = await redisService.getBotSession(fromNumber);
 
     if (!session) {
-      session = await prisma.botSession.create({
-        data: { phoneNumber: fromNumber, step: 'idle' }
-      });
+      session = { step: 'idle', stateData: {} };
+      await redisService.saveBotSession(fromNumber, session);
     }
 
     if (incomingMsg.toLowerCase() === 'help' || incomingMsg.toLowerCase() === 'report') {
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { step: 'awaiting_need_type' }
-      });
+      session.step = 'awaiting_need_type';
+      await redisService.saveBotSession(fromNumber, session);
+      
       twiml.message('Emergency Report System\nWhat is the nature of the emergency?\n1. Medical/Medicine\n2. Accidental\n3. Food & Water\n4. Shelter/Housing\n5. Rescue Operations\n6. General/Other\n\nReply with the number.');
     } else if (session.step === 'awaiting_need_type') {
       let needType = 'other';
@@ -50,75 +47,47 @@ router.post('/webhook', async (req, res) => {
       if (incomingMsg === '5') needType = 'rescue';
       if (incomingMsg === '6') needType = 'other';
 
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { 
-          step: 'awaiting_district', 
-          stateData: { needType } 
-        }
-      });
+      session.step = 'awaiting_district';
+      session.stateData = { needType };
+      await redisService.saveBotSession(fromNumber, session);
+      
       twiml.message('What District is this in? (e.g. "South District")');
     } else if (session.step === 'awaiting_district') {
-      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+      session.step = 'awaiting_ward';
+      session.stateData = { ...session.stateData, district: incomingMsg };
+      await redisService.saveBotSession(fromNumber, session);
       
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { 
-          step: 'awaiting_ward', 
-          stateData: { ...state, district: incomingMsg } 
-        }
-      });
       twiml.message('What is the name of your Area, Ward, or Village?');
     } else if (session.step === 'awaiting_ward') {
-      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+      session.step = 'awaiting_people_count';
+      session.stateData = { ...session.stateData, ward: incomingMsg };
+      await redisService.saveBotSession(fromNumber, session);
       
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { 
-          step: 'awaiting_people_count', 
-          stateData: { ...state, ward: incomingMsg } 
-        }
-      });
       twiml.message('MANDATORY: How many people are approx. affected or injured? (Reply with a number, e.g. "5")');
     } else if (session.step === 'awaiting_people_count') {
-      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
       const count = parseInt(incomingMsg) || 1;
+      session.step = 'awaiting_description';
+      session.stateData = { ...session.stateData, peopleAffected: count };
+      await redisService.saveBotSession(fromNumber, session);
       
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { 
-          step: 'awaiting_description', 
-          stateData: { ...state, peopleAffected: count } 
-        }
-      });
       twiml.message('Describe the emergency briefly (e.g. "House flooded, families on roof"):');
     } else if (session.step === 'awaiting_description') {
-      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+      session.step = 'awaiting_contact_number';
+      session.stateData = { ...session.stateData, description: incomingMsg };
+      await redisService.saveBotSession(fromNumber, session);
       
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { 
-          step: 'awaiting_contact_number', 
-          stateData: { ...state, description: incomingMsg } 
-        }
-      });
       twiml.message('Please provide a Contact Number (Call/WhatsApp) where you can be reached (e.g. 9876543210):');
     } else if (session.step === 'awaiting_contact_number') {
-      const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+      session.step = 'awaiting_location';
+      session.stateData = { ...session.stateData, contactNumber: incomingMsg };
+      await redisService.saveBotSession(fromNumber, session);
       
-      await prisma.botSession.update({
-        where: { phoneNumber: fromNumber },
-        data: { 
-          step: 'awaiting_location', 
-          stateData: { ...state, contactNumber: incomingMsg } 
-        }
-      });
       twiml.message('Almost done. Please share your exact GPS location using the 📎 pin icon in WhatsApp -> Location -> "Send your current location".\n\n(No photo is required for WhatsApp reports)');
     } else if (session.step === 'awaiting_location') {
       if (req.body.Latitude && req.body.Longitude) {
         const lat = parseFloat(req.body.Latitude);
         const lng = parseFloat(req.body.Longitude);
-        const state = typeof session.stateData === 'string' ? JSON.parse(session.stateData) : (session.stateData || {});
+        const state = session.stateData || {};
         
         // Calculate dynamic urgency score (0-10)
         const priorityScore = calculateScore({
@@ -156,10 +125,7 @@ router.post('/webhook', async (req, res) => {
           triggerBroadcast(needId, 6).catch(err => console.error('[BROADCAST] WA Trigger failed:', err));
         }
 
-        await prisma.botSession.update({
-          where: { phoneNumber: fromNumber },
-          data: { step: 'idle', stateData: {} }
-        });
+        await redisService.deleteBotSession(fromNumber);
         twiml.message(`Mission Logged! (Priority: ${priorityScore}/10)\nLocation captured for ${state.peopleAffected} people. Volunteers are being dispatched.`);
       } else {
         twiml.message('GPS Location is mandatory. Please use the 📎 icon -> Location -> "Send your current location".');

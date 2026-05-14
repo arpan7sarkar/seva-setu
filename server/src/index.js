@@ -89,12 +89,18 @@ app.use('/api/chat', require('./routes/chat'));
 
 // ── Health Check ─────────────────────────────────────────────────────
 app.get('/api/health', async (req, res) => {
+  const checkDb = req.query.db === 'true';
   try {
-    // Quick DB connectivity check
-    const result = await prisma.$queryRaw`SELECT NOW() AS server_time`;
+    let dbStatus = 'skipped';
+    if (checkDb) {
+      const result = await prisma.$queryRaw`SELECT NOW() AS server_time`;
+      dbStatus = 'ok';
+    }
+    
     res.json({
       status: 'ok',
-      timestamp: result[0].server_time,
+      db: dbStatus,
+      timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'production',
     });
   } catch (err) {

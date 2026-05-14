@@ -14,6 +14,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:push": "prisma db push",
+    "db:optimize": "node scripts/optimize-db.js",
     "seed": "node prisma/seed.js",
     "db:reset": "prisma migrate reset --force",
     "postinstall": "prisma generate"
