@@ -1,4 +1,3 @@
-/** @type {import('prisma').Config} */
-module.exports = {
-  seed: 'node prisma/seed.js',
-};
+export default {
+  seed: 'node prisma/seed.js'
+}
