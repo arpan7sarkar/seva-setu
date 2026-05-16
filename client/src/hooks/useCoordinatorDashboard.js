@@ -84,7 +84,7 @@ export const useCoordinatorDashboard = () => {
       if (document.visibilityState === 'visible') {
         loadDashboard(false);
       }
-    }, 20000); // 20s while active, 0s while hidden
+    }, 60000); // 60s while active (Balanced for snappy feel + DB credits)
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {

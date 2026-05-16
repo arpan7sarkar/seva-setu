@@ -217,7 +217,7 @@ router.get('/:id/status', auth, async (req, res) => {
  * @route   GET /api/tasks/my
  * @desc    Get assigned tasks for the logged-in volunteer
  */
-router.get('/my', auth, cache(30), async (req, res) => {
+router.get('/my', auth, cache(60), async (req, res) => {
   try {
     const tasks = await prisma.$queryRaw`
       SELECT
@@ -263,7 +263,7 @@ router.get('/my', auth, cache(30), async (req, res) => {
  * @route   GET /api/tasks
  * @desc    Get all tasks for coordinator dashboard
  */
-router.get('/', auth, cache(30), async (req, res) => {
+router.get('/', auth, cache(60), async (req, res) => {
   if (req.user.role !== 'coordinator') {
     return res.status(403).json({ message: 'Access denied' });
   }
@@ -294,7 +294,7 @@ router.get('/', auth, cache(30), async (req, res) => {
 /**
  * @route   GET /api/tasks/my-broadcasts
  */
-router.get('/my-broadcasts', auth, cache(15), async (req, res) => {
+router.get('/my-broadcasts', auth, cache(60), async (req, res) => {
   try {
     const broadcasts = await prisma.$queryRaw`
       SELECT
@@ -434,7 +434,7 @@ router.post('/reject-broadcast', auth, async (req, res) => {
 /**
  * @route   GET /api/tasks/broadcast-status/:needId
  */
-router.get('/broadcast-status/:needId', auth, async (req, res) => {
+router.get('/broadcast-status/:needId', auth, cache(30), async (req, res) => {
   if (req.user.role !== 'coordinator') return res.status(403).json({ message: 'Access denied' });
 
   try {

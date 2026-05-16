@@ -256,7 +256,7 @@ export const useVolunteerApp = () => {
       if (document.visibilityState === 'visible') {
         loadData();
       }
-    }, 20000); // 20s while active
+    }, 60000); // 60s while active (Balanced for snappy feel + DB credits)
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {
@@ -277,10 +277,10 @@ export const useVolunteerApp = () => {
 
         const newCoords = { lat: latitude, lng: longitude, heading, accuracy };
 
-        // JITTER FILTER: Ignore shifts smaller than 10 meters
+        // JITTER FILTER: Ignore shifts smaller than 50 meters (increased from 10m to save DB credits)
         if (lastUpdatePos.current) {
           const drift = haversineKm(newCoords, lastUpdatePos.current);
-          if (drift < 0.010) return;
+          if (drift < 0.050) return;
         }
 
         lastUpdatePos.current = newCoords;

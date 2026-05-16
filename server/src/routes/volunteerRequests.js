@@ -55,7 +55,7 @@ router.post('/', auth, async (req, res) => {
  * @desc    Get the current user's application status
  * @access  Private (any authenticated user)
  */
-router.get('/my-status', auth, async (req, res) => {
+router.get('/my-status', auth, cache(60), async (req, res) => {
   try {
     const request = await prisma.volunteerRequest.findFirst({
       where: { userId: req.user.id },

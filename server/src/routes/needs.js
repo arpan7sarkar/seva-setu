@@ -203,7 +203,7 @@ router.get('/', auth, cache(30), async (req, res) => {
  * @route   GET /api/needs/heatmap
  * @desc    Get needs data for heatmap rendering
  */
-router.get('/heatmap', async (req, res) => {
+router.get('/heatmap', cache(120), async (req, res) => {
   try {
     const data = await prisma.$queryRaw`
       SELECT urgency_score,
@@ -297,7 +297,7 @@ const { findMatches } = require('../services/matchingService');
  * @desc    Get top 3 matching volunteers for a need
  * @access  Private (Coordinator)
  */
-router.get('/:id/matches', auth, async (req, res) => {
+router.get('/:id/matches', auth, cache(60), async (req, res) => {
   if (req.user.role !== 'coordinator') {
     return res.status(403).json({ message: 'Access denied' });
   }
