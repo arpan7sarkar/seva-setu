@@ -28,7 +28,6 @@ const needsRoutes = require('./routes/needs');
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://seva-setu-ai.vercel.app', // Your production frontend
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
