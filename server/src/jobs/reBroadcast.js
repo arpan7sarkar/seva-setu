@@ -29,7 +29,7 @@ const startReBroadcastJob = () => {
         console.log(`[CRON] Found ${pendingNeeds.length} open needs within the 30-min window. Re-broadcasting...`);
         for (const need of pendingNeeds) {
           try {
-            await triggerBroadcast(need.id, 6);
+            await triggerBroadcast(need.id, 2);
             console.log(`[CRON] Re-broadcast dispatched for need: ${need.title}`);
           } catch (dispatchErr) {
             console.error(`[CRON] Failed to re-broadcast need ${need.id}:`, dispatchErr.message);
@@ -39,7 +39,7 @@ const startReBroadcastJob = () => {
     } catch (err) {
       console.error(`[CRON] Re-broadcast sweep failed:`, err);
     }
-  }, 30 * 60 * 1000); // 30 minutes
+  }, 5 * 60 * 1000); // Run every 5 minutes
 };
 
 module.exports = { startReBroadcastJob };

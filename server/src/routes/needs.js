@@ -273,7 +273,7 @@ router.patch('/:id/status', auth, async (req, res) => {
     // If the status is now 'open', trigger the broadcast (mass dispatch)
     if (status === 'open' || status === 'accepted') {
       const { triggerBroadcast } = require('../services/matchingService');
-      triggerBroadcast(req.params.id, 6).catch(err => {
+      triggerBroadcast(req.params.id, 2).catch(err => {
         console.error('[BROADCAST] Manual trigger failed:', err.message);
       });
     }

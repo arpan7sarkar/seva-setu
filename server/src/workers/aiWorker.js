@@ -111,7 +111,7 @@ const aiWorker = new Worker('ai-verification', async (job) => {
       if (finalVerified) {
         try {
           const { triggerBroadcast } = require('../services/matchingService');
-          await triggerBroadcast(id, 6);
+          await triggerBroadcast(id, 2);
         } catch (e) { console.error('[Worker] Dispatch failed:', e.message); }
       }
     } else if (type === 'task') {
