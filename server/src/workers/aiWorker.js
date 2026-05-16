@@ -112,6 +112,9 @@ const aiWorker = new Worker('ai-verification', async (job) => {
         try {
           const { triggerBroadcast } = require('../services/matchingService');
           await triggerBroadcast(id, 2);
+          
+          const redisService = require('../services/redisService');
+          await redisService.addToSet('needs_to_rebroadcast', id);
         } catch (e) { console.error('[Worker] Dispatch failed:', e.message); }
       }
     } else if (type === 'task') {

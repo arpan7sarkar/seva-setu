@@ -391,6 +391,7 @@ router.post('/accept-broadcast', auth, async (req, res) => {
     redisService.clearCache('/api/tasks').catch(() => {});
     redisService.clearCache('/api/needs').catch(() => {});
     redisService.clearCache('/api/tasks/my-broadcasts').catch(() => {});
+    redisService.removeFromSet('needs_to_rebroadcast', need_id).catch(() => {});
 
     res.status(201).json({ message: 'Mission accepted! Head to the incident location.' });
   } catch (err) {

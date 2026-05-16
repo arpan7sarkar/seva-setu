@@ -11,6 +11,7 @@ const FormData = require('form-data');
 const imagekit = require('../config/imagekit');
 const { aiVerificationQueue } = require('../config/queue');
 const cache = require('../middleware/cache');
+const redisService = require('../services/redisService');
 
 const router = express.Router();
 
@@ -98,8 +99,6 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 
     // Cleanup local file immediately
     try { fs.unlinkSync(req.file.path); } catch (e) {}
-
-const redisService = require('../services/redisService');
 
     // --- SMART INVALIDATION ---
     redisService.clearCache('/api/needs').catch(() => {});
@@ -279,8 +278,10 @@ router.patch('/:id/status', auth, async (req, res) => {
     }
 
     // --- SMART INVALIDATION ---
-    const redisService = require('../services/redisService');
     redisService.clearCache('/api/needs').catch(() => {});
+    if (status === 'open' || status === 'accepted') {
+      redisService.addToSet('needs_to_rebroadcast', req.params.id).catch(() => {});
+    }
     // ──────────────────────────
 
     res.json({ message: 'Status updated' });

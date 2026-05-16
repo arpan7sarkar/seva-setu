@@ -58,18 +58,9 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // ── Root Route for Deployment Testing ───────────────────────────────
-app.get('/', async (req, res) => {
-  let dbStatus = 'checking...';
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    dbStatus = 'connected';
-  } catch (err) {
-    dbStatus = 'failed: ' + err.message;
-  }
-
+app.get('/', (req, res) => {
   res.json({
     message: '🌉 SevaSetu API is live!',
-    db: dbStatus,
     env: process.env.NODE_ENV || 'production',
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
