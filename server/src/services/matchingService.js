@@ -175,6 +175,10 @@ const triggerBroadcast = async (needId, radiusKm = 6) => {
     await redisService.clearCache('/api/tasks/my-broadcasts');
   } catch {}
 
+  if (global.io) {
+    global.io.emit('broadcast_created', { needId });
+  }
+
   return { count: successCount, expiresAt };
 };
 

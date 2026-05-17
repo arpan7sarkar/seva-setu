@@ -725,7 +725,7 @@ button {
    ══════════════════════════════════════════════════════════════ */
 .volunteer-broadcast-container {
   margin-top: 1rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   animation: slideInDown 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -747,47 +747,70 @@ button {
   padding-left: 0.25rem;
 }
 
+/* Broadcast list: auto-fit grid — 1 card fills full width, 2+ are side-by-side */
 .volunteer-broadcast-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
   gap: 1rem;
   padding: 0 0.25rem 0.5rem;
 }
 
 .volunteer-broadcast-list > article {
   width: 100%;
-  margin: 0 auto;
   box-sizing: border-box;
 }
 
-@media (min-width: 768px) {
-  .volunteer-broadcast-list {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
-  .volunteer-broadcast-list > article {
-    flex: 0 0 calc(50% - 0.625rem);
-    max-width: 480px;
-  }
-}
-
-@media (min-width: 768px) {
-  .volunteer-broadcast-list > article {
-    flex: 0 0 450px;
-  }
-}
-
+/* ── Shell: single column → two-column on desktop ──────────── */
 .volunteer-shell {
   padding-top: 1.5rem;
   padding-bottom: 5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .volunteer-shell {
+    grid-template-columns: 360px 1fr;
+    align-items: start;
+    gap: 1.25rem;
+    max-width: 1400px;
+    margin-inline: auto;
+    padding-inline: 2rem;
+  }
+
+  /* Full-width rows */
+  .volunteer-hero,
+  .volunteer-broadcast-container,
+  .volunteer-stats-grid {
+    grid-column: 1 / -1;
+  }
+
+  /* Left column: availability + controls */
+  .volunteer-availability {
+    grid-column: 1 / 2;
+  }
+
+  /* Right column: task list */
+  .volunteer-task-list,
+  .volunteer-loading,
+  .volunteer-error,
+  .volunteer-empty {
+    grid-column: 2 / 3;
+  }
+}
+
+@media (min-width: 1280px) {
+  .volunteer-shell {
+    grid-template-columns: 400px 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .volunteer-hero {
   padding: 2rem 1.5rem;
   background: linear-gradient(135deg, rgba(45, 97, 72, 0.04), transparent);
   border-color: rgba(45, 97, 72, 0.1);
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .volunteer-title {
@@ -810,3 +833,4 @@ button {
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
 }
+

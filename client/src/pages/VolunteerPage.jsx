@@ -563,8 +563,8 @@ const VolunteerPage = () => {
             );
           })}
 
-            {tasks.length === 0 ? (
-              <article className="card volunteer-empty">
+          {tasks.length === 0 ? (
+              <article className="card volunteer-empty volunteer-loading">
                 <Sparkles className="w-5 h-5 text-text-muted" />
                 <p className="text-sm text-text-secondary">No assigned tasks yet.</p>
               </article>

@@ -141,9 +141,11 @@ const aiWorker = new Worker('ai-verification', async (job) => {
         }
       });
       redisService.clearCache('/api/needs').catch(() => {});
+      redisService.clearCache('/api/coordinators/stats').catch(() => {});
 
       if (global.io) {
         global.io.emit('need_updated', { id, status: finalVerified ? 'open' : 'rejected' });
+        console.log(`[SOCKET] ✅ need_updated emitted → needId: ${id}, verified: ${finalVerified}`);
       }
 
       if (finalVerified) {
