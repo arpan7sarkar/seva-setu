@@ -23,7 +23,7 @@ export const fetchNeedMatches = async (needId) => {
 export const assignVolunteerToNeed = async ({ needId, volunteerId }) => {
   const { data } = await api.post('/tasks', {
     need_id: needId,
-    assigned_volunteer_id: volunteerId,
+    volunteer_id: volunteerId,     // ← matches server: const { need_id, volunteer_id } = req.body
     notes: 'Assigned from coordinator dashboard',
   });
   return data;

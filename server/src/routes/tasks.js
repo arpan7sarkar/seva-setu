@@ -47,8 +47,16 @@ router.post('/', auth, async (req, res) => {
 
     // --- SMART INVALIDATION ---
     redisService.clearCache('/api/tasks').catch(() => {});
+    redisService.clearCache('/api/tasks/my').catch(() => {});
     redisService.clearCache('/api/needs').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
     // ──────────────────────────
+
+    if (global.io) {
+      global.io.emit('task_created', { needId: need_id, volunteerId: volunteer_id });
+      global.io.emit('need_updated', { id: need_id, status: 'assigned' });
+      console.log(`[SOCKET] ✅ task_created emitted → volunteerId: ${volunteer_id}, needId: ${need_id}`);
+    }
 
     res.status(201).json({ taskId, message: 'Volunteer assigned successfully' });
   } catch (err) {
@@ -400,6 +408,12 @@ router.post('/accept-broadcast', auth, async (req, res) => {
     redisService.clearCache('/api/coordinators/stats').catch(() => {});
     redisService.removeFromSet('needs_to_rebroadcast', need_id).catch(() => {});
 
+    if (global.io) {
+      global.io.emit('task_created', { needId: need_id, volunteerId: req.user.id });
+      global.io.emit('broadcast_accepted', { needId: need_id, volunteerId: req.user.id });
+      global.io.emit('need_updated', { id: need_id, status: 'assigned' });
+    }
+
     res.status(201).json({ message: 'Mission accepted! Head to the incident location.' });
   } catch (err) {
     if (err.message.includes('already claimed')) {
@@ -434,6 +448,10 @@ router.post('/reject-broadcast', auth, async (req, res) => {
 
     // Invalidate cache so dismissed card disappears on next poll
     redisService.clearCache('/api/tasks/my-broadcasts').catch(() => {});
+
+    if (global.io) {
+      global.io.emit('broadcast_rejected', { needId: need_id, volunteerId: req.user.id });
+    }
 
     res.json({ message: 'Broadcast dismissed.' });
   } catch (err) {

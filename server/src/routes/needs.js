@@ -101,7 +101,14 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 
     // --- SMART INVALIDATION ---
     redisService.clearCache('/api/needs').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
     // ──────────────────────────
+
+    // Notify coordinator dashboard instantly — show 'pending' card in real-time
+    if (global.io) {
+      global.io.emit('need_created', { id: need.id, status: 'pending' });
+      console.log(`[SOCKET] ✅ need_created emitted → needId: ${need.id}`);
+    }
 
     // Return 202 Accepted - Frontend will poll for status
     res.status(202).json({
