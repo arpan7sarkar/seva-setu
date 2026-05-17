@@ -83,6 +83,13 @@ const aiWorker = new Worker('ai-verification', async (job) => {
     // 2. AI Content Check (using buffer, ONLY if EXIF GPS passed the distance check)
     if (geoTagPassed) {
       try {
+        // Fast pre-check (2s timeout) to verify AI service is online before sending large image payloads
+        try {
+          await axios.get(`${AI_SERVICE_URL}/health`, { timeout: 2000 });
+        } catch (healthErr) {
+          throw new Error('AI service is offline or unreachable.');
+        }
+
         const form = new FormData();
         form.append('file', imageBuffer, { filename: fileName });
         form.append('upload_type', type === 'task' ? 'PROOF_OF_RELIEF' : 'ISSUE_REGISTRATION');
@@ -92,7 +99,7 @@ const aiWorker = new Worker('ai-verification', async (job) => {
 
         const aiResponse = await axios.post(`${AI_SERVICE_URL}/verify-image`, form, {
           headers: form.getHeaders(),
-          timeout: 30000
+          timeout: 10000
         });
 
         if (aiResponse.data.is_verified) isVerified = true;
@@ -135,6 +142,10 @@ const aiWorker = new Worker('ai-verification', async (job) => {
       });
       redisService.clearCache('/api/needs').catch(() => {});
 
+      if (global.io) {
+        global.io.emit('need_updated', { id, status: finalVerified ? 'open' : 'rejected' });
+      }
+
       if (finalVerified) {
         try {
           const { triggerBroadcast } = require('../services/matchingService');
@@ -143,8 +154,9 @@ const aiWorker = new Worker('ai-verification', async (job) => {
         } catch (e) { console.error('[Worker] Dispatch failed:', e.message); }
       }
     } else if (type === 'task') {
+      let updatedTask = null;
       await prisma.$transaction(async (tx) => {
-        const task = await tx.task.update({
+        updatedTask = await tx.task.update({
           where: { id },
           data: {
             status: finalVerified ? 'completed' : 'in_progress',
@@ -160,11 +172,11 @@ const aiWorker = new Worker('ai-verification', async (job) => {
         });
 
         if (finalVerified) {
-          await tx.need.update({ where: { id: task.needId }, data: { status: 'completed' } });
-          const vol = await tx.volunteer.findUnique({ where: { userId: task.assignedVolunteerId } });
+          await tx.need.update({ where: { id: updatedTask.needId }, data: { status: 'completed' } });
+          const vol = await tx.volunteer.findUnique({ where: { userId: updatedTask.assignedVolunteerId } });
           if (vol) {
             await tx.volunteer.update({
-              where: { userId: task.assignedVolunteerId },
+              where: { userId: updatedTask.assignedVolunteerId },
               data: { 
                 tasksCompleted: (vol.tasksCompleted || 0) + 1,
                 completionRate: Math.min(1.0, (vol.completionRate || 0) + 0.10)
@@ -174,7 +186,18 @@ const aiWorker = new Worker('ai-verification', async (job) => {
         }
       });
       redisService.clearCache('/api/tasks').catch(() => {});
+      redisService.clearCache('/api/tasks/my').catch(() => {});
       redisService.clearCache('/api/needs').catch(() => {});
+      redisService.clearCache('/api/volunteers').catch(() => {});
+      redisService.clearCache('/api/volunteers/me/stats').catch(() => {});
+      redisService.clearCache('/api/coordinators/stats').catch(() => {});
+
+      if (global.io && updatedTask) {
+        global.io.emit('task_updated', { id, status: finalVerified ? 'completed' : 'in_progress' });
+        if (finalVerified) {
+          global.io.emit('need_updated', { id: updatedTask.needId, status: 'completed' });
+        }
+      }
     }
 
     // --- 3.5. Background ImageKit Upload & Secondary DB Update ---

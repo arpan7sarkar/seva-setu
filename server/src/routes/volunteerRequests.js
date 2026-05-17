@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../config/db');
 const auth = require('../middleware/auth');
 const cache = require('../middleware/cache');
+const redisService = require('../services/redisService');
 
 const router = express.Router();
 
@@ -44,6 +45,11 @@ router.post('/', auth, async (req, res) => {
       },
     });
 
+    // Invalidate caches
+    redisService.clearCache('/api/volunteer-requests').catch(() => {});
+    redisService.clearCache('/api/volunteer-requests/my-status').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
+
     res.status(201).json(request);
   } catch (err) {
     console.error('[volunteer-requests] POST error:', err);
@@ -84,7 +90,7 @@ router.get('/my-status', auth, cache(60), async (req, res) => {
  * @desc    Get all pending volunteer requests
  * @access  Private (Coordinator only)
  */
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, cache(60), async (req, res) => {
   if (req.user.role !== 'coordinator') {
     return res.status(403).json({ message: 'Access denied' });
   }
@@ -176,6 +182,12 @@ router.patch('/:id/approve', auth, async (req, res) => {
       global.authCache.delete(promotedUser.clerkId);
     }
 
+    // Invalidate caches
+    redisService.clearCache('/api/volunteer-requests').catch(() => {});
+    redisService.clearCache('/api/volunteer-requests/my-status').catch(() => {});
+    redisService.clearCache('/api/volunteers').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
+
     res.json({ message: 'Volunteer application approved. User promoted to volunteer.' });
   } catch (err) {
     console.error('[volunteer-requests] APPROVE error:', err);
@@ -214,6 +226,11 @@ router.patch('/:id/reject', auth, async (req, res) => {
         reviewNote: req.body.review_note || 'Application did not meet requirements.',
       },
     });
+
+    // Invalidate caches
+    redisService.clearCache('/api/volunteer-requests').catch(() => {});
+    redisService.clearCache('/api/volunteer-requests/my-status').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
 
     res.json({ message: 'Volunteer application rejected.' });
   } catch (err) {

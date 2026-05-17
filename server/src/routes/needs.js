@@ -9,7 +9,7 @@ const exifr = require('exifr');
 const axios = require('axios');
 const FormData = require('form-data');
 const imagekit = require('../config/imagekit');
-const { aiVerificationQueue } = require('../config/queue');
+const { aiVerificationQueue, connection } = require('../config/queue');
 const cache = require('../middleware/cache');
 const redisService = require('../services/redisService');
 
@@ -42,6 +42,13 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
   const { title, description, need_type, lat, lng, ward, district, people_affected, is_disaster_zone } = req.body;
   
   try {
+    if (connection.status !== 'ready') {
+      return res.status(503).json({ 
+        message: 'Background queue is unreachable. Please ensure your local Redis server is running.',
+        details: 'Redis connection failed (ECONNREFUSED 127.0.0.1:6379).'
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: 'A live photo with GPS data is mandatory to verify your location.' });
     }
@@ -141,7 +148,7 @@ router.get('/:id/status', auth, async (req, res) => {
  * @desc    Get all needs with filters
  * @access  Private
  */
-router.get('/', auth, cache(30), async (req, res) => {
+router.get('/', auth, cache(60), async (req, res) => {
   const { status, district, need_type, min_urgency } = req.query;
 
   try {
@@ -335,6 +342,11 @@ router.delete('/:id', auth, async (req, res) => {
       data: { status: 'archived', updatedAt: new Date() },
       select: { id: true },
     });
+
+    // --- SMART INVALIDATION ---
+    redisService.clearCache('/api/needs').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
+    // ──────────────────────────
 
     res.json({ message: 'Need archived successfully' });
   } catch (err) {

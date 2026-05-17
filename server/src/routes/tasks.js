@@ -4,7 +4,7 @@ const path = require('path');
 const prisma = require('../config/db');
 const auth = require('../middleware/auth');
 const imagekit = require('../config/imagekit');
-const { aiVerificationQueue } = require('../config/queue');
+const { aiVerificationQueue, connection } = require('../config/queue');
 const cache = require('../middleware/cache');
 const redisService = require('../services/redisService');
 
@@ -92,6 +92,8 @@ router.patch('/:id/checkin', auth, async (req, res) => {
 
     // --- SMART INVALIDATION ---
     redisService.clearCache('/api/tasks').catch(() => {});
+    redisService.clearCache('/api/tasks/my').catch(() => {});
+    redisService.clearCache('/api/needs').catch(() => {});
     // ──────────────────────────
 
     res.json({ message: 'Checked in successfully' });
@@ -129,6 +131,13 @@ const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 }
  */
 router.patch('/:id/complete', auth, upload.single('image'), async (req, res) => {
   try {
+    if (connection.status !== 'ready') {
+      return res.status(503).json({ 
+        message: 'Background queue is unreachable. Please ensure your local Redis server is running.',
+        details: 'Redis connection failed (ECONNREFUSED 127.0.0.1:6379).'
+      });
+    }
+
     const task = await prisma.task.findUnique({ 
       where: { id: req.params.id },
       include: { need: true }
@@ -167,8 +176,9 @@ router.patch('/:id/complete', auth, upload.single('image'), async (req, res) => 
       }
     });
 
-    // Clear cache so coordinator knows it's being verified
+    // Clear cache so coordinator and volunteer know it's being verified
     redisService.clearCache('/api/tasks').catch(() => {});
+    redisService.clearCache('/api/tasks/my').catch(() => {});
 
     res.status(202).json({
       message: 'Task completion submitted and queued for verification.',
@@ -384,8 +394,10 @@ router.post('/accept-broadcast', auth, async (req, res) => {
 
     // 4. Cache invalidation
     redisService.clearCache('/api/tasks').catch(() => {});
+    redisService.clearCache('/api/tasks/my').catch(() => {});
     redisService.clearCache('/api/needs').catch(() => {});
     redisService.clearCache('/api/tasks/my-broadcasts').catch(() => {});
+    redisService.clearCache('/api/coordinators/stats').catch(() => {});
     redisService.removeFromSet('needs_to_rebroadcast', need_id).catch(() => {});
 
     res.status(201).json({ message: 'Mission accepted! Head to the incident location.' });
@@ -433,7 +445,7 @@ router.post('/reject-broadcast', auth, async (req, res) => {
 /**
  * @route   GET /api/tasks/broadcast-status/:needId
  */
-router.get('/broadcast-status/:needId', auth, cache(30), async (req, res) => {
+router.get('/broadcast-status/:needId', auth, cache(60), async (req, res) => {
   if (req.user.role !== 'coordinator') return res.status(403).json({ message: 'Access denied' });
 
   try {
